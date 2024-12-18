@@ -1,0 +1,39 @@
+---
+# tasks file for roles/MySQL
+- name: Install mysql
+  ansible.builtin.apt:
+    name:
+      - mysql-server
+      - python3-pymysql
+    state: present
+  become: true
+  tags:
+    - mysql
+    - apt
+
+- name: Ensure that databases exist
+  community.mysql.mysql_db:
+    name: "{{ mysql.databases }}"
+    state: present
+    login_user: "{{ mysql.login_user }}"
+    login_password: "{{ mysql.login_password | default(omit) }}"
+    login_unix_socket: "{{ mysql.login_unix_socket | default(omit) }}"
+  become: true
+  tags:
+    - mysql
+    - apt
+
+- name: Ensure that database user
+  community.mysql.mysql_user:
+    name: "{{ item.value.name }}"
+    password: "{{ item.value.password }}"
+    priv: "{{ item.value.priv }}"
+    login_user: "{{ mysql.login_user }}"
+    login_password: "{{ mysql.login_password | default(omit) }}"
+    login_unix_socket: "{{ mysql.login_unix_socket | default(omit) }}"
+    state: present
+  become: true
+  with_dict: "{{ mysql.users }}"
+  tags:
+    - mysql
+    - apt

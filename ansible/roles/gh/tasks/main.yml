@@ -1,0 +1,15 @@
+---
+# tasks file for roles/gh
+- name: Gather facts
+  ansible.builtin.gather_facts:
+  when: ansible_facts.system is not defined
+  tags:
+    - gh
+
+- name: Import task
+  ansible.builtin.import_tasks: unix_gh.yml
+  when: ansible_facts.system in ['Linux', 'Darwin']
+
+- name: Import task
+  ansible.builtin.import_tasks: win_gh.yml
+  when: ansible_facts.system in ['Win32NT']

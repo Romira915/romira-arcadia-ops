@@ -1,0 +1,76 @@
+---
+# tasks file for roles/redis
+- name: Add redis repository
+  block:
+    - name: Download redis gpg key
+      ansible.builtin.get_url:
+        url: https://packages.redis.io/gpg
+        dest: /tmp/redis-archive-keyring.gpg
+        mode: "0644"
+      become: true
+      tags:
+        - redis
+        - apt
+
+    - name: Decode redis gpg key
+      ansible.builtin.shell: cat /tmp/redis-archive-keyring.gpg | gpg --yes --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+      become: true
+      tags:
+        - redis
+
+    - name: Check command lsb_release
+      ansible.builtin.command: lsb_release -cs
+      changed_when: false
+      register: distribution_release
+      tags:
+        - redis
+
+    - name: Add Redis repository by apt_repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb {{ distribution_release.stdout }} main"
+        filename: redis.list
+        state: present
+      become: true
+      tags:
+        - redis
+        - apt
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+  tags:
+    - redis
+    - apt
+
+- name: Install redis
+  ansible.builtin.apt:
+    name: redis
+    state: present
+  become: true
+  tags:
+    - redis
+    - apt
+
+- name: Ensure redis-server enabled
+  ansible.builtin.systemd:
+    name: redis-server.service
+    enabled: true
+  become: true
+  tags:
+    - redis
+    - systemd
+
+- name: Ensure redis.conf exists
+  ansible.builtin.template:
+    src: redis.conf
+    dest: /etc/redis/redis.conf
+    owner: redis
+    group: redis
+    mode: "0640"
+  become: true
+  notify: Restart redis-server
+  tags:
+    - redis
+    - configuration
+    - template

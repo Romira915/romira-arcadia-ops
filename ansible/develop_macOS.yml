@@ -1,0 +1,9 @@
+---
+- name: Provisioning
+  hosts: develop_macOS
+  roles:
+    - brew
+  vars:
+    # linuxbrew_use_installer: true
+    linuxbrew_init_shell: false
+  tags: develop_macOS

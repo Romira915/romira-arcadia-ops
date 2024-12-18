@@ -1,0 +1,28 @@
+---
+# tasks file for roles/wsl
+- block:
+    - name: Disable UAC popup for Administrators
+      ansible.windows.win_regedit:
+        key: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+        value: ConsentPromptBehaviorAdmin
+        data: "00000000"
+        datatype: dword
+
+    # WARN: 原因不明のエラーで動作しない
+    - name: Update wsl
+      ansible.windows.win_shell: wsl --update
+
+    # WARN: 原因不明のエラーで動作しない
+    - name: Ensure ubuntu is installed
+      ansible.windows.win_shell: wsl --install --distribution Ubuntu --no-launch > $null
+
+  always:
+    - name: Enable UAC popup for Administrators
+      ansible.windows.win_regedit:
+        key: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+        value: ConsentPromptBehaviorAdmin
+        data: "00000005"
+        datatype: dword
+
+  tags:
+    - wsl

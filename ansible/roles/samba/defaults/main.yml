@@ -1,0 +1,10 @@
+---
+# defaults file for roles/samba
+user:
+  users:
+    - name:
+      password:
+samba:
+  mount_dir: /mnt/d
+  interfaces: 127.0.0.0/8
+  hosts_allow: 192.168.1.0/24

@@ -1,0 +1,12 @@
+[develop_windows]
+172.17.15.3
+172.17.15.5
+172.23.224.1
+172.18.214.5
+172.28.32.1
+
+[develop_windows:vars]
+ansible_user=romira
+ansible_port=5986
+ansible_connection=winrm
+ansible_winrm_server_cert_validation=ignore

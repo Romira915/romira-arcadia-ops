@@ -1,0 +1,13 @@
+---
+# tasks file for roles/bitwarden
+- name: Gather facts
+  ansible.builtin.gather_facts:
+  when: ansible_facts.system is not defined
+  tags:
+    - bitwarden
+
+- import_tasks: unix_bitwarden.yml
+  when: ansible_facts.system in ['Linux', 'Darwin']
+
+- import_tasks: win_bitwarden.yml
+  when: ansible_facts.system in ['Win32NT']

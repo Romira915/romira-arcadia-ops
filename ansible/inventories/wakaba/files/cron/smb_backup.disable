@@ -1,0 +1,5 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+5 1 * * * root flock -n /tmp/rsync.lock rsync -avz --delete /mnt/d/romira/ hinokuni:/mnt/d/romira/
+

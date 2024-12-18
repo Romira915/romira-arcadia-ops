@@ -1,0 +1,17 @@
+---
+# handlers file for roles/OpenLiteSpeed
+- name: Reload openlitespeed
+  ansible.builtin.systemd:
+    name: lsws.service
+    state: reloaded
+  become: true
+  tags:
+    - openlitespeed
+    - systemd
+
+- name: Restart lsphp (Detached mode)
+  ansible.builtin.command: killall -9 lsphp
+  become: true
+  tags:
+    - openlitespeed
+    - systemd

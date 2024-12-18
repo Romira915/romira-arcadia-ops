@@ -1,0 +1,142 @@
+---
+# tasks file for roles/Nextcloud
+- name: Check if nextcloud is installed
+  ansible.builtin.command:
+    cmd: >-
+      su -c "{{ nextcloud.executable_php }} occ status"
+      -s /bin/bash www-data
+    chdir: /var/www/nextcloud
+  become: true
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  register: check_nextcloud_status
+  tags:
+    - nextcloud
+
+- name: Download nextcloud archive
+  ansible.builtin.get_url:
+    url: https://download.nextcloud.com/server/releases/latest.tar.bz2
+    dest: /tmp/nextcloud_latest.tar.bz2
+    mode: "0644"
+  when: "'installed: true' not in check_nextcloud_status.stdout"
+  tags:
+    - nextcloud
+
+- name: Extract nextcloud archive
+  ansible.builtin.unarchive:
+    src: /tmp/nextcloud_latest.tar.bz2
+    dest: /var/www/
+    owner: www-data
+    group: www-data
+    remote_src: true
+  become: true
+  when: "'installed: true' not in check_nextcloud_status.stdout and not ansible_check_mode"
+  tags:
+    - nextcloud
+
+- name: Install nextcloud
+  ansible.builtin.command:
+    cmd: >-
+      su -c "{{ nextcloud.executable_php }} occ maintenance:install 
+      --database='{{ nextcloud.database }}' 
+      --database-name='{{ nextcloud.database_name }}' 
+      --database-user='{{ nextcloud.database_user }}' 
+      --database-pass='{{ nextcloud.database_pass }}' 
+      --admin-user='{{ nextcloud.admin_user }}' 
+      --admin-pass='{{ nextcloud.admin_pass }}'
+      --data-dir='{{ nextcloud.data_dir }}'"
+      -s /bin/bash www-data
+    chdir: /var/www/nextcloud
+  become: true
+  when: "'installed: true' not in check_nextcloud_status.stdout"
+  tags:
+    - nextcloud
+
+- name: Ensure that trusted_domains is set
+  ansible.builtin.command:
+    cmd: >-
+      su -c "{{ nextcloud.executable_php }} occ config:system:set trusted_domains 1 --value={{ nextcloud.trusted_domain }}"
+      -s /bin/bash www-data
+    chdir: /var/www/nextcloud
+  become: true
+  register: command_result
+  changed_when: command_result.rc != 0
+  tags:
+    - nextcloud
+
+- name: Ensure that memcache config is set
+  ansible.builtin.shell:
+    cmd: >-
+      su -c "{{ nextcloud.executable_php }} occ config:system:set memcache.locking --value='\\OC\\Memcache\\Redis'" -s /bin/bash www-data &&
+      su -c "{{ nextcloud.executable_php }} occ config:system:set memcache.local --value='\\OC\\Memcache\\APCu'" -s /bin/bash www-data
+    chdir: /var/www/nextcloud
+  become: true
+  register: command_result
+  changed_when: command_result.rc != 0
+  tags:
+    - nextcloud
+
+- name: Ensure that redis config is set
+  ansible.builtin.shell:
+    cmd: >-
+      su -c "{{ nextcloud.executable_php }} occ config:system:set redis host --value={{ nextcloud.redis_host }}" -s /bin/bash www-data &&
+      su -c "{{ nextcloud.executable_php }} occ config:system:set redis port --value={{ nextcloud.redis_port }}" -s /bin/bash www-data &&
+      su -c "{{ nextcloud.executable_php }} occ config:system:set redis dbindex --value=0" -s /bin/bash www-data &&
+      su -c "{{ nextcloud.executable_php }} occ config:system:set redis timeout --value=0.0" -s /bin/bash www-data
+    chdir: /var/www/nextcloud
+  become: true
+  register: command_result
+  changed_when: command_result.rc != 0
+  tags:
+    - nextcloud
+
+- name: Ensure that enable app
+  ansible.builtin.command:
+    cmd: >-
+      su -c "{{ nextcloud.executable_php }} occ app:enable {{ item }}"
+      -s /bin/bash www-data
+    chdir: /var/www/nextcloud
+  become: true
+  register: command_result
+  changed_when: command_result.rc != 0
+  loop: "{{ nextcloud.apps }}"
+  tags:
+    - nextcloud
+
+- name: Ensure that background is cron
+  ansible.builtin.command:
+    cmd: >-
+      su -c "{{ nextcloud.executable_php }} occ background:cron"
+      -s /bin/bash www-data
+    chdir: /var/www/nextcloud
+  become: true
+  register: command_result
+  changed_when: command_result.rc != 0
+  loop: "{{ nextcloud.apps }}"
+  tags:
+    - nextcloud
+
+- name: Ensure that default_phone_regio is JP
+  ansible.builtin.command:
+    cmd: >-
+      su -c "{{ nextcloud.executable_php }} occ config:system:set default_phone_region --value=JP"
+      -s /bin/bash www-data
+    chdir: /var/www/nextcloud
+  become: true
+  register: command_result
+  changed_when: command_result.rc != 0
+  tags:
+    - nextcloud
+
+- name: Ensure that maintenance_window_start is set
+  ansible.builtin.command:
+    cmd: >-
+      su -c "{{ nextcloud.executable_php }} occ config:system:set maintenance_window_start --type=integer --value={{ nextcloud.maintenance_window_start }}"
+      -s /bin/bash www-data
+    chdir: /var/www/nextcloud
+  become: true
+  register: command_result
+  changed_when: command_result.rc != 0
+  tags:
+    - nextcloud

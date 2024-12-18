@@ -1,0 +1,11 @@
+---
+# tasks file for roles/cron
+- name: Copy cron.d file
+  ansible.builtin.copy:
+    src: "inventories/{{ target_inventory }}/files/cron/"
+    dest: "/etc/cron.d/"
+    mode: "0644"
+  become: true
+  notify: Restart cron
+  tags:
+    - cron

@@ -1,0 +1,4 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+*/5 * * * * www-data /usr/local/lsws/lsphp82/bin/php --define apc.enable_cli=1 -f /var/www/nextcloud/cron.php

@@ -1,0 +1,51 @@
+---
+- name: Ensure group exists
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  become: true
+  when: user.groups is defined
+  loop: "{{ user.groups }}"
+  tags: 
+    - user
+
+- name: Ensure group don't exists
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: absent
+  become: true
+  when: user.absent_groups is defined
+  loop: "{{ user.absent_groups }}"
+  tags: 
+    - user
+
+- name: Ensure user exists
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    state: present
+    groups: "{{ item.groups }}"
+    password: "{{ item.password | password_hash('sha512', item.password_salt) }}"
+  become: true
+  when: user.users is defined
+  loop: "{{ user.users }}"
+  tags: user
+
+- name: Ensure user don't exists
+  ansible.builtin.user:
+    name: "{{ item }}"
+    state: absent
+    remove: true
+  become: true
+  when: user.absent_users is defined
+  loop: "{{ user.absent_users }}"
+  tags: user
+
+- name: Ensure authorized_keys file exists
+  ansible.posix.authorized_key:
+    user: "{{ item.name }}"
+    state: present
+    key: "{{ item.authorized_keys }}"
+  become: true
+  when: item.authorized_keys is defined
+  loop: "{{ user.users }}"
+  tags: user

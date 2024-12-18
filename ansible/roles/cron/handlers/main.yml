@@ -1,0 +1,9 @@
+---
+# handlers file for roles/cron
+- name: Restart cron
+  ansible.builtin.systemd:
+    name: cron.service
+    state: restarted
+  become: true
+  tags:
+    - cron

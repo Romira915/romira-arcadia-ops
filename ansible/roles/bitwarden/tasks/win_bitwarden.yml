@@ -1,0 +1,45 @@
+---
+# tasks file for roles/bitwarden
+- name: Ensure bitwarden-cli is installed
+  community.windows.win_scoop:
+    name: bitwarden-cli
+  tags:
+    - bitwarden
+    - scoop
+
+- block:
+    - name: Check bw config server value
+      ansible.windows.win_command: bw config server
+      changed_when: false
+      register: check_bw_config_server
+      tags:
+        - bitwarden
+
+    - name: Ensure bw config server is set
+      ansible.windows.win_command: bw config server "{{ bitwarden.server }}"
+      when: "bitwarden.server != check_bw_config_server.stdout"
+      tags:
+        - bitwarden
+
+- block:
+    - name: Check bw login status
+      ansible.windows.win_command: bw login --check
+      failed_when: false
+      changed_when: false
+      register: check_bw_login
+      tags:
+        - bitwarden
+
+    - name: Input Two step login code
+      ansible.builtin.pause:
+        prompt: "? Two-step login code"
+      register: two_step_login_code
+      when: "'You are logged in!' not in check_bw_login.stdout"
+      tags:
+        - bitwarden
+
+    - name: Ensure logged into bw
+      ansible.windows.win_command: "bw login {{ bitwarden.email_address }} {{ bitwarden.password }} --code {{ two_step_login_code.user_input }}"
+      when: "'You are logged in!' not in check_bw_login.stdout"
+      tags:
+        - bitwarden

@@ -1,0 +1,96 @@
+---
+- name: Ensure samba installed
+  ansible.builtin.apt:
+    name: samba
+    state: present
+  become: true
+  tags:
+    - samba
+    - configuration
+    - apt
+    - apt-install
+
+- name: Ensure samba enabled
+  ansible.builtin.systemd:
+    name: smbd.service
+    enabled: true
+  become: true
+  tags:
+    - samba
+    - configuration
+    - systemd
+
+- name: Ensure samba mount directory exists
+  ansible.builtin.file:
+    path: "{{ samba.mount_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  loop: "{{ user.users }}"
+  tags:
+    - samba
+    - file
+    - configuration
+
+- name: Ensure samba home directory exists
+  ansible.builtin.file:
+    path: "{{ samba.mount_dir }}/{{ item.name }}"
+    state: directory
+    owner: "{{ item.name }}"
+    group: "{{ item.name }}"
+    mode: "0700"
+  become: true
+  loop: "{{ user.users }}"
+  tags:
+    - samba
+    - file
+    - configuration
+
+- name: Ensure samba public directory exists
+  ansible.builtin.file:
+    path: "{{ samba.mount_dir }}/public"
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: "0777"
+  become: true
+  tags:
+    - samba
+    - file
+    - configuration
+
+- name: Samba User List
+  ansible.builtin.shell: pdbedit -L | awk -F":" '{print $1}'
+  become: true
+  register: samba_user_list
+  changed_when: false
+  tags:
+    - samba
+    - shell
+
+- name: Ensure samba user registered
+  ansible.builtin.shell:
+    cmd: pdbedit -t -a {{ item.name }}
+    stdin: "{{ item.password }}\n{{ item.password }}"
+  become: true
+  when: item.name not in samba_user_list.stdout_lines
+  loop: "{{ user.users }}"
+  tags:
+    - samba
+    - shell
+
+- name: Ensure smb.conf exists
+  ansible.builtin.template:
+    src: smb.conf
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: Restart samba
+  tags:
+    - samba
+    - configuration
+    - template

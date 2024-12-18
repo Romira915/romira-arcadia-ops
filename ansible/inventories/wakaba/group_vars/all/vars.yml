@@ -1,0 +1,148 @@
+---
+target_inventory: wakaba
+apt:
+  package:
+    - unzip
+    - qrencode
+    - iptables-persistent
+    - cron
+    - jq
+    - certbot
+    - hd-idle
+    - smartmontools
+  install_state: present
+user:
+  users:
+    - name: romira
+      groups:
+        - sudo
+      password: "{{ vault_user.vault_romira.vault_password }}"
+      password_salt: "{{ vault_user.vault_romira.vault_password_salt }}"
+      authorized_keys: https://github.com/Romira915.keys
+    - name: actions
+      groups:
+      password: "{{ vault_user.vault_actions.vault_password }}"
+      password_salt: "{{ vault_user.vault_actions.vault_password_salt }}"
+samba:
+  mount_dir: /mnt/d
+  interfaces: 127.0.0.0/8 enxc436c0ea26ff wg0
+  hosts_allow: 192.168.28.0/24 172.24.28.0/24 100.64.0.0/10
+wg:
+  endpoint: wakaba.vpn.romira.dev:53857
+  interface:
+    address: 172.24.28.1
+    port: "{{ vault_wg.vault_interface.vault_port }}"
+    private_key: "{{ vault_wg.vault_interface.vault_private_key }}"
+    public_key: 2eW7Ujo7PiB9sa+1+xN8QBKj/NRcatnhrUkq0YFS8GI=
+    masquerade_device_name: eth2
+    masquerade_src: 172.24.28.0/24
+    dns: 192.168.28.1
+  peers:
+    amd3900X:
+      private_key: "{{ vault_wg.vault_peers.vault_amd3900X.vault_private_key }}"
+      public_key: foQF8YA+vEUmyODKJVmLCY+lb2dAM/IMjVzqmt/Y6SA=
+      preshared_key: "{{ vault_wg.vault_peers.vault_preshared_key }}"
+      allowd_ips: 172.24.28.2/32
+    m2_macbook_air:
+      private_key: "{{ vault_wg.vault_peers.vault_m2_macbook_air.vault_private_key }}"
+      public_key: 4IHPNb4LwOyDuQW0LO+0EhY0W5YAzoRS0Koi7JQxP3Q=
+      preshared_key: "{{ vault_wg.vault_peers.vault_preshared_key }}"
+      allowd_ips: 172.24.28.3/32
+    think_pad:
+      private_key: "{{ vault_wg.vault_peers.vault_think_pad.vault_private_key }}"
+      public_key: 8CzVLIW4UpCQaIjratrwy4O2Xf+Afs1kwJOW8hlmvEY=
+      preshared_key: "{{ vault_wg.vault_peers.vault_preshared_key }}"
+      allowd_ips: 172.24.28.4/32
+    xperia:
+      private_key: "{{ vault_wg.vault_peers.vault_xperia.vault_private_key }}"
+      public_key: at4mtCjNIPUjKFR3xh8jtDJsMhWzv4vZniIQaMdi3Ds=
+      preshared_key: "{{ vault_wg.vault_peers.vault_preshared_key }}"
+      allowd_ips: 172.24.28.5/32
+    xiaoxin_pad_pro_2021:
+      private_key: "{{ vault_wg.vault_peers.vault_xiaoxin_pad_pro_2021.vault_private_key }}"
+      public_key: hh2RPbosr+Rl96ENz1ioR2QGD+mZ21KszxY51lP+d2U=
+      preshared_key: "{{ vault_wg.vault_peers.vault_preshared_key }}"
+      allowd_ips: 172.24.28.6/32
+    ipad_air_11inch_m2:
+      private_key: "{{ vault_wg.vault_peers.vault_ipad_air_11inch_m2.vault_private_key }}"
+      public_key: zn4jZHKxsKz4grB4O3e/VpHa4Ioai6hqmHaoWJaTIVw=
+      preshared_key: "{{ vault_wg.vault_peers.vault_preshared_key }}"
+      allowd_ips: 172.24.28.7/32
+    galaxy_z_fold6:
+      private_key: "{{ vault_wg.vault_peers.vault_galaxy_z_fold6.vault_private_key }}"
+      public_key: yuscxAreUNPAATQnuTudm0UxR+2PJW3voFMOT4QzNG0=
+      preshared_key: "{{ vault_wg.vault_peers.vault_preshared_key }}"
+      allowd_ips: 172.24.28.8/32
+iptables:
+  allowed_ports: "{{ vault_iptables.vault_allowed_ports }}"
+  allowed_input_interfaces: []
+  allowed_forward:
+    - in_interface: wg0
+    - out_interface: wg0
+  allowed_nat:
+    - source: 172.24.28.0/24
+openlitespeed:
+  admin:
+    user: romira
+    password: "{{ vault_openlitespeed.vault_admin.vault_password }}"
+  vhosts:
+    - name: wakaba.cloud.romira.dev
+      root: /var/www/nextcloud/
+      user: www-data
+      group: www-data
+    - name: api.wakaba.game.romira.dev
+      root: /var/www/html
+lsphp:
+  - php: lsphp83
+    package:
+      - lsphp83-common
+      - lsphp83-curl
+      - lsphp83-mysql
+      - lsphp83-opcache
+      - lsphp83-imap
+      - lsphp83-apcu
+      - lsphp83-intl
+      - lsphp83-memcached
+      - lsphp83-redis
+      - lsphp83-pear
+      - lsphp83-imagick
+    lib:
+      - libsmbclient-dev
+      - zlib1g-dev
+      - pkg-config
+      - libmagickwand-dev
+    pecl:
+      package:
+        - smbclient
+        - memcache
+      prompts:
+        - null
+        - (.*)Enable memcache session handler support? \[yes\]: "yes"
+mysql:
+  login_user: root
+  login_unix_socket: /run/mysqld/mysqld.sock
+  databases:
+    - nextcloud
+  users:
+    nextcloud:
+      name: nextcloud
+      password: "{{ vault_mysql.vault_users.vault_nextcloud.vault_password }}"
+      priv: nextcloud.*:ALL
+nextcloud:
+  executable_php: /usr/local/lsws/lsphp82/bin/php
+  trusted_domain: wakaba.cloud.romira.dev
+  database: mysql
+  database_name: nextcloud
+  database_user: "{{ mysql.users.nextcloud.name }}"
+  database_pass: "{{ vault_mysql.vault_users.vault_nextcloud.vault_password }}"
+  admin_user: romira
+  admin_pass: "{{ vault_nextcloud.vault_admin_pass }}"
+  data_dir: /mnt/d/nextcloud/data/
+  redis_host: localhost
+  redis_port: 6379
+  apps:
+    - files_external
+  maintenance_window_start: 14
+scripts:
+  autopoweroff:
+  backup:

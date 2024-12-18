@@ -1,0 +1,14 @@
+---
+# defaults file for roles/wireguard
+wg:
+  interface:
+    address:
+    port:
+    private_key:
+    masquerade_device_name:
+    masquerade_src:
+  peers:
+    - name:
+      public_key:
+      preshare_key:
+      allowd_ips:

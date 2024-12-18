@@ -1,0 +1,209 @@
+---
+# tasks file for roles/OpenLiteSpeed
+- name: Check if OpenLiteSpeed package is installed
+  ansible.builtin.command: "dpkg-query -W -f='${Status}' openlitespeed"
+  become: true
+  register: package_status
+  changed_when: false
+  failed_when: false
+  tags:
+    - openlitespeed
+    - command
+
+- name: Download repository register script for OpenLiteSpeed
+  ansible.builtin.get_url:
+    url: https://repo.litespeed.sh
+    dest: /tmp/repo.litespeed.sh
+    mode: "0755"
+  become: true
+  when: "'install ok' not in package_status.stdout"
+  tags:
+    - openlitespeed
+    - get_url
+
+# NOTO: scriptでない方が良いかもしれない
+# TODO: 既に登録されていてもエラーにしないようにする
+- name: Register litespeed repository
+  ansible.builtin.script:
+    cmd: /usr/bin/bash /tmp/repo.litespeed.sh
+  become: true
+  when: "'install ok' not in package_status.stdout"
+  tags:
+    - openlitespeed
+    - script
+
+- name: Run the equivalent of "apt-get update" as a separate step
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+  when: "'install ok' not in package_status.stdout"
+  tags:
+    - openlitespeed
+    - shell
+
+- name: Ensure openlitespeed is installed
+  ansible.builtin.apt:
+    name: openlitespeed
+    state: present
+  become: true
+  tags:
+    - openlitespeed
+    - apt
+
+- name: Ensure openlitespeed enabled
+  ansible.builtin.systemd:
+    name: lsws.service
+    enabled: true
+  become: true
+  tags:
+    - openlitespeed
+    - configuration
+    - systemd
+
+- name: Ensure admin user registered
+  ansible.builtin.shell:
+    cmd: "{{ openlitespeed_dir }}/admin/misc/admpass.sh"
+    stdin: "{{ openlitespeed.admin.user }}\n{{ openlitespeed.admin.password }}\n{{ openlitespeed.admin.password }}"
+  become: true
+  # TODO: changedを検知できるならfalseはやめる
+  changed_when: false
+  tags:
+    - openlitespeed
+    - shell
+
+- name: Ensure lsphp and lsphp module is installed
+  ansible.builtin.apt:
+    name: "{{ [ item.php ] + item.package }}"
+    state: present
+  become: true
+  loop: "{{ lsphp }}"
+  notify: Restart lsphp (Detached mode)
+  tags:
+    - openlitespeed
+    - apt
+
+- name: Ensure that the required libs are installed for the pecl module
+  ansible.builtin.apt:
+    name: "{{ item.lib }}"
+    state: present
+  become: true
+  loop: "{{ lsphp }}"
+  tags:
+    - openlitespeed
+    - apt
+
+- name: Update pecl channel
+  ansible.builtin.command: "{{ openlitespeed_dir }}/{{ item.php }}/bin/pecl channel-update pecl.php.net"
+  become: true
+  loop: "{{ lsphp }}"
+  register: command_result
+  changed_when: command_result.rc != 0
+  tags:
+    - openlitespeed
+    - apt
+
+- name: Ensure that the pecl package is installed
+  community.general.pear:
+    executable: "{{ openlitespeed_dir }}/{{ item.php }}/bin/pecl"
+    name: "{{ item.pecl.package | join(',') }}"
+    state: present
+    prompts: "{{ item.pecl.prompts }}"
+  become: true
+  loop: "{{ lsphp }}"
+  notify: Restart lsphp (Detached mode)
+  tags:
+    - openlitespeed
+    - pear
+
+- name: Set PHP version fact
+  ansible.builtin.set_fact:
+    php_version: "{{ item.php | regex_replace('^lsphp', '') | regex_replace('([0-9])([0-9])$', '\\1.\\2') }}"
+  loop: "{{ lsphp }}"
+  tags:
+    - openlitespeed
+
+- name: Copy lsphp php.ini file
+  ansible.builtin.copy:
+    src: "{{ item.php }}/php.ini"
+    dest: "{{ openlitespeed_dir }}/{{ item.php }}/etc/php/{{ php_version }}/litespeed/php.ini"
+  become: true
+  loop: "{{ lsphp }}"
+  notify: Restart lsphp (Detached mode)
+  tags:
+    - openlitespeed
+
+- name: Copy lsphp mods ini file
+  ansible.builtin.copy:
+    src: "{{ item.php }}/mods-available/"
+    dest: "{{ openlitespeed_dir }}/{{ item.php }}/etc/php/{{ php_version }}/mods-available/"
+  become: true
+  loop: "{{ lsphp }}"
+  notify: Restart lsphp (Detached mode)
+  tags:
+    - openlitespeed
+
+- name: Ensure that vhost root directory is exists
+  ansible.builtin.file:
+    path: "{{ item.root }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0755"
+  become: true
+  loop: "{{ openlitespeed.vhosts }}"
+  tags:
+    - openlitespeed
+    - file
+
+- name: Ensure that vhost config directory is exists
+  ansible.builtin.file:
+    path: "{{ openlitespeed_dir }}/conf/vhosts/{{ item.name }}"
+    state: directory
+    owner: lsadm
+    group: nogroup
+    mode: "0750"
+  become: true
+  loop: "{{ openlitespeed.vhosts }}"
+  tags:
+    - openlitespeed
+    - file
+
+- name: Ensure that vhosts config file exists
+  ansible.builtin.template:
+    src: "inventories/{{ target_inventory }}/templates/openlitespeed/conf/vhosts/{{ item.name }}/vhconf.conf"
+    dest: "{{ openlitespeed_dir }}/conf/vhosts/{{ item.name }}/vhconf.conf"
+    owner: lsadm
+    group: nogroup
+    mode: "0750"
+  become: true
+  loop: "{{ openlitespeed.vhosts }}"
+  notify: Reload openlitespeed
+  tags:
+    - openlitespeed
+    - template
+
+- name: Ensure that openlitespeed config file exists
+  ansible.builtin.template:
+    src: conf/httpd_config.conf
+    dest: "{{ openlitespeed_dir }}/conf/httpd_config.conf"
+    owner: lsadm
+    group: nogroup
+    mode: "0750"
+    # validate: "{{ openlitespeed_dir }}/bin/lshttpd -t"
+  become: true
+  notify: Reload openlitespeed
+  tags:
+    - openlitespeed
+    - template
+
+- name: Ensure that mime.properties file exists
+  ansible.builtin.copy:
+    src: conf/mime.properties
+    dest: "{{ openlitespeed_dir }}/conf/mime.properties"
+    owner: lsadm
+    group: nogroup
+    mode: "0750"
+  become: true
+  notify: Reload openlitespeed
+  tags:
+    - openlitespeed

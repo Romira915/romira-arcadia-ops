@@ -1,0 +1,25 @@
+---
+target_inventory: hinokuni
+apt:
+  package:
+    - unzip
+    - qrencode
+    - iptables-persistent
+    - cron
+  install_state: present
+user:
+  groups: []
+  absent_groups: []
+  users:
+    - name: romira
+      groups:
+        - sudo
+      password: "{{ vault_user.vault_romira.vault_password }}"
+      password_salt: "{{ vault_user.vault_romira.vault_password_salt }}"
+      authorized_keys: https://github.com/Romira915.keys
+  absent_users: []
+iptables:
+  allowed_ports: "{{ vault_iptables.vault_allowed_ports }}"
+  allowed_input_interfaces: []
+  allowed_forward: []
+  allowed_nat: []

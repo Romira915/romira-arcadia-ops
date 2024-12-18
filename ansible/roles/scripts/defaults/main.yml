@@ -1,0 +1,9 @@
+---
+# defaults file for roles/scripts
+# scripts:
+#   mydns:
+#     - domain:
+#       user:
+#       password:
+#   autopoweroff:
+#   backup:

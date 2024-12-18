@@ -1,0 +1,46 @@
+---
+# tasks file for roles/winget
+- block:
+    - name: Disable UAC popup for Administrators
+      win_regedit:
+        key: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+        value: ConsentPromptBehaviorAdmin
+        data: 00000000
+        datatype: dword
+
+    - name: Ensure winget require override package is installed
+      ansible.windows.win_command:
+        argv:
+          - winget
+          - install
+          - --accept-package-agreements
+          - --accept-source-agreements
+          - -e
+          - --id
+          - "{{ item.name }}"
+          - --override
+          - "{{ item.override }}"
+      loop: "{{ winget.override_package }}"
+
+    - name: Ensure winget package is installed
+      ansible.windows.win_command:
+        argv:
+          - winget
+          - install
+          - --accept-package-agreements
+          - --accept-source-agreements
+          - -e
+          - --id
+          - "{{ item }}"
+      loop: "{{ winget.package }}"
+
+  always:
+    - name: Enable UAC popup for Administrators
+      win_regedit:
+        key: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
+        value: ConsentPromptBehaviorAdmin
+        data: 00000005
+        datatype: dword
+
+  tags:
+    - winget

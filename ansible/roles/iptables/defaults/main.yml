@@ -1,0 +1,11 @@
+---
+# defaults file for roles/iptables
+iptables:
+  allowed_ports:
+    - port:
+      comment:
+  allowed_input_interfaces:
+    - interface:
+      comment:
+  allowed_forward: []
+  allowed_nat: []

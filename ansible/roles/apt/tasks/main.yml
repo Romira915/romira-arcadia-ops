@@ -1,0 +1,161 @@
+# tasks file
+---
+- name: Gather facts
+  ansible.builtin.gather_facts:
+  when: ansible_facts.distribution_release is not defined
+  tags:
+    - configuration
+    - apt
+
+- name: Update configuration file - /etc/apt/sources.list
+  ansible.builtin.template:
+    src: "etc/apt/sources.list.{{ ansible_distribution }}.j2"
+    dest: /etc/apt/sources.list
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  register: apt_config_updated
+  when: apt_manage_sources_list | bool
+  tags:
+    - configuration
+    - apt
+    - apt-configuration
+
+- name: Update configuration file - /etc/apt/apt.conf
+  ansible.builtin.template:
+    src: "{{ apt_apt_conf_file.lstrip('/') }}.j2"
+    dest: "{{ apt_apt_conf_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  tags:
+    - configuration
+    - apt
+    - apt-configuration
+
+- name: Remove configuration files - /etc/apt/apt.conf.d/*
+  ansible.builtin.file:
+    path: "/etc/apt/apt.conf.d/{{ item }}"
+    state: absent
+  become: true
+  with_items: "{{ apt_etc_apt_apt_conf_d_files_absent }}"
+  tags:
+    - configuration
+    - apt
+    - apt-configuration
+
+- name: Ensure directory exists - /var/lib/apt/lists/
+  ansible.builtin.file:
+    path: /var/lib/apt/lists/
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  tags:
+    - configuration
+    - apt
+    - apt-update
+
+- name: Update
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: "{{ 0 if apt_config_updated is defined and apt_config_updated.changed else apt_update_cache_valid_time }}"
+  become: true
+  when: apt_update | bool
+  tags:
+    - configuration
+    - apt
+    - apt-update
+
+- name: Dpkg --configure # noqa command-instead-of-module
+  ansible.builtin.command: >
+    dpkg --configure -a
+  become: true
+  changed_when: _dpkg_configure.stdout_lines | length > 0
+  register: _dpkg_configure
+  when: apt_dpkg_configure | bool
+  tags:
+    - configuration
+    - apt
+    - apt-dpkg-configure
+
+- name: Install dependencies # noqa args[module]
+  ansible.builtin.apt:
+    name: "{{ apt.dependencies }}"
+    state: "{{ apt.install_state }}"
+  become: true
+  when: apt.dependencies is defined
+  tags:
+    - configuration
+    - apt
+    - apt-dependencies
+
+- name: Add repository
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  loop: "{{ apt.repositories }}"
+  become: true
+  when: apt.repositories is defined
+  tags:
+    - configuration
+    - apt
+    - apt-repository
+
+- name: Upgrade # noqa args[module]
+  ansible.builtin.apt:
+    upgrade: "{{ apt_upgrade_type }}"
+    update_cache: true
+    dpkg_options: "{{ apt_upgrade_dpkg_options | join(',') }}"
+  become: true
+  when: apt_upgrade | bool
+  tags:
+    - configuration
+    - apt
+    - apt-upgrade
+
+- name: Clean # noqa command-instead-of-module
+  ansible.builtin.command: >
+    apt-get -y clean
+  become: true
+  changed_when: false
+  when: apt_clean | bool
+  tags:
+    - configuration
+    - apt
+    - apt-clean
+
+- name: Install # noqa args[module]
+  ansible.builtin.apt:
+    name: "{{ apt.package }}"
+    state: "{{ apt.install_state }}"
+  become: true
+  tags:
+    - configuration
+    - apt
+    - apt-install
+
+- name: Remove # noqa args[module]
+  ansible.builtin.apt:
+    name: "{{ apt_remove }}"
+    state: absent
+    purge: "{{ apt_remove_purge }}"
+  become: true
+  tags:
+    - configuration
+    - apt
+    - apt-remove
+
+- name: Autoremove # noqa args[module]
+  ansible.builtin.apt:
+    autoremove: true
+    dpkg_options: "{{ apt_upgrade_dpkg_options | join(',') }}"
+  become: true
+  when: apt_autoremove | bool
+  tags:
+    - configuration
+    - apt
+    - apt-autoremove

@@ -1,0 +1,151 @@
+chocolatey:
+  ignore_checksums: true
+  package:
+    - googlechrome
+    - firefox
+    - slack
+    - openvpn
+    - jetbrainstoolbox
+    - vlc
+    - deepl
+    - hwinfo
+    - sumatrapdf
+    - wireshark
+    - docker-desktop
+    - googlejapaneseinput
+    - eartrumpet
+    - vivaldi
+    - unity-hub
+    - line
+    - teamviewer
+    - google-drive-file-stream
+    - parsec
+    - zoom
+    - wakemeonlan
+    - notion
+    - nextcloud-client
+    - procmon
+    - wireguard
+    - font-hackgen-nerd
+    # - adobe-creative-cloud
+    - postman
+    - du
+    - devtoys
+    - crystaldiskinfo
+    - crystaldiskmark
+    - powertoys
+    - figma
+    - bitwarden
+    - rufus
+    - elevenclock
+    - alt-tab-terminator
+    # For private
+    - steam
+    - musicbee
+    - ubisoft-connect
+    - obs
+    - audacity
+    - blender
+    - gimp
+    - mp3tag
+    - makemkv
+    - discord
+    - voicemeeter-banana
+    - borderlessgaming
+    - xmedia-recode
+    - vb-cable
+    - lghub
+    - epicgameslauncher
+    - valorant
+    - ea-app
+    - tailscale
+    - "{{ vault_chocolatey.vault_package }}"
+scoop:
+  bucket:
+    - name: extras
+    - name: versions
+      repo: https://github.com/rkbk60/scoop-for-jp
+    - name: java
+    - name: nonportable
+    - name: nerd-fonts
+  package:
+    - rustup
+    - pandoc
+    - pandoc-crossref
+    - msys2
+    - openjdk
+    - gh
+    - maven
+    - vim
+    - gradle
+    - ghq
+    - volta
+    - rambox
+    - nu
+    - starship
+    - gcc
+    - mathpix
+    - bitwarden-cli
+    - Noto-NF
+winget:
+  package:
+    - BlueStack.BlueStacks
+    - Microsoft.VisualStudio.2022.Community
+    - DMM.GamePlayer
+    # Adobe Creative Cloud
+    - XPDLPKWG9SW2WD
+  override_package:
+    - name: Microsoft.VisualStudioCode
+      override: /mergetasks=addcontextmenufiles,addcontextmenufolders,!runcode /lang=english /verysilent
+bitwarden:
+  server: https://vaultwarden.romira.dev
+  email_address: "{{ vault_bitwarden.vault_email_address }}"
+  password: "{{ vault_bitwarden.vault_password }}"
+develop_configuration:
+  bw_ssh_private_key_attachment_name: id_ed25519_romira_private_key
+  bw_ssh_private_key_item_id: 2c5a6eeb-b1e8-4217-b0b5-4d9d69d3cf76
+  symbolic_links:
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\git\.gitconfig
+      dest: C:\Users\{{ ansible_user }}\.gitconfig
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\git\.bashrc
+      dest: C:\Users\{{ ansible_user }}\.bashrc
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\git\.bash_profile
+      dest: C:\Users\{{ ansible_user }}\.bash_profile
+  hard_links:
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\WindowsTerminal\settings.json
+      dest: C:\Users\{{ ansible_user }}\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
+gh:
+  github_fine_grained_token: "{{ vault_gh.vault_github_fine_grained_token }}"
+  repository:
+    - repo: Romira915/ssh-config
+      dest: C:\Users\{{ ansible_user }}\.ssh
+    - repo: Romira915/romira-s-config
+      dest: C:\Users\{{ ansible_user }}\.config\romira-s-config
+    - repo: chris-marsh/pureline
+      dest: C:\Users\{{ ansible_user }}\pureline
+    - repo: mzyy94/RictyDiminished-for-Powerline
+      dest: C:\Users\{{ ansible_user }}\.tmp\fonts\RictyDiminished-for-Powerline
+fonts:
+  dir: C:\Users\{{ ansible_user }}\.tmp\fonts\
+  fonts:
+    - url: https://github.com/yuru7/PlemolJP/releases/download/v1.6.0/PlemolJP_NF_v1.6.0.zip
+      dest: C:\Users\{{ ansible_user }}\.tmp\fonts\
+    - url: https://fonts.google.com/download?family=Noto%20Sans%20JP
+      dest: C:\Users\{{ ansible_user }}\.tmp\fonts\Noto_Sans_JP.zip
+    - url: https://fonts.google.com/download?family=Noto%20Serif%20JP
+      dest: C:\Users\{{ ansible_user }}\.tmp\fonts\Noto_Serif_JP.zip
+optional_feature:
+  features:
+    - Microsoft-Hyper-V-All
+    - HypervisorPlatform
+    - Microsoft-Windows-Subsystem-Linux
+    - Containers-DisposableClientVM
+# TODO: get_url installer
+package:
+  - REALFORCE CONNECT Software Setup_3-2-0.exe
+  - BandaiNamcoLauncherNetworkInstaller.exe
+  - iFi (by AMR) HD USB Audio Driver 3.20.exe
+  - NVIDIA_Broadcast_v1.4.0.28.exe
+  - iVCam_x64_v7.0.4.exe
+  - GeForce_Experience_v3.25.1.27.exe
+  - wansview

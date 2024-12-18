@@ -1,0 +1,11 @@
+---
+- name: Provisioning
+  hosts: hinokuni_group
+  roles:
+    - apt
+    - iptables
+    - user
+    - cron
+    - scripts
+    - Tailscale
+  tags: hinokuni

@@ -1,0 +1,21 @@
+---
+# tasks file for roles/gh
+- name: Ensure gh package is installed
+  community.windows.win_scoop:
+    name: gh
+  tags:
+    - scoop
+
+- name: Clone github repo
+  ansible.windows.win_shell: >-
+    gh repo clone {{ item.repo }} {{ item.dest }}
+  environment:
+    GH_TOKEN: "{{ gh.github_fine_grained_token }}"
+    GIT_SSH_COMMAND: ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+  failed_when: "'already exists' not in gh_repo_clone.stderr and gh_repo_clone.rc != 0"
+  changed_when: gh_repo_clone.rc == 0
+  register: gh_repo_clone
+  loop: "{{ gh.repository }}"
+  tags:
+    - gh
+    - configuration

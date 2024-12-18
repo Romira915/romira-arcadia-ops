@@ -1,0 +1,20 @@
+# /etc/crontab: system-wide crontab
+# Unlike any other crontab you don't have to run the `crontab'
+# command to install the new version when you edit this file
+# and files in /etc/cron.d. These files also have username fields,
+# that none of the other crontabs do.
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# m h dom mon dow user	command
+0 10 * * * root ARCHIVE_DIR=/mnt/d/romira/Documents/Server_backup/ark/ark-first TARGET_DIR=/home/arkserver/ark/serverfiles/ShooterGame/Saved /usr/local/etc/backup.sh && chown romira:romira /mnt/d/romira/Documents/Server_backup/ark/ark-first/*
+5 10 * * * root ARCHIVE_DIR=/mnt/d/romira/Documents/Server_backup/ark/ark-second TARGET_DIR=/home/arkserver-second/ark/serverfiles/ShooterGame/Saved /usr/local/etc/backup.sh && chown romira:romira /mnt/d/romira/Documents/Server_backup/ark/ark-second/*
+10 10 * * * root ARCHIVE_DIR=/mnt/d/romira/Documents/Server_backup/ark/ark-third TARGET_DIR=/home/arkserver-third/ark/serverfiles/ShooterGame/Saved /usr/local/etc/backup.sh && chown romira:romira /mnt/d/romira/Documents/Server_backup/ark/ark-third/*
+15 10 * * * root ARCHIVE_DIR=/mnt/d/romira/Documents/Server_backup/ark/ark-fourth TARGET_DIR=/home/arkserver-fourth/ark/serverfiles/ShooterGame/Saved /usr/local/etc/backup.sh && chown romira:romira /mnt/d/romira/Documents/Server_backup/ark/ark-fourth/*
+0 10 * * * arkserver sudo chown -R arkserver /home/arkserver/ark/serverfiles/ShooterGame/Saved/common/clusters/mgpf2335aiscluster/ && /home/arkserver/ark/arkserver update
+5 10 * * * arkserver-second /home/arkserver-second/ark/arkserver update
+10 10 * * * arkserver-third /home/arkserver-third/ark/arkserver update
+15 10 * * * arkserver-fourth /home/arkserver-fourth/ark/arkserver update
+#
+

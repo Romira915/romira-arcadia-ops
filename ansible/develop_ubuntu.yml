@@ -1,0 +1,201 @@
+---
+- name: Provisioning
+  hosts: develop_ubuntu
+  roles:
+    - user
+    - apt
+    - markosamuli.linuxbrew
+    - brew
+    - bitwarden
+    - gh
+    - andrewrothstein.rust
+  vars:
+    linuxbrew_use_installer: true
+    linuxbrew_init_shell: false
+  tags: develop_ubuntu
+
+- name: Ensure that deployed config file
+  hosts: develop_ubuntu
+  tasks:
+    - name: Gather facts
+      ansible.builtin.gather_facts:
+      when: ansible_facts.env.PATH is not defined
+      tags:
+        - develop_configuration
+
+    - name: Ensure directory is exists
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop: "{{ develop_configuration.directories }}"
+      tags:
+        - develop_configuration
+
+    - name: Ensure that ssh config is exists
+      ansible.builtin.copy:
+        src: ~/.tmp/.ssh/
+        dest: ~/.ssh
+        remote_src: true
+      tags:
+        - develop_configuration
+
+    - name: Ensure that ssh private key is exists
+      ansible.builtin.command:
+        argv:
+          - bw
+          - get
+          - attachment
+          - "{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+          - --itemid
+          - "{{ develop_configuration.bw_ssh_private_key_item_id }}"
+          - --output
+          - "~/.ssh/{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+      args:
+        stdin: "{{ bitwarden.password }}"
+      environment:
+        PATH: "{{ ansible_facts.env.PATH }}:{{ additional_path }}"
+      changed_when: false
+      tags:
+        - develop_configuration
+
+    - name: Clone config repogitory
+      ansible.builtin.git:
+        repo: git@github.com:Romira915/romira-s-config.git
+        dest: ~/.config/romira-s-config
+        update: true
+        accept_hostkey: true
+        key_file: "~/.ssh/{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+      environment:
+        SSHPASS: "{{ develop_configuration.ssh_passphrase }}"
+        GIT_SSH_COMMAND: sshpass -P "Enter passphrase for key" ssh
+      tags:
+        - develop_configuration
+
+    - name: Create symbolic links
+      ansible.builtin.file:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        state: link
+        force: true
+      loop: "{{ develop_configuration.symbolic_links }}"
+      tags:
+        - develop_configuration
+
+  tags: develop_ubuntu
+
+- name: Set up zsh
+  hosts: develop_ubuntu
+  tasks:
+    - name: Clone zprezto repogitory
+      ansible.builtin.git:
+        repo: https://github.com/sorin-ionescu/prezto.git
+        dest: ~/.zprezto
+        update: true
+
+    - name: Create symbolic links for zprezto
+      ansible.builtin.file:
+        src: "~/.zprezto/runcoms/{{ item }}"
+        dest: "~/.{{ item }}"
+        state: link
+        force: true
+      loop: [zlogin, zlogout, zprofile, zshenv]
+  tags:
+    - develop_configuration
+
+- name: Set login shell to fish
+  hosts: develop_ubuntu
+  tasks:
+    - name: Set login shell to fish
+      ansible.builtin.shell: chsh -s $(which fish)
+      args:
+        stdin: "{{ vault_user.vault_romira.vault_password }}"
+      changed_when: false
+  tags:
+    - develop_configuration
+
+- name: Set up fish
+  hosts: develop_ubuntu
+  tasks:
+    - name: Ensure fisher is installed
+      ansible.builtin.shell: >-
+        curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source &&
+        fisher install jorgebucaran/fisher
+      args:
+        executable: /usr/bin/fish
+      changed_when: false
+      tags:
+        - develop_configuration
+
+    - name: Ensure fisher plugin is installed
+      ansible.builtin.shell: >-
+        fisher install
+        oh-my-fish/theme-bobthefish
+        jethrokuan/z
+        0rax/fish-bd
+        oh-my-fish/plugin-balias
+        edc/bass
+        oh-my-fish/plugin-peco
+        jethrokuan/fzf
+        decors/fish-ghq
+        yoshiori/fish-peco_select_ghq_repository
+        tsu-nera/fish-peco_recentd
+      args:
+        executable: /usr/bin/fish
+      changed_when: false
+      tags:
+        - develop_configuration
+  tags:
+    - develop_configuration
+
+- name: Set up tmux-thumbs
+  hosts: develop_ubuntu
+  tasks:
+    - name: Clone tmux-thumbs repogitory
+      ansible.builtin.git:
+        repo: https://github.com/fcsonline/tmux-thumbs
+        dest: ~/.tmux/plugins/tmux-thumbs
+        update: true
+      tags:
+        - develop_configuration
+
+    - name: Build tmux-thumbs
+      ansible.builtin.command: cargo build --release
+      args:
+        chdir: ~/.tmux/plugins/tmux-thumbs
+      environment:
+        PATH: "{{ ansible_facts.env.PATH }}:{{ additional_path }}"
+      changed_when: false
+      tags:
+        - develop_configuration
+  tags:
+    - develop_configuration
+
+- name: Set up only wsl configuration
+  hosts: develop_ubuntu
+  tasks:
+    - name: Create a symbolic link for wsl.conf
+      ansible.builtin.file:
+        src: "~/.config/romira-s-config/Ubuntu/wsl.conf"
+        dest: /etc/wsl.conf
+        state: link
+        owner: root
+        force: true
+      become: true
+      when: is_wsl
+      tags:
+        - develop_configuration
+
+    - name: Create symbolic links for windows binaries
+      ansible.builtin.file:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        state: link
+        force: true
+      become: true
+      loop: "{{ develop_configuration.wsl_symbolic_links }}"
+      when: is_wsl
+      tags:
+        - develop_configuration
+  tags:
+    - develop_configuration

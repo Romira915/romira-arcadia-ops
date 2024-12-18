@@ -1,0 +1,32 @@
+---
+# tasks file for roles/scoop
+- name: Ensure require module is installed
+  community.windows.win_scoop:
+    name:
+      - git
+      - 7zip
+      - sudo
+  tags:
+    - scoop
+
+- name: Ensure extras bucket is added
+  community.windows.win_scoop_bucket:
+    name: "{{ item.name }}"
+    repo: "{{ item.repo | default(omit) }}"
+  loop: "{{ scoop.bucket }}"
+  tags:
+    - scoop
+
+# - name: Ensure scoop package is installed
+#   community.windows.win_scoop:
+#     name: "{{ scoop.package }}"
+#   tags:
+#     - scoop
+
+- name: Ensure scoop package is installed
+  community.windows.win_scoop:
+    name: "{{ item }}"
+  loop: "{{ scoop.package }}"
+  when: scoop.package is iterable
+  tags:
+    - scoop

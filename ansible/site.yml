@@ -1,0 +1,13 @@
+---
+- name: Import playbook
+  import_playbook: homeserver.yml
+- name: Import playbook
+  import_playbook: wakaba.yml
+- name: Import playbook
+  import_playbook: hinokuni.yml
+- name: Import playbook
+  import_playbook: develop_ubuntu.yml
+- name: Import playbook
+  import_playbook: develop_windows.yml
+- name: Import playbook
+  import_playbook: develop_macOS.yml

@@ -1,0 +1,88 @@
+---
+# tasks file for Tailscale
+- name: Add Tailscale GPG key
+  ansible.builtin.shell: |
+    curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg | 
+    tee /usr/share/keyrings/tailscale-archive-keyring.gpg > /dev/null
+  become: true
+  tags:
+    - tailscale
+
+- name: Add Tailscale repository
+  ansible.builtin.shell: |
+    curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list | 
+    tee /etc/apt/sources.list.d/tailscale.list
+  become: true
+  tags:
+    - tailscale
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+  become: true
+  tags:
+    - tailscale
+    - apt
+
+- name: Install Tailscale
+  ansible.builtin.apt:
+    name: tailscale
+    state: present
+  become: true
+  tags:
+    - tailscale
+
+- name: Ensure net.ipv4.ip_forward enabled
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    sysctl_set: true
+    state: present
+    reload: true
+  become: true
+  tags:
+    - tailscale
+    - sysctl
+
+- name: Ensure Ensure net.ipv6.conf.all.forwarding enabled
+  ansible.posix.sysctl:
+    name: net.ipv6.conf.all.forwarding
+    value: "1"
+    sysctl_set: true
+    state: present
+    reload: true
+  become: true
+  tags:
+    - tailscale
+    - sysctl
+
+- name: Detect active network device for internet access
+  command: ip -o route get 8.8.8.8
+  register: route_info
+  tags:
+    - tailscale
+
+- name: Extract network device name
+  set_fact:
+    netdev: "{{ route_info.stdout.split()[4] }}"
+  tags:
+    - tailscale
+
+- name: Apply ethtool settings for the detected device
+  command: ethtool -K {{ netdev }} rx-udp-gro-forwarding on rx-gro-list off
+  become: true
+  tags:
+    - tailscale
+
+- name: Create persistence script for ethtool settings
+  copy:
+    dest: /etc/networkd-dispatcher/routable.d/50-tailscale
+    content: |
+      #!/bin/sh
+      ethtool -K {{ netdev }} rx-udp-gro-forwarding on rx-gro-list off
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  tags:
+    - tailscale

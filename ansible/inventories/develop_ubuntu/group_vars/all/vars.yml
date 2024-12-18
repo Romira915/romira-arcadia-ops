@@ -1,0 +1,38 @@
+is_wsl: true
+setup_user: romira
+windows_user: romira
+apt:
+  dependencies:
+    - "{{ (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('8', '<')) | ternary('python-apt', 'python3-apt') }}"
+    - aptitude
+    - gnupg
+    - libbz2-dev
+    - libfuse2
+    - librust-zip+deflate-zlib-dev
+    - g++-aarch64-linux-gnu
+  repositories:
+    - ppa:fish-shell/release-3
+    - ppa:ikuya-fruitsbasket/fcitx5
+  package:
+    - unzip
+    - build-essential
+    - procps
+    - curl
+    - file
+    - git
+    - lldb
+    - cmake
+    - wakeonlan
+    - keychain
+    - zsh
+    - fish
+    - ttf-mscorefonts-installer
+    - sshpass
+    - fcitx-bin
+    - fcitx-mozc
+    - dbus-x11
+    - language-pack-ja
+    - nautilus
+    - apache2-utils
+    - fcitx5-mozc
+  install_state: present

@@ -1,0 +1,102 @@
+---
+- name: Provisioning
+  hosts: develop_windows
+  roles:
+    - chocolatey
+    - scoop
+    - winget
+    - bitwarden
+    - gh
+    - gh
+  tags: develop_windows
+
+- name: Ensure that deployed config file
+  hosts: develop_windows
+  tasks:
+    - name: Create symbolic links
+      ansible.windows.win_shell: "cmd /c mklink {{ item.dest }} {{ item.src }}"
+      failed_when: "'already exists' not in create_symbolic_link.stderr and create_symbolic_link.rc != 0"
+      changed_when: create_symbolic_link.rc == 0
+      register: create_symbolic_link
+      loop: "{{ develop_configuration.symbolic_links }}"
+      tags:
+        - develop_configuration
+
+    - name: Create hard_links links
+      ansible.windows.win_shell: "cmd /c mklink /H {{ item.dest }} {{ item.src }}"
+      failed_when: "'already exists' not in create_hard_links.stderr and create_hard_links.rc != 0"
+      changed_when: create_hard_links.rc == 0
+      register: create_hard_links
+      loop: "{{ develop_configuration.hard_links }}"
+      tags:
+        - develop_configuration
+
+    - name: Ensure that ssh private key is exists
+      ansible.windows.win_command:
+        argv:
+          - bw
+          - get
+          - attachment
+          - "{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+          - --itemid
+          - "{{ develop_configuration.bw_ssh_private_key_item_id }}"
+          - --output
+          - "C:\\Users\\{{ ansible_user }}\\.ssh\\{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+      args:
+        stdin: "{{ bitwarden.password }}"
+      tags:
+        - develop_configuration
+
+- name: Setup fonts file
+  hosts: develop_windows
+  tasks:
+    - name: Ensure fonts dir is exists
+      ansible.windows.win_file:
+        path: "{{ fonts.dir }}"
+        state: directory
+      tags:
+        - develop_configuration
+        - fonts
+
+    - name: Download fonts without install
+      ansible.windows.win_get_url:
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }}"
+      loop: "{{ fonts.fonts }}"
+      tags:
+        - develop_configuration
+        - fonts
+
+- name: Enable windows optional feature
+  hosts: develop_windows
+  tasks:
+    - name: Enable windows optional feature
+      ansible.windows.win_optional_feature:
+        name: "{{ optional_feature.features }}"
+        state: present
+      register: win_optional_feature_status
+      tags:
+        - develop_configuration
+
+    - name: Reboot if installing feature requires it
+      ansible.windows.win_reboot:
+      when: win_optional_feature_status.reboot_required
+      tags:
+        - develop_configuration
+
+- name: Enable windows optional feature
+  hosts: develop_windows
+  tasks:
+    - name: Enable windows optional feature
+      ansible.windows.win_optional_feature:
+        name: "{{ optional_feature.features }}"
+        state: present
+      register: win_optional_feature_status
+      tags:
+        - develop_configuration
+
+    - name: Reboot if installing feature requires it
+      ansible.windows.win_reboot:
+      when: win_optional_feature_status.reboot_required
+      tags:
+        - develop_configuration

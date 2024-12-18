@@ -1,0 +1,38 @@
+---
+# tasks file for roles/gh
+- name: Ensure gh package is installed
+  community.general.homebrew:
+    name: gh
+    state: present
+    update_homebrew: true
+  environment:
+    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+  tags:
+    - gh
+    - configuration
+
+- name: Set gh config
+  ansible.builtin.command: gh config set git_protocol https
+  environment:
+    GH_TOKEN: "{{ gh.github_fine_grained_token }}"
+    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+  changed_when: false
+  tags:
+    - gh
+    - configuration
+
+- name: Clone github repo
+  ansible.builtin.shell: gh repo clone {{ item.repo }} {{ item.dest }}
+  environment:
+    GH_TOKEN: "{{ gh.github_fine_grained_token }}"
+    # GIT_SSH_COMMAND: ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+  # args:
+  #   stdin: "yes"
+  failed_when: "'already exists' not in gh_repo_clone.stderr and gh_repo_clone.rc != 0"
+  changed_when: gh_repo_clone.rc == 0
+  register: gh_repo_clone
+  loop: "{{ gh.repository }}"
+  tags:
+    - gh
+    - configuration

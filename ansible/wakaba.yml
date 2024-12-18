@@ -1,0 +1,28 @@
+---
+- name: Provisioning from roles
+  hosts: wakaba_group
+  roles:
+    - apt
+    - iptables
+    - user
+    - samba
+    - wireguard
+    - MySQL
+    - redis
+    - OpenLiteSpeed
+    - Nextcloud
+    - cron
+    - docker
+    - scripts
+    - Tailscale
+  tags: wakaba
+
+- name: Provisioning from tasks
+  hosts: wakaba_group
+  tasks:
+    - name: Ensure that timezone is set to JST
+      community.general.timezone:
+        name: Asia/Tokyo
+      become: true
+      tags: timezone
+  tags: wakaba

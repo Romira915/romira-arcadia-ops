@@ -1,0 +1,40 @@
+---
+# tasks file for roles/scripts
+- name: Ensure that mydns script is exists
+  ansible.builtin.template:
+    src: mydns.sh
+    dest: "/usr/local/etc/mydns.sh"
+    owner: root
+    group: root
+    mode: "0700"
+  become: true
+  when: scripts.mydns is defined
+  tags:
+    - scripts
+    - template
+
+- name: Ensure that autopoweroff script is exists
+  ansible.builtin.copy:
+    src: autopoweroff.sh
+    dest: "/usr/local/etc/autopoweroff.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+  when: scripts.autopoweroff is defined
+  tags:
+    - scripts
+    - template
+
+- name: Ensure that backup script is exists
+  ansible.builtin.copy:
+    src: backup.sh
+    dest: "/usr/local/etc/backup.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+  when: scripts.backup is defined
+  tags:
+    - scripts
+    - template

@@ -1,0 +1,62 @@
+---
+# vars file for roles/brew
+linuxbrew_install_tmp: "/tmp/linuxbrew"
+linuxbrew_install_url: "https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh"
+brew:
+  package:
+    - git
+    - ghq
+    - pandoc
+    - pandoc-crossref
+    - maven
+    - gradle
+    - java
+    - openjdk
+    - gh
+    - terraform
+    - sqlite
+    - oci-cli
+    - go
+    - graphviz
+    - perl
+    - cpanm
+    - awscli
+    - peco
+    - fzf
+    - tmux
+    - zoxide
+    - bat
+    - ripgrep
+    - rga
+    - fd
+    - eza
+    - git-delta
+    - xh
+    - sk
+    - dust
+    - bottom
+    - sd
+    - mcfly
+    - topgrade
+    - grex
+    - angle-grinder
+    - tmux-xpanes
+    - gping
+    - git-lfs
+    - starship
+    - ghostscript
+    - php
+    - composer
+    - tfmigrate
+    - ansible
+    - ansible-lint
+    - ansible-language-server
+    - bitwarden-cli
+    - azure-cli
+    - volta
+    - pyenv
+    - poetry
+    - ffmpeg
+    - tree
+    - yt-dlp
+    - just
