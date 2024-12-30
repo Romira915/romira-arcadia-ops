@@ -10,6 +10,7 @@ apt:
     - certbot
     - hd-idle
     - smartmontools
+    - wakeonlan
   install_state: present
 user:
   users:

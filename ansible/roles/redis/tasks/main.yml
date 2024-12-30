@@ -33,7 +33,6 @@
       become: true
       tags:
         - redis
-        - apt
 
 - name: Update apt cache
   ansible.builtin.apt:
@@ -41,7 +40,6 @@
   become: true
   tags:
     - redis
-    - apt
 
 - name: Install redis
   ansible.builtin.apt:
@@ -50,7 +48,6 @@
   become: true
   tags:
     - redis
-    - apt
 
 - name: Ensure redis-server enabled
   ansible.builtin.systemd:
@@ -59,7 +56,6 @@
   become: true
   tags:
     - redis
-    - systemd
 
 - name: Ensure redis.conf exists
   ansible.builtin.template:
