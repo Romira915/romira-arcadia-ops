@@ -65,12 +65,14 @@
 - name: Extract network device name
   set_fact:
     netdev: "{{ route_info.stdout.split()[4] }}"
+  when: not ansible_check_mode
   tags:
     - tailscale
 
 - name: Apply ethtool settings for the detected device
   command: ethtool -K {{ netdev }} rx-udp-gro-forwarding on rx-gro-list off
   become: true
+  when: not ansible_check_mode
   tags:
     - tailscale
 
@@ -84,5 +86,6 @@
     group: root
     mode: "0755"
   become: true
+  when: not ansible_check_mode
   tags:
     - tailscale

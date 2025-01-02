@@ -5,7 +5,13 @@
     - apt
     - iptables
     - user
+    - docker
+    - samba
+    - MySQL
+    - redis
+    - OpenLiteSpeed
     - cron
+    - Nextcloud
     - scripts
     - Tailscale
   tags: hinokuni

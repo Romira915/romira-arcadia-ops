@@ -6,9 +6,11 @@ apt:
     - qrencode
     - iptables-persistent
     - cron
+    - python3-pip
   install_state: present
 user:
-  groups: []
+  groups:
+    - ark
   absent_groups: []
   users:
     - name: romira
@@ -17,9 +19,79 @@ user:
       password: "{{ vault_user.vault_romira.vault_password }}"
       password_salt: "{{ vault_user.vault_romira.vault_password_salt }}"
       authorized_keys: https://github.com/Romira915.keys
+    - name: actions
+      groups:
+      password: "{{ vault_user.vault_actions.vault_password }}"
+      password_salt: "{{ vault_user.vault_actions.vault_password_salt }}"
   absent_users: []
 iptables:
   allowed_ports: "{{ vault_iptables.vault_allowed_ports }}"
   allowed_input_interfaces: []
   allowed_forward: []
   allowed_nat: []
+samba:
+  mount_dir: /mnt/d
+  interfaces: enp3s0f1 wlp4s0 enx18ece795cc68
+  hosts_allow: 192.168.15.0/24 172.24.20.0/24 100.64.0.0/10
+openlitespeed:
+  admin:
+    user: romira
+    password: "{{ vault_openlitespeed.vault_admin.vault_password }}"
+  vhosts:
+    - name: cloud-hinokuni.romira.dev
+      root: /var/www/nextcloud/
+      user: www-data
+      group: www-data
+    - name: api.home.discord.romira.dev
+      root: /var/www/discord
+lsphp:
+  - php: lsphp83
+    package:
+      - lsphp83-common
+      - lsphp83-curl
+      - lsphp83-mysql
+      - lsphp83-opcache
+      - lsphp83-imap
+      - lsphp83-apcu
+      - lsphp83-intl
+      - lsphp83-memcached
+      - lsphp83-redis
+      - lsphp83-pear
+      - lsphp83-imagick
+    lib:
+      - libsmbclient-dev
+      - zlib1g-dev
+      - pkg-config
+      - libmagickwand-dev
+    pecl:
+      package:
+        - smbclient
+        - memcache
+      prompts:
+        - null
+        - (.*)Enable memcache session handler support? \[yes\]: "yes"
+mysql:
+  login_user: root
+  login_unix_socket: /var/run/mysqld/mysqld.sock
+  databases:
+    - nextcloud
+  users:
+    nextcloud:
+      name: nextcloud
+      password: "{{ vault_mysql.vault_users.vault_nextcloud.vault_password }}"
+      priv: nextcloud.*:ALL
+nextcloud:
+  executable_php: /usr/local/lsws/lsphp83/bin/php
+  trusted_domain: cloud-hinokuni.romira.dev
+  database: mysql
+  database_name: nextcloud
+  database_user: "{{ mysql.users.nextcloud.name }}"
+  database_pass: "{{ vault_mysql.vault_users.vault_nextcloud.vault_password }}"
+  admin_user: romira
+  admin_pass: "{{ vault_nextcloud.vault_admin_pass }}"
+  data_dir: /mnt/d/nextcloud/data/
+  redis_host: localhost
+  redis_port: 6379
+  apps:
+    - files_external
+  maintenance_window_start: 14
