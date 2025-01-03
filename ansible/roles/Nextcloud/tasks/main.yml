@@ -35,6 +35,17 @@
   tags:
     - nextcloud
 
+- name: Ensure that nextcloud data directory exists
+  ansible.builtin.file:
+    path: "{{ nextcloud.data_dir }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0750"
+  become: true
+  tags:
+    - nextcloud
+
 - name: Install nextcloud
   ansible.builtin.command:
     cmd: >-
@@ -49,7 +60,8 @@
       -s /bin/bash www-data
     chdir: /var/www/nextcloud
   become: true
-  when: "'installed: true' not in check_nextcloud_status.stdout"
+  changed_when: false
+  when: "'installed: true' not in check_nextcloud_status.stdout and not ansible_check_mode"
   tags:
     - nextcloud
 
@@ -62,6 +74,7 @@
   become: true
   register: command_result
   changed_when: command_result.rc != 0
+  when: not ansible_check_mode
   tags:
     - nextcloud
 
@@ -74,6 +87,7 @@
   become: true
   register: command_result
   changed_when: command_result.rc != 0
+  when: not ansible_check_mode
   tags:
     - nextcloud
 
@@ -88,6 +102,7 @@
   become: true
   register: command_result
   changed_when: command_result.rc != 0
+  when: not ansible_check_mode
   tags:
     - nextcloud
 
@@ -100,6 +115,7 @@
   become: true
   register: command_result
   changed_when: command_result.rc != 0
+  when: not ansible_check_mode
   loop: "{{ nextcloud.apps }}"
   tags:
     - nextcloud
@@ -113,6 +129,7 @@
   become: true
   register: command_result
   changed_when: command_result.rc != 0
+  when: not ansible_check_mode
   loop: "{{ nextcloud.apps }}"
   tags:
     - nextcloud
@@ -126,6 +143,7 @@
   become: true
   register: command_result
   changed_when: command_result.rc != 0
+  when: not ansible_check_mode
   tags:
     - nextcloud
 
@@ -138,5 +156,6 @@
   become: true
   register: command_result
   changed_when: command_result.rc != 0
+  when: not ansible_check_mode
   tags:
     - nextcloud

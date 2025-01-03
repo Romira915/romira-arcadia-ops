@@ -89,10 +89,14 @@ openlitespeed:
   vhosts:
     - name: wakaba.cloud.romira.dev
       root: /var/www/nextcloud/
+      domains:
+        - wakaba.cloud.romira.dev
       user: www-data
       group: www-data
     - name: api.wakaba.game.romira.dev
       root: /var/www/html
+      domains:
+        - api.wakaba.game.romira.dev
 lsphp:
   - php: lsphp83
     package:

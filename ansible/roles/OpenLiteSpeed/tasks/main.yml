@@ -27,14 +27,14 @@
   ansible.builtin.script:
     cmd: /usr/bin/bash /tmp/repo.litespeed.sh
   become: true
-  when: "'install ok' not in package_status.stdout"
+  when: "'install ok' not in package_status.stdout and not ansible_check_mode"
   tags:
     - openlitespeed
     - script
 
 - name: Run the equivalent of "apt-get update" as a separate step
   ansible.builtin.apt:
-    update_cache: yes
+    update_cache: true
   become: true
   when: "'install ok' not in package_status.stdout"
   tags:
@@ -126,6 +126,7 @@
   ansible.builtin.copy:
     src: "{{ item.php }}/php.ini"
     dest: "{{ openlitespeed_dir }}/{{ item.php }}/etc/php/{{ php_version }}/litespeed/php.ini"
+    mode: "0644"
   become: true
   loop: "{{ lsphp }}"
   notify: Restart lsphp (Detached mode)
@@ -136,6 +137,7 @@
   ansible.builtin.copy:
     src: "{{ item.php }}/mods-available/"
     dest: "{{ openlitespeed_dir }}/{{ item.php }}/etc/php/{{ php_version }}/mods-available/"
+    mode: "0644"
   become: true
   loop: "{{ lsphp }}"
   notify: Restart lsphp (Detached mode)
