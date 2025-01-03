@@ -39,11 +39,12 @@ openlitespeed:
     password: "{{ vault_openlitespeed.vault_admin.vault_password }}"
   vhosts:
     - name: cloud-hinokuni.romira.dev
+      domains:
+        - cloud-hinokuni.romira.dev
+        - localhost
       root: /var/www/nextcloud/
       user: www-data
       group: www-data
-    - name: api.home.discord.romira.dev
-      root: /var/www/discord
 lsphp:
   - php: lsphp83
     package:
