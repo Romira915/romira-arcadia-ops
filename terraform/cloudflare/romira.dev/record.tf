@@ -284,3 +284,13 @@ resource "cloudflare_record" "api_wakaba_game_A" {
   allow_overwrite = false
   proxied         = false
 }
+
+resource "cloudflare_record" "librechat_A" {
+  name    = "librechat"
+  value   = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
+  type    = "A"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+  proxied         = true
+}
