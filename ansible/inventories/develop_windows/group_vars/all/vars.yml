@@ -87,6 +87,7 @@ scoop:
     - mathpix
     - bitwarden-cli
     - Noto-NF
+    - uv
 winget:
   package:
     - BlueStack.BlueStacks
