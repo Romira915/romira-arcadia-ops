@@ -60,3 +60,4 @@ brew:
     - tree
     - yt-dlp
     - just
+    - uv
