@@ -49,16 +49,6 @@ resource "cloudflare_record" "oci-ampere" {
   proxied         = false
 }
 
-resource "cloudflare_record" "oci_cloud" {
-  name    = "oci.cloud"
-  value   = "150.230.58.34"
-  type    = "A"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = false
-}
-
 resource "cloudflare_record" "oci-e2-1-micro" {
   name    = "oci-e2-1-micro"
   value   = data.terraform_remote_state.tokyo_always_free.outputs.e2-1-micro-01-public_ip
@@ -91,16 +81,6 @@ resource "cloudflare_record" "vaultwarden" {
 
 resource "cloudflare_record" "want-this" {
   name    = "want-this"
-  value   = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
-  type    = "A"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = true
-}
-
-resource "cloudflare_record" "misskey" {
-  name    = "misskey"
   value   = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
   type    = "A"
   zone_id = data.cloudflare_zone.romira_dev.id
@@ -180,39 +160,6 @@ resource "cloudflare_record" "rustknock" {
 
   allow_overwrite = false
   proxied         = true
-}
-
-
-resource "cloudflare_record" "api_home_discord" {
-  name    = "api.home.discord"
-  value   = "ns0.mydns.jp"
-  type    = "NS"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = false
-}
-
-
-resource "cloudflare_record" "home_cloud" {
-  name    = "home.cloud"
-  value   = "ns0.mydns.jp"
-  type    = "NS"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = false
-}
-
-
-resource "cloudflare_record" "home_game" {
-  name    = "home.game"
-  value   = "ns0.mydns.jp"
-  type    = "NS"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = false
 }
 
 resource "cloudflare_record" "atproto" {
