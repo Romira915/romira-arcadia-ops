@@ -38,3 +38,29 @@
   tags:
     - scripts
     - template
+
+- name: Ensure that hdd_health_check script is exists
+  ansible.builtin.copy:
+    src: hdd_health_check.sh
+    dest: "/usr/local/etc/hdd_health_check.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+  when: scripts.hdd_health_check is defined
+  tags:
+    - scripts
+    - template
+
+- name: Ensure that hdd_selftest_check script is exists
+  ansible.builtin.copy:
+    src: hdd_selftest_check.sh
+    dest: "/usr/local/etc/hdd_selftest_check.sh"
+    owner: root
+    group: root
+    mode: "0750"
+  become: true
+  when: scripts.hdd_selftest_check is defined
+  tags:
+    - scripts
+    - template

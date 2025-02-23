@@ -30,7 +30,6 @@
   when: "'install ok' not in package_status.stdout and not ansible_check_mode"
   tags:
     - openlitespeed
-    - script
 
 - name: Run the equivalent of "apt-get update" as a separate step
   ansible.builtin.apt:
