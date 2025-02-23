@@ -151,3 +151,5 @@ nextcloud:
 scripts:
   autopoweroff:
   backup:
+  hdd_health_check:
+  hdd_selftest_check:

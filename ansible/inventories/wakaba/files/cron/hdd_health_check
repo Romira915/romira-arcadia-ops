@@ -1,0 +1,20 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/1343128353015726114/1pOZtFWzZJ9sDRO146dtm6fGUhqMMRS8HrKu7YPOOwkfu59DM5vvVMZMt8edwcbux0Hm
+
+# m h dom mon dow user	command
+# 毎日10:00に smartctl -H を実行し、異常時のみ通知
+0 10 * * * /usr/local/etc/hdd_health_check.sh /dev/sda $DISCORD_WEBHOOK_URL
+
+# 毎週日曜10:30に Short Self-Test を実行
+30 10 * * 0 sudo smartctl -t short -d sat /dev/sda
+
+# 毎週日曜11:30に Short Self-Test の結果を取得し、異常時のみ通知
+30 11 * * 0 /usr/local/etc/hdd_selftest_check.sh /dev/sda $DISCORD_WEBHOOK_URL
+
+# 毎月1日12:00に Long Self-Test を実行
+0 12 1 * * sudo smartctl -t long -d sat /dev/sda
+
+# 毎月2日12:00に Long Self-Test の結果を取得し、異常時のみ通知
+0 12 2 * * /usr/local/etc/hdd_selftest_check.sh /dev/sda $DISCORD_WEBHOOK_URL
