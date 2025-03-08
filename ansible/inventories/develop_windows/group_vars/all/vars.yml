@@ -30,7 +30,6 @@ chocolatey:
     # - adobe-creative-cloud
     - postman
     - du
-    - devtoys
     - crystaldiskinfo
     - crystaldiskmark
     - powertoys
@@ -95,6 +94,7 @@ winget:
     - DMM.GamePlayer
     # Adobe Creative Cloud
     - XPDLPKWG9SW2WD
+    - DevToys-app.DevToys
   override_package:
     - name: Microsoft.VisualStudioCode
       override: /mergetasks=addcontextmenufiles,addcontextmenufolders,!runcode /lang=english /verysilent
