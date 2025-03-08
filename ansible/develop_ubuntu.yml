@@ -8,7 +8,6 @@
     - brew
     - bitwarden
     - gh
-    - andrewrothstein.rust
   vars:
     linuxbrew_use_installer: true
     linuxbrew_init_shell: false
@@ -65,10 +64,12 @@
         dest: ~/.config/romira-s-config
         update: true
         accept_hostkey: true
-        key_file: "~/.ssh/{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+        key_file: "/home/romira/.ssh/{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
       environment:
-        SSHPASS: "{{ develop_configuration.ssh_passphrase }}"
-        GIT_SSH_COMMAND: sshpass -P "Enter passphrase for key" ssh
+        #        SSHPASS: "{{ develop_configuration.ssh_passphrase }}"
+        #       GIT_SSH_COMMAND: "sshpass -e ssh -o StrictHostKeyChecking=no -i ~/.ssh/{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+        SSH_AUTH_SOCK: "{{ lookup('env', 'SSH_AUTH_SOCK') }}"
+        GIT_TERMINAL_PROMPT: 0
       tags:
         - develop_configuration
 
@@ -92,6 +93,7 @@
         repo: https://github.com/sorin-ionescu/prezto.git
         dest: ~/.zprezto
         update: true
+        force: true
 
     - name: Create symbolic links for zprezto
       ansible.builtin.file:
@@ -192,7 +194,6 @@
         dest: "{{ item.dest }}"
         state: link
         force: true
-      become: true
       loop: "{{ develop_configuration.wsl_symbolic_links }}"
       when: is_wsl
       tags:
