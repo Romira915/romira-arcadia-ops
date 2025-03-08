@@ -21,6 +21,10 @@
           - --override
           - "{{ item.override }}"
       loop: "{{ winget.override_package }}"
+      register: install_result
+      failed_when:
+        - install_result.rc != 0
+        - "'No available upgrade found' not in install_result.stdout"
 
     - name: Ensure winget package is installed
       ansible.windows.win_command:
@@ -33,6 +37,10 @@
           - --id
           - "{{ item }}"
       loop: "{{ winget.package }}"
+      register: install_result
+      failed_when:
+        - install_result.rc != 0
+        - "'No available upgrade found' not in install_result.stdout"
 
   always:
     - name: Enable UAC popup for Administrators
