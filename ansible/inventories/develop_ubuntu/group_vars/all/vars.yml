@@ -35,6 +35,7 @@ apt:
     - nautilus
     - apache2-utils
     - fcitx5
+    - htop
   install_state: present
 bitwarden:
   server: https://vaultwarden.romira.dev
