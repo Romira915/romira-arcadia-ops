@@ -178,7 +178,7 @@
   tasks:
     - name: Create a symbolic link for wsl.conf
       ansible.builtin.file:
-        src: "~/.config/romira-s-config/Ubuntu/wsl.conf"
+        src: "/home/{{ setup_user }}/.config/romira-s-config/Ubuntu/wsl.conf"
         dest: /etc/wsl.conf
         state: link
         owner: root
