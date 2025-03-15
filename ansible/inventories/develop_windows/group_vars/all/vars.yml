@@ -4,7 +4,6 @@ chocolatey:
     - googlechrome
     - firefox
     - slack
-    - openvpn
     - jetbrainstoolbox
     - vlc
     - deepl
