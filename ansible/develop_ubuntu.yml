@@ -68,6 +68,7 @@
       environment:
         #        SSHPASS: "{{ develop_configuration.ssh_passphrase }}"
         #       GIT_SSH_COMMAND: "sshpass -e ssh -o StrictHostKeyChecking=no -i ~/.ssh/{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+        # TODO: ssh-agentに事前に登録する
         SSH_AUTH_SOCK: "{{ lookup('env', 'SSH_AUTH_SOCK') }}"
         GIT_TERMINAL_PROMPT: 0
       tags:
