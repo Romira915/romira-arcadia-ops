@@ -241,3 +241,13 @@ resource "cloudflare_record" "librechat_A" {
   allow_overwrite = false
   proxied         = true
 }
+
+resource "cloudflare_record" "obsidian_sync_A" {
+  name    = "obsidian-sync"
+  value   = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
+  type    = "A"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+  proxied         = false
+}
