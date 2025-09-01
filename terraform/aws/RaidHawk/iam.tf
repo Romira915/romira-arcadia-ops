@@ -53,3 +53,69 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
     ]
   })
 }
+
+# Use existing OIDC Provider for GitHub Actions
+data "aws_iam_openid_connect_provider" "github_actions" {
+  url = "https://token.actions.githubusercontent.com"
+}
+
+# IAM Role for GitHub Actions
+resource "aws_iam_role" "github_actions_role" {
+  name = "RaidHawk-github-actions-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = data.aws_iam_openid_connect_provider.github_actions.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+          }
+          StringLike = {
+            "token.actions.githubusercontent.com:sub" = "repo:${var.github_repo}:*"
+          }
+        }
+      }
+    ]
+  })
+}
+
+# IAM Policy for GitHub Actions Lambda Deployment
+resource "aws_iam_role_policy" "github_actions_lambda_deploy" {
+  name = "RaidHawk-github-actions-lambda-deploy"
+  role = aws_iam_role.github_actions_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "lambda:UpdateFunctionCode",
+          "lambda:UpdateFunctionConfiguration",
+          "lambda:GetFunction",
+          "lambda:CreateFunction",
+          "lambda:DeleteFunction",
+          "lambda:PublishVersion",
+          "lambda:UpdateAlias",
+          "lambda:CreateAlias",
+          "lambda:DeleteAlias",
+          "lambda:GetAlias"
+        ]
+        Resource = "arn:aws:lambda:${var.region}:*:function:${var.lambda_function_name}"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "iam:PassRole"
+        ]
+        Resource = aws_iam_role.lambda_execution_role.arn
+      }
+    ]
+  })
+}

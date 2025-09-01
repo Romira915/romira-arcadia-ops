@@ -37,3 +37,9 @@ variable "iam_policy_name" {
   type        = string
   default     = "RaidHawk-execution-policy"
 }
+
+variable "github_repo" {
+  description = "GitHub repository in format owner/repo"
+  type        = string
+  default     = "Romira915/RaidHawk"
+}
