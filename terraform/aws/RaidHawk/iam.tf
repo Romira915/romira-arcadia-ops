@@ -111,7 +111,7 @@ resource "aws_iam_role_policy" "github_actions_lambda_deploy" {
           "lambda:DeleteAlias",
           "lambda:GetAlias"
         ]
-        Resource = "arn:aws:lambda:${var.region}:*:function:${var.lambda_function_name}"
+        Resource = "arn:aws:lambda:${local.region}:*:function:${var.lambda_function_name}"
       },
       {
         Effect = "Allow"

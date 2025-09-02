@@ -17,7 +17,7 @@ output "lambda_function_name" {
 
 output "lambda_function_arn" {
   description = "ARN of the Lambda function"
-  value       = "arn:aws:lambda:${var.region}:${data.aws_caller_identity.current.account_id}:function:${var.lambda_function_name}"
+  value       = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.current.account_id}:function:${var.lambda_function_name}"
 }
 
 output "dynamodb_table_name" {

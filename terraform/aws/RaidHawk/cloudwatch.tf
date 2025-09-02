@@ -15,5 +15,5 @@ resource "aws_cloudwatch_event_rule" "lambda_schedule" {
 resource "aws_cloudwatch_event_target" "lambda_target" {
   rule      = aws_cloudwatch_event_rule.lambda_schedule.name
   target_id = "RaidHawkLambdaTarget"
-  arn       = "arn:aws:lambda:${var.region}:${data.aws_caller_identity.current.account_id}:function:${var.lambda_function_name}"
+  arn       = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.current.account_id}:function:${var.lambda_function_name}"
 }

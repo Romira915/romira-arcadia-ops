@@ -9,7 +9,7 @@ resource "aws_secretsmanager_secret" "discord_webhook" {
 data "aws_kms_secrets" "discord_webhook" {
   secret {
     name    = "discord_webhook_url"
-    payload = var.discord_webhook_url_encrypted
+    payload = local.discord_webhook_url_encrypted
   }
 }
 

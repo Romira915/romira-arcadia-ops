@@ -1,13 +1,3 @@
-variable "region" {
-  description = "The AWS region to deploy resources in."
-  type        = string
-}
-
-variable "aws_profile" {
-  description = "The AWS profile to use for authentication."
-  type        = string
-}
-
 variable "lambda_function_name" {
   description = "Name of the Lambda function"
   type        = string
@@ -42,10 +32,4 @@ variable "github_repo" {
   description = "GitHub repository in format owner/repo"
   type        = string
   default     = "Romira915/RaidHawk"
-}
-
-variable "discord_webhook_url_encrypted" {
-  description = "KMS encrypted Discord webhook URL (base64 encoded)"
-  type        = string
-  sensitive   = true
 }
