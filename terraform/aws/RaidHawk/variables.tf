@@ -43,3 +43,9 @@ variable "github_repo" {
   type        = string
   default     = "Romira915/RaidHawk"
 }
+
+variable "discord_webhook_url_encrypted" {
+  description = "KMS encrypted Discord webhook URL (base64 encoded)"
+  type        = string
+  sensitive   = true
+}
