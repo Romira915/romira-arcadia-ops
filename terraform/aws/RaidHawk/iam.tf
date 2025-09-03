@@ -43,17 +43,6 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
         ]
         Resource = aws_dynamodb_table.content_states.arn
       },
-      {
-        Effect = "Allow"
-        Action = [
-          "secretsmanager:GetSecretValue",
-          "kms:Decrypt"
-        ]
-        Resource = [
-          aws_secretsmanager_secret.discord_webhook.arn,
-          aws_kms_key.secrets.arn
-        ]
-      }
     ]
   })
 }

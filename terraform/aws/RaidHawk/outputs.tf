@@ -25,10 +25,6 @@ output "dynamodb_table_name" {
   value       = aws_dynamodb_table.content_states.name
 }
 
-output "secrets_manager_arn" {
-  description = "ARN of the Secrets Manager secret"
-  value       = aws_secretsmanager_secret.discord_webhook.arn
-}
 
 output "eventbridge_rule_arn" {
   description = "ARN of the EventBridge rule"
@@ -45,7 +41,3 @@ output "github_actions_role_arn" {
   value       = aws_iam_role.github_actions_role.arn
 }
 
-output "kms_key_id" {
-  description = "KMS key ID for secrets encryption"
-  value       = aws_kms_key.secrets.key_id
-}

@@ -10,11 +10,6 @@ variable "dynamodb_table_name" {
   default     = "RaidHawk-content-states"
 }
 
-variable "secrets_manager_name" {
-  description = "Name of the Secrets Manager secret"
-  type        = string
-  default     = "RaidHawk-secrets"
-}
 
 variable "iam_role_name" {
   description = "Name of the IAM execution role"
@@ -33,3 +28,4 @@ variable "github_repo" {
   type        = string
   default     = "Romira915/RaidHawk"
 }
+
