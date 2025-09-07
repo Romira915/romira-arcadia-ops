@@ -5,7 +5,6 @@ locals {
   region      = "ap-northeast-1"
   aws_profile = "romira-AdministratorAccess"
 
-
   common_tags = {
     Project     = "RaidHawk"
     Environment = "production"

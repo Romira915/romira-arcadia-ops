@@ -8,7 +8,7 @@ resource "aws_cloudwatch_log_group" "lambda_logs" {
 resource "aws_cloudwatch_event_rule" "lambda_schedule" {
   name                = "RaidHawk-schedule"
   description         = "RaidHawk battle content monitoring schedule"
-  schedule_expression = "rate(12 hours)"
+  schedule_expression = "rate(2 hours)"
 }
 
 # EventBridge Target for Lambda

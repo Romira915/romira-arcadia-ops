@@ -42,7 +42,7 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
           "dynamodb:UpdateItem"
         ]
         Resource = aws_dynamodb_table.content_states.arn
-      },
+      }
     ]
   })
 }
