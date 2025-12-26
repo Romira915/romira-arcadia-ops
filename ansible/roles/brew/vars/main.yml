@@ -62,4 +62,6 @@ brew:
     - just
     - uv
     - gemini-cli
+    - claude-code
+    - codex
 
