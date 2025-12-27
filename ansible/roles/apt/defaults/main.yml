@@ -24,7 +24,7 @@ apt:
     - aptitude
   repositories: []
   package: []
-  install_state: persent
+  install_state: present
 
 apt_update: true
 apt_update_cache_valid_time: 3600

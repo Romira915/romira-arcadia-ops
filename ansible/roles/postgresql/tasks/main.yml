@@ -1,0 +1,63 @@
+---
+# tasks file for roles/postgresql
+- name: Install PostgreSQL
+  ansible.builtin.apt:
+    name:
+      - postgresql
+      - python3-psycopg2
+    state: present
+  become: true
+  register: postgresql_install
+  tags:
+    - postgresql
+    - apt
+
+- name: Reset connection after installing psycopg2
+  ansible.builtin.meta: reset_connection
+  when: postgresql_install.changed
+
+- name: Ensure PostgreSQL is started and enabled
+  ansible.builtin.systemd:
+    name: postgresql
+    state: started
+    enabled: true
+  become: true
+  tags:
+    - postgresql
+
+- name: Ensure that database users exist
+  community.postgresql.postgresql_user:
+    name: "{{ item.name }}"
+    password: "{{ item.password }}"
+    state: present
+  become: true
+  become_user: postgres
+  loop: "{{ postgresql.users }}"
+  no_log: true
+  tags:
+    - postgresql
+
+- name: Ensure that databases exist
+  community.postgresql.postgresql_db:
+    name: "{{ item.name }}"
+    owner: "{{ item.owner | default(omit) }}"
+    state: present
+  become: true
+  become_user: postgres
+  loop: "{{ postgresql.databases }}"
+  tags:
+    - postgresql
+
+- name: Grant database privileges to users
+  community.postgresql.postgresql_privs:
+    db: "{{ item.db }}"
+    role: "{{ item.name }}"
+    type: database
+    privs: ALL
+    state: present
+  become: true
+  become_user: postgres
+  loop: "{{ postgresql.users }}"
+  when: item.db is defined
+  tags:
+    - postgresql
