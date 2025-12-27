@@ -1,0 +1,11 @@
+---
+# vars for oci-tokyo-ampere
+
+postgresql:
+  databases:
+    - name: blog_romira_dev
+      owner: blog
+  users:
+    - name: blog
+      password: "{{ vault_postgresql_blog_password }}"
+      db: blog_romira_dev

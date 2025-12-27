@@ -1,0 +1,17 @@
+---
+- name: Provisioning oci-tokyo-ampere
+  hosts: oci_tokyo_ampere
+  roles:
+    - apt
+    - postgresql
+  tags: oci-tokyo-ampere
+
+- name: Provisioning from tasks
+  hosts: oci_tokyo_ampere
+  tasks:
+    - name: Ensure that timezone is set to JST
+      community.general.timezone:
+        name: Asia/Tokyo
+      become: true
+      tags: timezone
+  tags: oci-tokyo-ampere
