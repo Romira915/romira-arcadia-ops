@@ -1,2 +1,29 @@
 ---
 # defaults file for docker
+
+# Docker data-root migration settings
+docker:
+  # Enable data-root migration (must be explicitly set to true)
+  migrate_data_root: false
+
+  # New data-root path
+  data_root: "/var/lib/docker"
+
+  # Old data-root path (migration source)
+  old_data_root: "/var/lib/docker"
+
+  # rsync options for data migration
+  rsync_opts: "-aHAXxvP"
+
+  # Remove old data after migration (recommended: false for manual cleanup)
+  remove_old_data: false
+
+# Additional daemon.json configuration (optional)
+# Example:
+#   docker_daemon_config:
+#     storage-driver: "overlay2"
+#     log-driver: "json-file"
+#     log-opts:
+#       max-size: "10m"
+#       max-file: "3"
+docker_daemon_config: {}

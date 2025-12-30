@@ -1,0 +1,10 @@
+{
+{% if docker.data_root is defined and docker.data_root != "/var/lib/docker" %}
+  "data-root": "{{ docker.data_root }}"{% if (docker_daemon_config | default({})) | length > 0 %},{% endif %}
+
+{% endif %}
+{% for key, value in (docker_daemon_config | default({})).items() %}
+  "{{ key }}": {{ value | to_json }}{% if not loop.last %},{% endif %}
+
+{% endfor %}
+}
