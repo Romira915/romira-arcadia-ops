@@ -1,0 +1,93 @@
+---
+# tasks file for docker installation
+
+- name: Update apt package index
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+  tags:
+    - docker
+    - docker-install
+
+- name: Install required system packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - rsync
+    state: present
+  become: true
+  tags:
+    - docker
+    - docker-install
+
+- name: Create directory for Docker GPG key
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  become: true
+  tags:
+    - docker
+    - docker-install
+
+- name: Download Docker's official GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
+  become: true
+  tags:
+    - docker
+    - docker-install
+
+- name: Get OS release codename
+  ansible.builtin.command: lsb_release -cs
+  register: os_codename
+  changed_when: false
+  tags:
+    - docker
+    - docker-install
+
+- name: Get dpkg architecture
+  ansible.builtin.command: dpkg --print-architecture
+  register: dpkg_arch
+  changed_when: false
+  tags:
+    - docker
+    - docker-install
+
+- name: Add Docker repository to APT sources
+  ansible.builtin.apt_repository:
+    repo: "deb [arch={{ dpkg_arch.stdout }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ os_codename.stdout }} stable"
+    filename: docker
+    state: present
+  become: true
+  tags:
+    - docker
+    - docker-install
+
+- name: Install Docker and related packages
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  become: true
+  tags:
+    - docker
+    - docker-install
+
+- name: Ensure Docker service is started and enabled
+  ansible.builtin.systemd:
+    name: docker.service
+    state: started
+    enabled: true
+  become: true
+  tags:
+    - docker
+    - docker-install

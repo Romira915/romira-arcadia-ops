@@ -3,6 +3,7 @@
   hosts: oci_tokyo_ampere
   roles:
     - apt
+    - docker
     - postgresql
   tags: oci-tokyo-ampere
 

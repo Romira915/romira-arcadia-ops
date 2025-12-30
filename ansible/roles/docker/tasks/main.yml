@@ -1,52 +1,32 @@
 ---
 # tasks file for docker
-- name: Update apt package index
-  ansible.builtin.apt:
-    update_cache: yes
-  become: true
 
-- name: Install required system packages
-  ansible.builtin.apt:
-    name: "{{ packages }}"
-  become: true
-  vars:
-    packages:
-      - ca-certificates
-      - curl
+# Docker installation
+- name: Include Docker installation tasks
+  ansible.builtin.include_tasks: install.yml
+  tags:
+    - docker
+    - docker-install
 
-- name: Create directory for Docker GPG key
-  ansible.builtin.file:
-    path: /etc/apt/keyrings
-    state: directory
-    mode: '0755'
+# Docker daemon.json configuration (for data-root and other settings)
+- name: Ensure Docker daemon.json is configured
+  ansible.builtin.template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: "0644"
   become: true
+  notify: Restart docker
+  when: (docker.data_root | default('/var/lib/docker')) != "/var/lib/docker" or (docker_daemon_config | default({}) | length > 0)
+  tags:
+    - docker
+    - docker-config
 
-- name: Download Docker's official GPG key
-  ansible.builtin.get_url:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    dest: /etc/apt/keyrings/docker.asc
-    mode: '0644'
-  become: true
-
-- name: Add Docker repository to APT sources
-  ansible.builtin.shell: |
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  become: true
-
-- name: Update apt package index
-  ansible.builtin.apt:
-    update_cache: yes
-  become: true
-
-- name: Install Docker and related packages
-  ansible.builtin.apt:
-    name: "{{ packages }}"
-    state: present
-  become: true
-  vars:
-    packages:
-      - docker-ce
-      - docker-ce-cli
-      - containerd.io
-      - docker-buildx-plugin
-      - docker-compose-plugin
+# Data-root migration process
+- name: Include Docker data-root migration tasks
+  ansible.builtin.include_tasks: migrate_data_root.yml
+  when: docker.migrate_data_root | default(false)
+  tags:
+    - docker
+    - docker-migration
