@@ -1,0 +1,192 @@
+---
+# tasks file for docker data-root migration
+
+# Check if migration is needed
+- name: Check current Docker data-root
+  ansible.builtin.command: docker info --format '{{ '{{' }}.DockerRootDir{{ '}}' }}'
+  register: current_docker_root
+  changed_when: false
+  failed_when: false
+  become: true
+  tags:
+    - docker
+    - docker-migration
+
+- name: Check if new data-root directory has data
+  ansible.builtin.stat:
+    path: "{{ docker.data_root }}/overlay2"
+  register: new_data_root_stat
+  become: true
+  tags:
+    - docker
+    - docker-migration
+
+- name: Set migration needed fact
+  ansible.builtin.set_fact:
+    docker_migration_needed: >-
+      {{
+        current_docker_root.rc == 0 and
+        current_docker_root.stdout != docker.data_root and
+        not new_data_root_stat.stat.exists
+      }}
+  tags:
+    - docker
+    - docker-migration
+
+# Migration process (conditional)
+- name: Migrate Docker data-root
+  when: docker_migration_needed | default(false)
+  block:
+    - name: Ensure new Docker data directory exists
+      ansible.builtin.file:
+        path: "{{ docker.data_root }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0710"
+      become: true
+
+    - name: Stop Docker socket
+      ansible.builtin.systemd:
+        name: docker.socket
+        state: stopped
+      become: true
+
+    - name: Stop Docker service for migration
+      ansible.builtin.systemd:
+        name: docker.service
+        state: stopped
+      become: true
+
+    - name: Stop containerd service for migration
+      ansible.builtin.systemd:
+        name: containerd.service
+        state: stopped
+      become: true
+
+    - name: Wait for Docker processes to stop
+      ansible.builtin.shell: |
+        while pgrep -x dockerd > /dev/null; do sleep 1; done
+      become: true
+      changed_when: false
+      timeout: 60
+
+    - name: Sync Docker data to new location
+      ansible.builtin.command: >
+        rsync {{ docker.rsync_opts | default('-aHAXxvP') }}
+        {{ docker.old_data_root | default('/var/lib/docker') }}/
+        {{ docker.data_root }}/
+      become: true
+      register: rsync_result
+
+    - name: Display rsync result
+      ansible.builtin.debug:
+        msg: "Rsync completed. Please verify data integrity."
+      when: rsync_result.changed
+
+    - name: Ensure Docker daemon.json is configured with new data-root
+      ansible.builtin.template:
+        src: daemon.json.j2
+        dest: /etc/docker/daemon.json
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
+    - name: Start containerd service
+      ansible.builtin.systemd:
+        name: containerd.service
+        state: started
+      become: true
+
+    - name: Start Docker service
+      ansible.builtin.systemd:
+        name: docker.service
+        state: started
+      become: true
+
+    - name: Wait for Docker to be ready
+      ansible.builtin.command: docker info
+      register: docker_info_check
+      until: docker_info_check.rc == 0
+      retries: 10
+      delay: 5
+      changed_when: false
+      become: true
+
+    - name: Verify new data-root is active
+      ansible.builtin.command: docker info --format '{{ '{{' }}.DockerRootDir{{ '}}' }}'
+      register: verify_docker_root
+      changed_when: false
+      failed_when: verify_docker_root.stdout != docker.data_root
+      become: true
+
+    - name: Display migration success message
+      ansible.builtin.debug:
+        msg: |
+          Docker data-root migration completed successfully!
+          Old location: {{ docker.old_data_root | default('/var/lib/docker') }}
+          New location: {{ docker.data_root }}
+
+          IMPORTANT: After verifying everything works correctly,
+          you can manually remove the old data:
+            sudo rm -rf {{ docker.old_data_root | default('/var/lib/docker') }}
+
+  rescue:
+    - name: Migration failed - attempting rollback
+      ansible.builtin.debug:
+        msg: "Migration failed. Attempting to restore Docker service..."
+
+    - name: Remove daemon.json if migration failed before rsync
+      ansible.builtin.file:
+        path: /etc/docker/daemon.json
+        state: absent
+      become: true
+      when: rsync_result is not defined or rsync_result.failed | default(false)
+
+    - name: Start containerd service after failed migration
+      ansible.builtin.systemd:
+        name: containerd.service
+        state: started
+      become: true
+      ignore_errors: true
+
+    - name: Start Docker service after failed migration
+      ansible.builtin.systemd:
+        name: docker.service
+        state: started
+      become: true
+      ignore_errors: true
+
+    - name: Fail with migration error
+      ansible.builtin.fail:
+        msg: "Docker data-root migration failed. Docker service has been restored to original state."
+
+  tags:
+    - docker
+    - docker-migration
+
+# Already migrated message
+- name: Already migrated message
+  ansible.builtin.debug:
+    msg: "Docker data-root is already at {{ docker.data_root }}. No migration needed."
+  when: not (docker_migration_needed | default(false))
+  tags:
+    - docker
+    - docker-migration
+
+# Optional: Remove old Docker data (recommended: manual cleanup)
+- name: Remove old Docker data (if configured)
+  ansible.builtin.file:
+    path: "{{ docker.old_data_root | default('/var/lib/docker') }}"
+    state: absent
+  become: true
+  when:
+    - docker.remove_old_data | default(false)
+    - docker_migration_needed | default(false)
+    - verify_docker_root is defined
+    - verify_docker_root.stdout == docker.data_root
+  tags:
+    - docker
+    - docker-migration
+    - cleanup

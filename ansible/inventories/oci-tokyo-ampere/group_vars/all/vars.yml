@@ -9,3 +9,10 @@ postgresql:
     - name: blog
       password: "{{ vault_postgresql_blog_password }}"
       db: blog_romira_dev
+
+# Docker data-root migration settings
+docker:
+  migrate_data_root: true
+  data_root: "/mnt/d/docker"
+  old_data_root: "/var/lib/docker"
+  remove_old_data: false
