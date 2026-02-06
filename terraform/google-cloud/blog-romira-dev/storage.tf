@@ -12,7 +12,7 @@ resource "google_storage_bucket" "blog_images" {
   uniform_bucket_level_access = true
 
   cors {
-    origin          = ["https://blog.romira.dev", "http://localhost:3000"]
+    origin          = ["https://blog.romira.dev", "http://localhost:3000", "http://127.0.0.1:3000"]
     method          = ["PUT", "GET", "HEAD", "OPTIONS"]
     response_header = ["Content-Type", "Content-Length"]
     max_age_seconds = 3600
