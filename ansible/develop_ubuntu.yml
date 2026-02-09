@@ -39,38 +39,11 @@
       tags:
         - develop_configuration
 
-    - name: Ensure that ssh private key is exists
+    - name: Set romira-s-config remote to SSH
       ansible.builtin.command:
-        argv:
-          - bw
-          - get
-          - attachment
-          - "{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
-          - --itemid
-          - "{{ develop_configuration.bw_ssh_private_key_item_id }}"
-          - --output
-          - "~/.ssh/{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
-      args:
-        stdin: "{{ bitwarden.password }}"
-      environment:
-        PATH: "{{ ansible_facts.env.PATH }}:{{ additional_path }}"
+        cmd: git remote set-url origin git@github.com:Romira915/romira-s-config.git
+        chdir: ~/.config/romira-s-config
       changed_when: false
-      tags:
-        - develop_configuration
-
-    - name: Clone config repogitory
-      ansible.builtin.git:
-        repo: git@github.com:Romira915/romira-s-config.git
-        dest: ~/.config/romira-s-config
-        update: true
-        accept_hostkey: true
-        key_file: "/home/romira/.ssh/{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
-      environment:
-        #        SSHPASS: "{{ develop_configuration.ssh_passphrase }}"
-        #       GIT_SSH_COMMAND: "sshpass -e ssh -o StrictHostKeyChecking=no -i ~/.ssh/{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
-        # TODO: ssh-agentに事前に登録する
-        SSH_AUTH_SOCK: "{{ lookup('env', 'SSH_AUTH_SOCK') }}"
-        GIT_TERMINAL_PROMPT: 0
       tags:
         - develop_configuration
 

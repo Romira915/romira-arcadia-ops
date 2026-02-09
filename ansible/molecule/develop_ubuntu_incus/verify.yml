@@ -1,0 +1,289 @@
+---
+- name: Verify
+  hosts: develop_ubuntu
+  gather_facts: false
+  become: false
+  vars:
+    romira_home: /home/romira
+  tasks:
+    # === user role ===
+    - name: Check user romira exists
+      ansible.builtin.command: id romira
+      register: user_check
+      changed_when: false
+
+    - name: Assert user romira exists
+      ansible.builtin.assert:
+        that:
+          - user_check.rc == 0
+        fail_msg: "User romira does not exist"
+
+    - name: Check romira is in sudo group
+      ansible.builtin.command: id -nG romira
+      register: groups_check
+      changed_when: false
+
+    - name: Assert romira is in sudo group
+      ansible.builtin.assert:
+        that:
+          - "'sudo' in groups_check.stdout"
+        fail_msg: "User romira is not in sudo group"
+
+    # === apt role ===
+    - name: Check apt packages are installed
+      ansible.builtin.command: "dpkg -s {{ item }}"
+      register: package_check
+      changed_when: false
+      loop:
+        - git
+        - curl
+        - zsh
+        - fish
+        - build-essential
+        - cmake
+        - htop
+        - fcitx5
+        - fcitx5-mozc
+        - language-pack-ja
+
+    - name: Assert apt packages are installed
+      ansible.builtin.assert:
+        that:
+          - item.rc == 0
+        fail_msg: "Package {{ item.item }} is not installed"
+      loop: "{{ package_check.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    # === linuxbrew role ===
+    - name: Check Homebrew exists
+      ansible.builtin.stat:
+        path: /home/linuxbrew/.linuxbrew/bin/brew
+      register: brew_check
+
+    - name: Assert Homebrew exists
+      ansible.builtin.assert:
+        that:
+          - brew_check.stat.exists
+        fail_msg: "Homebrew is not installed"
+
+    # === bitwarden role ===
+    - name: Check bitwarden-cli is installed
+      ansible.builtin.command: "{{ romira_home }}/.linuxbrew/bin/bw --version"
+      become: true
+      become_user: romira
+      register: bw_check
+      changed_when: false
+      failed_when: false
+      environment:
+        PATH: "/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH | default('/usr/bin:/bin') }}"
+
+    - name: Assert bitwarden-cli is installed
+      ansible.builtin.assert:
+        that:
+          - bw_check.rc == 0
+        fail_msg: "bitwarden-cli is not installed"
+
+    # === gh role ===
+    - name: Check gh is installed
+      ansible.builtin.command: gh --version
+      become: true
+      become_user: romira
+      register: gh_check
+      changed_when: false
+      failed_when: false
+      environment:
+        PATH: "/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH | default('/usr/bin:/bin') }}"
+
+    - name: Assert gh is installed
+      ansible.builtin.assert:
+        that:
+          - gh_check.rc == 0
+        fail_msg: "gh is not installed"
+
+    - name: Check gh cloned repositories exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      register: repo_check
+      loop:
+        - "{{ romira_home }}/.tmp/.ssh"
+        - "{{ romira_home }}/workspace/repositories/github.com/joaojacome/bitwarden-ssh-agent"
+        - "{{ romira_home }}/.config/romira-s-config"
+
+    - name: Assert gh cloned repositories exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.isdir
+        fail_msg: "Repository {{ item.item }} does not exist"
+      loop: "{{ repo_check.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    # === romira-s-config remote is SSH ===
+    - name: Check romira-s-config remote URL
+      ansible.builtin.command:
+        cmd: git remote get-url origin
+        chdir: "{{ romira_home }}/.config/romira-s-config"
+      become: true
+      become_user: romira
+      register: remote_url_check
+      changed_when: false
+
+    - name: Assert romira-s-config remote is SSH
+      ansible.builtin.assert:
+        that:
+          - "'git@github.com:' in remote_url_check.stdout"
+        fail_msg: "Remote URL is not SSH: {{ remote_url_check.stdout }}"
+
+    # === directories ===
+    - name: Check directories exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      become: true
+      become_user: romira
+      register: dir_check
+      loop:
+        - "{{ romira_home }}/.config/fish"
+        - "{{ romira_home }}/.config/mcfly"
+        - "{{ romira_home }}/.local/bin"
+        - "{{ romira_home }}/workspace/repositories"
+
+    - name: Assert directories exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.isdir
+        fail_msg: "Directory {{ item.item }} does not exist"
+      loop: "{{ dir_check.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    # === SSH config ===
+    - name: Check SSH config directory exists
+      ansible.builtin.stat:
+        path: "{{ romira_home }}/.ssh"
+      become: true
+      become_user: romira
+      register: ssh_dir_check
+
+    - name: Assert SSH config directory exists
+      ansible.builtin.assert:
+        that:
+          - ssh_dir_check.stat.exists
+        fail_msg: "~/.ssh does not exist"
+
+    # === symbolic links ===
+    - name: Check symbolic links exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      become: true
+      become_user: romira
+      register: symlink_check
+      loop:
+        - "{{ romira_home }}/.gitconfig"
+        - "{{ romira_home }}/.profile"
+        - "{{ romira_home }}/.config/fish/config.fish"
+        - "{{ romira_home }}/.zshrc"
+        - "{{ romira_home }}/.vimrc"
+        - "{{ romira_home }}/.tmux.conf"
+
+    - name: Assert symbolic links exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.islnk
+        fail_msg: "Symbolic link {{ item.item }} does not exist or is not a symlink"
+      loop: "{{ symlink_check.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    # === zprezto ===
+    - name: Check zprezto is cloned
+      ansible.builtin.stat:
+        path: "{{ romira_home }}/.zprezto"
+      become: true
+      become_user: romira
+      register: zprezto_check
+
+    - name: Assert zprezto is cloned
+      ansible.builtin.assert:
+        that:
+          - zprezto_check.stat.exists
+          - zprezto_check.stat.isdir
+        fail_msg: "zprezto is not cloned"
+
+    - name: Check zprezto symlinks exist
+      ansible.builtin.stat:
+        path: "{{ romira_home }}/.{{ item }}"
+      become: true
+      become_user: romira
+      register: zprezto_symlink_check
+      loop:
+        - zlogin
+        - zlogout
+        - zprofile
+        - zshenv
+
+    - name: Assert zprezto symlinks exist
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.islnk
+        fail_msg: "zprezto symlink ~/.{{ item.item }} does not exist"
+      loop: "{{ zprezto_symlink_check.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    # === login shell is fish ===
+    - name: Check login shell for romira
+      ansible.builtin.command: getent passwd romira
+      register: shell_check
+      changed_when: false
+
+    - name: Assert login shell is fish
+      ansible.builtin.assert:
+        that:
+          - "shell_check.stdout.endswith('/fish')"
+        fail_msg: "Login shell is not fish: {{ shell_check.stdout }}"
+
+    # === fisher ===
+    - name: Check fisher is installed
+      ansible.builtin.stat:
+        path: "{{ romira_home }}/.config/fish/functions/fisher.fish"
+      become: true
+      become_user: romira
+      register: fisher_check
+
+    - name: Assert fisher is installed
+      ansible.builtin.assert:
+        that:
+          - fisher_check.stat.exists
+        fail_msg: "fisher is not installed"
+
+    # === tmux-thumbs ===
+    - name: Check tmux-thumbs is cloned
+      ansible.builtin.stat:
+        path: "{{ romira_home }}/.tmux/plugins/tmux-thumbs"
+      become: true
+      become_user: romira
+      register: tmux_thumbs_check
+
+    - name: Assert tmux-thumbs is cloned
+      ansible.builtin.assert:
+        that:
+          - tmux_thumbs_check.stat.exists
+        fail_msg: "tmux-thumbs is not cloned"
+
+    - name: Check tmux-thumbs binary exists
+      ansible.builtin.stat:
+        path: "{{ romira_home }}/.tmux/plugins/tmux-thumbs/target/release/thumbs"
+      become: true
+      become_user: romira
+      register: tmux_thumbs_bin_check
+
+    - name: Assert tmux-thumbs binary is built
+      ansible.builtin.assert:
+        that:
+          - tmux_thumbs_bin_check.stat.exists
+        fail_msg: "tmux-thumbs binary is not built"
