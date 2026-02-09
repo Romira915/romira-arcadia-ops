@@ -27,29 +27,29 @@
       tags:
         - bitwarden
 
-- block:
-    - name: Check bw login status
-      ansible.builtin.command: "bw login --check"
-      environment:
-        PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
-      failed_when: false
-      changed_when: false
-      register: check_bw_login
-      tags:
-        - bitwarden
-
-    - name: Input Two step login code
-      ansible.builtin.pause:
-        prompt: "? Two-step login code"
-      register: two_step_login_code
-      when: "'You are logged in!' not in check_bw_login.stdout"
-      tags:
-        - bitwarden
-
-    - name: Ensure logged into bw
-      ansible.builtin.command: "bw login {{ bitwarden.email_address }} {{ bitwarden.password }} --code {{ two_step_login_code.user_input }}"
-      environment:
-        PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
-      when: "'You are logged in!' not in check_bw_login.stdout"
-      tags:
-        - bitwarden
+# - block:
+#     - name: Check bw login status
+#       ansible.builtin.command: "bw login --check"
+#       environment:
+#         PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+#       failed_when: false
+#       changed_when: false
+#       register: check_bw_login
+#       tags:
+#         - bitwarden
+#
+#     - name: Input Two step login code
+#       ansible.builtin.pause:
+#         prompt: "? Two-step login code"
+#       register: two_step_login_code
+#       when: "'You are logged in!' not in check_bw_login.stdout"
+#       tags:
+#         - bitwarden
+#
+#     - name: Ensure logged into bw
+#       ansible.builtin.command: "bw login {{ bitwarden.email_address }} {{ bitwarden.password }} --code {{ two_step_login_code.user_input }}"
+#       environment:
+#         PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+#       when: "'You are logged in!' not in check_bw_login.stdout"
+#       tags:
+#         - bitwarden

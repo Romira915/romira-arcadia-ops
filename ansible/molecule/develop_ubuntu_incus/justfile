@@ -1,0 +1,46 @@
+container_name := "test-develop-ubuntu"
+image := "images:ubuntu/24.04"
+ansible_dir := justfile_directory() / "../.."
+molecule_dir := justfile_directory()
+roles_path := ansible_dir / "roles"
+
+export ANSIBLE_CONFIG := ansible_dir / "ansible.cfg"
+export ANSIBLE_ROLES_PATH := roles_path + ":" + env("HOME") / ".ansible/roles"
+
+# Run full test lifecycle: destroy → create → converge → verify
+test: destroy create converge verify
+    @echo "All tests passed."
+
+# Launch Incus container and install prerequisites
+create:
+    incus launch {{ image }} {{ container_name }} \
+        -c security.nesting=true \
+        -c limits.cpu=2 \
+        -c limits.memory=4GB
+    @echo "Waiting for container to be ready..."
+    incus exec {{ container_name }} -- bash -c "while [ ! -d /run/systemd/system ]; do sleep 0.5; done"
+    incus exec {{ container_name }} -- apt-get update
+    incus exec {{ container_name }} -- apt-get install -y python3 sudo
+    incus exec {{ container_name }} -- useradd -m -s /bin/bash romira
+    incus exec {{ container_name }} -- bash -c "echo 'romira ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/romira"
+    incus exec {{ container_name }} -- chmod 0440 /etc/sudoers.d/romira
+
+# Run the production playbook
+converge:
+    cd {{ ansible_dir }} && ansible-playbook -v \
+        -i {{ molecule_dir }}/inventory \
+        develop_ubuntu.yml
+
+# Run the verification playbook
+verify:
+    cd {{ ansible_dir }} && ansible-playbook \
+        -i {{ molecule_dir }}/inventory \
+        {{ molecule_dir }}/verify.yml
+
+# Delete the container
+destroy:
+    -incus delete --force {{ container_name }}
+
+# Open a shell in the container for debugging
+login:
+    incus exec {{ container_name }} -- bash

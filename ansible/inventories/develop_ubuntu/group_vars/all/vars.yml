@@ -28,13 +28,12 @@ apt:
     - fish
     - ttf-mscorefonts-installer
     - sshpass
-    - fcitx-bin
-    - fcitx-mozc
     - dbus-x11
     - language-pack-ja
     - nautilus
     - apache2-utils
     - fcitx5
+    - fcitx5-mozc
     - htop
   install_state: present
 bitwarden:
@@ -97,6 +96,8 @@ gh:
       dest: ~/.tmp/.ssh
     - repo: joaojacome/bitwarden-ssh-agent
       dest: ~/workspace/repositories/github.com/joaojacome/bitwarden-ssh-agent
+    - repo: Romira915/romira-s-config
+      dest: ~/.config/romira-s-config
 user:
   groups: []
   absent_groups: []

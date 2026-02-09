@@ -71,6 +71,25 @@ All Terraform projects use tfmigrate for import history management (see `tfmigra
 - `.vault-password-file` provides decryption (never commit)
 - Check `git diff` before commits to ensure no secrets are exposed
 
+## Incus テスト環境
+
+`ansible/molecule/develop_ubuntu_incus/` に Incus コンテナを使ったテスト環境がある。
+テストコンテナ内での `ansible-playbook` 実行は `--check` 制限の例外とする。
+
+```bash
+cd ansible/molecule/develop_ubuntu_incus
+
+# 全テストライフサイクル実行（destroy → create → converge → verify）
+just test
+
+# 個別ステップ
+just create    # コンテナ起動 + Python3/sudo インストール
+just converge  # テスト用プレイブック実行
+just verify    # 検証プレイブック実行
+just destroy   # コンテナ削除
+just login     # デバッグ用シェル接続
+```
+
 ## Task Completion Checklist
 
 When modifying Terraform:
