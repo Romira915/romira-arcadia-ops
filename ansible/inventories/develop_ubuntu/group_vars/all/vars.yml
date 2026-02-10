@@ -62,8 +62,6 @@ develop_configuration:
       dest: ~/.zpreztorc
     - src: ~/.config/romira-s-config/git/.bashrc
       dest: ~/.bashrc
-    - src: ~/.config/romira-s-config/git/.bash_profile
-      dest: ~/.bash_profile
     - src: ~/.config/romira-s-config/vim/.vim
       dest: ~/.vim
     - src: ~/.config/romira-s-config/vim/.vimrc
@@ -78,8 +76,6 @@ develop_configuration:
       dest: ~/.config/starship.toml
     - src: ~/.config/romira-s-config/mcfly/mcfly.fish
       dest: ~/.config/mcfly/mcfly.fish
-    - src: ~/workspace/repositories/github.com/joaojacome/bitwarden-ssh-agent/bw_add_sshkeys
-      dest: ~/.local/bin/bw_add_sshkeys
   wsl_symbolic_links:
     - src: /mnt/c/Windows/System32/clip.exe
       dest: ~/.local/bin/clip
@@ -89,13 +85,13 @@ develop_configuration:
       dest: ~/.local/bin/explorer
     - src: /mnt/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe
       dest: ~/.local/bin/msedge
+    - src: ~/.local/share/JetBrains/Toolbox/apps/rustrover/bin/rustrover
+      dest: ~/.local/bin/rustrover
 gh:
   github_fine_grained_token: "{{ vault_gh.vault_github_fine_grained_token }}"
   repository:
     - repo: Romira915/ssh-config
       dest: ~/.tmp/.ssh
-    - repo: joaojacome/bitwarden-ssh-agent
-      dest: ~/workspace/repositories/github.com/joaojacome/bitwarden-ssh-agent
     - repo: Romira915/romira-s-config
       dest: ~/.config/romira-s-config
 user:

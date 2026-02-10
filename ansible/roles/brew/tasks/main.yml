@@ -9,6 +9,8 @@
     PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
   loop: "{{ brew.package }}"
   when: brew.package is iterable
+  tags:
+    - brew
 
 - name: Install homebrew cask package
   community.general.homebrew_cask:
@@ -19,3 +21,5 @@
     - ansible_os_family == 'Darwin'
     - brew.cask is defined
     - brew.cask is iterable
+  tags:
+    - brew
