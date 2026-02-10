@@ -49,6 +49,7 @@ develop_configuration:
     - ~/.config/mcfly/
     - ~/.local/bin/
     - ~/workspace/repositories
+    - ~/.claude/
   symbolic_links:
     - src: ~/.config/romira-s-config/git/.gitconfig
       dest: ~/.gitconfig
@@ -76,6 +77,12 @@ develop_configuration:
       dest: ~/.config/starship.toml
     - src: ~/.config/romira-s-config/mcfly/mcfly.fish
       dest: ~/.config/mcfly/mcfly.fish
+    - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
+      dest: ~/.claude/CLAUDE.md
+    - src: ~/.config/romira-s-config/claude-code/settings.json
+      dest: ~/.claude/settings.json
+    - src: ~/.config/romira-s-config/claude-code/skills
+      dest: ~/.claude/skills
   wsl_symbolic_links:
     - src: /mnt/c/Windows/System32/clip.exe
       dest: ~/.local/bin/clip

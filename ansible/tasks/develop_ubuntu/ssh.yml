@@ -1,0 +1,6 @@
+---
+- name: Ensure that ssh config is exists
+  ansible.builtin.copy:
+    src: ~/.tmp/.ssh/
+    dest: ~/.ssh
+    remote_src: true

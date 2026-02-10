@@ -1,0 +1,7 @@
+---
+- name: Install rustup via standard installer
+  ansible.builtin.shell: >-
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs |
+    sh -s -- -y --no-modify-path --default-toolchain stable
+  args:
+    creates: ~/.cargo/bin/cargo

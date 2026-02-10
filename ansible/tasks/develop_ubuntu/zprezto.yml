@@ -1,0 +1,15 @@
+---
+- name: Clone zprezto repogitory
+  ansible.builtin.git:
+    repo: https://github.com/sorin-ionescu/prezto.git
+    dest: ~/.zprezto
+    update: true
+    force: true
+
+- name: Create symbolic links for zprezto
+  ansible.builtin.file:
+    src: "~/.zprezto/runcoms/{{ item }}"
+    dest: "~/.{{ item }}"
+    state: link
+    force: true
+  loop: [zlogin, zlogout, zprofile, zshenv]
