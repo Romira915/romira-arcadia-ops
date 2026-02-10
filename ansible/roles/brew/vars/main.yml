@@ -66,6 +66,10 @@ brew:
     - gemini-cli
     - claude-code
     - codex
+    - deno
+    - ollama
+    - zig
+    - xsel
   cask:
     # Fonts
     - font-hackgen
