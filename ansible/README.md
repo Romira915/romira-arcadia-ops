@@ -11,7 +11,7 @@
 
 1. Install require asnible galaxy
    ```shell
-   ansible-galaxy install markosamuli.linuxbrew andrewrothstein.rust andrewrothstein.miniconda
+   ansible-galaxy install markosamuli.linuxbrew
    ```
 1. Execute ansible-playbook.
    ```shell

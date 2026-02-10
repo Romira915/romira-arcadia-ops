@@ -25,13 +25,20 @@
   ansible.builtin.shell: gh repo clone {{ item.repo }} {{ item.dest }}
   environment:
     GH_TOKEN: "{{ gh.github_fine_grained_token }}"
-    # GIT_SSH_COMMAND: ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
     PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
-  # args:
-  #   stdin: "yes"
   failed_when: "'already exists' not in gh_repo_clone.stderr and gh_repo_clone.rc != 0"
   changed_when: gh_repo_clone.rc == 0
   register: gh_repo_clone
+  loop: "{{ gh.repository }}"
+  tags:
+    - gh
+    - configuration
+
+- name: Set remote URL to SSH
+  ansible.builtin.command:
+    cmd: git remote set-url origin git@github.com:{{ item.repo }}.git
+    chdir: "{{ item.dest }}"
+  changed_when: false
   loop: "{{ gh.repository }}"
   tags:
     - gh

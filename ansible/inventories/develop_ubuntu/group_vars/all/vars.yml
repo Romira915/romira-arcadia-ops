@@ -72,10 +72,10 @@ develop_configuration:
       dest: ~/.tmux.conf
     - src: ~/.config/romira-s-config/latex/.latexmkrc
       dest: ~/.latexmkrc
-    - src: ~/.config/romira-s-config/miniconda3/.condarc
-      dest: ~/.condarc
     - src: ~/.config/romira-s-config/zsh/.git-prompt.sh
       dest: ~/.git-prompt.sh
+    - src: ~/.config/romira-s-config/starship/starship.toml
+      dest: ~/.config/starship.toml
     - src: ~/.config/romira-s-config/mcfly/mcfly.fish
       dest: ~/.config/mcfly/mcfly.fish
     - src: ~/workspace/repositories/github.com/joaojacome/bitwarden-ssh-agent/bw_add_sshkeys
@@ -110,6 +110,3 @@ user:
       authorized_keys: https://github.com/Romira915.keys
   absent_users: []
 additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/romira/.cargo/bin
-miniconda_parent_dir: /home/romira
-miniconda_link_subdir: miniconda3
-miniconda_escalate: false
