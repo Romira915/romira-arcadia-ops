@@ -16,6 +16,9 @@
   community.general.homebrew_cask:
     name: "{{ item }}"
     state: present
+    update_homebrew: true
+  environment:
+    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
   loop: "{{ brew.cask }}"
   when:
     - ansible_os_family == 'Darwin'
