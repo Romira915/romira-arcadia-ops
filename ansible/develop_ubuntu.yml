@@ -39,137 +39,32 @@
   become: true
   become_user: "{{ setup_user }}"
   tasks:
-    - name: Ensure directory is exists
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: directory
-        mode: "0755"
-      loop: "{{ develop_configuration.directories }}"
+    - import_tasks: tasks/develop_ubuntu/symlink.yml
       tags:
         - develop_configuration
         - symlink
 
-    - name: Ensure that ssh config is exists
-      ansible.builtin.copy:
-        src: ~/.tmp/.ssh/
-        dest: ~/.ssh
-        remote_src: true
+    - import_tasks: tasks/develop_ubuntu/ssh.yml
       tags:
         - develop_configuration
         - ssh
 
-    - name: Create symbolic links
-      ansible.builtin.file:
-        src: "{{ item.src }}"
-        dest: "{{ item.dest }}"
-        state: link
-        force: true
-      loop: "{{ develop_configuration.symbolic_links }}"
-      tags:
-        - develop_configuration
-        - symlink
-
-    - name: Clone zprezto repogitory
-      ansible.builtin.git:
-        repo: https://github.com/sorin-ionescu/prezto.git
-        dest: ~/.zprezto
-        update: true
-        force: true
+    - import_tasks: tasks/develop_ubuntu/zprezto.yml
       tags:
         - develop_configuration
         - zprezto
 
-    - name: Create symbolic links for zprezto
-      ansible.builtin.file:
-        src: "~/.zprezto/runcoms/{{ item }}"
-        dest: "~/.{{ item }}"
-        state: link
-        force: true
-      loop: [zlogin, zlogout, zprofile, zshenv]
-      tags:
-        - develop_configuration
-        - zprezto
-
-    - name: Set login shell to fish
-      ansible.builtin.shell: chsh -s $(which fish)
-      args:
-        stdin: "{{ vault_user.vault_romira.vault_password }}"
-      changed_when: false
+    - import_tasks: tasks/develop_ubuntu/fish.yml
       tags:
         - develop_configuration
         - fish
 
-    - name: Ensure fisher is installed
-      ansible.builtin.command:
-        cmd: >-
-          fish -c '
-          curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source &&
-          fisher install jorgebucaran/fisher'
-      changed_when: false
-      tags:
-        - develop_configuration
-        - fish
-
-    - name: Ensure fisher plugin is installed
-      ansible.builtin.command:
-        cmd: >-
-          fish -c '
-          fisher install
-          0rax/fish-bd
-          edc/bass'
-      changed_when: false
-      tags:
-        - develop_configuration
-        - fish
-
-    - name: Find fish custom function files
-      ansible.builtin.find:
-        paths: ~/.config/romira-s-config/fish/functions
-        patterns: "*.fish"
-      register: fish_custom_functions
-      tags:
-        - develop_configuration
-        - fish
-
-    - name: Create symbolic links for fish custom functions
-      ansible.builtin.file:
-        src: "{{ item.path }}"
-        dest: "~/.config/fish/functions/{{ item.path | basename }}"
-        state: link
-        force: true
-      loop: "{{ fish_custom_functions.files }}"
-      loop_control:
-        label: "{{ item.path | basename }}"
-      tags:
-        - develop_configuration
-        - fish
-
-    - name: Install rustup via standard installer
-      ansible.builtin.shell: >-
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs |
-        sh -s -- -y --no-modify-path --default-toolchain stable
-      args:
-        creates: ~/.cargo/bin/cargo
+    - import_tasks: tasks/develop_ubuntu/rustup.yml
       tags:
         - develop_configuration
         - rustup
 
-    - name: Clone tmux-thumbs repogitory
-      ansible.builtin.git:
-        repo: https://github.com/fcsonline/tmux-thumbs
-        dest: ~/.tmux/plugins/tmux-thumbs
-        update: true
-      tags:
-        - develop_configuration
-        - tmux
-
-    - name: Build tmux-thumbs
-      ansible.builtin.command: cargo build --release
-      args:
-        chdir: ~/.tmux/plugins/tmux-thumbs
-      environment:
-        PATH: "{{ ansible_facts.env.PATH }}:{{ additional_path }}"
-      changed_when: false
+    - import_tasks: tasks/develop_ubuntu/tmux.yml
       tags:
         - develop_configuration
         - tmux
@@ -182,29 +77,7 @@
   become: true
   become_user: "{{ setup_user }}"
   tasks:
-    - name: Create a symbolic link for wsl.conf
-      ansible.builtin.file:
-        src: "/home/{{ setup_user }}/.config/romira-s-config/Ubuntu/wsl.conf"
-        dest: /etc/wsl.conf
-        state: link
-        owner: root
-        force: true
-      become: true
-      become_user: root
-      when: is_wsl
-      tags:
-        - develop_configuration
-        - wsl
-        - symlink
-
-    - name: Create symbolic links for windows binaries
-      ansible.builtin.file:
-        src: "{{ item.src }}"
-        dest: "{{ item.dest }}"
-        state: link
-        force: true
-      loop: "{{ develop_configuration.wsl_symbolic_links }}"
-      when: is_wsl
+    - import_tasks: tasks/develop_ubuntu/wsl.yml
       tags:
         - develop_configuration
         - wsl

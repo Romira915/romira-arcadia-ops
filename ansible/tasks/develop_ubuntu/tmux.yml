@@ -1,0 +1,14 @@
+---
+- name: Clone tmux-thumbs repogitory
+  ansible.builtin.git:
+    repo: https://github.com/fcsonline/tmux-thumbs
+    dest: ~/.tmux/plugins/tmux-thumbs
+    update: true
+
+- name: Build tmux-thumbs
+  ansible.builtin.command: cargo build --release
+  args:
+    chdir: ~/.tmux/plugins/tmux-thumbs
+  environment:
+    PATH: "{{ ansible_facts.env.PATH }}:{{ additional_path }}"
+  changed_when: false
