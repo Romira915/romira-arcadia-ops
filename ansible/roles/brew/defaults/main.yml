@@ -1,5 +1,7 @@
 ---
 # defaults file for roles/brew
+additional_path: ""
+
 brew:
   package:
     - wget
