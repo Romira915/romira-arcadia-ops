@@ -261,6 +261,23 @@
           - fisher_check.stat.exists
         fail_msg: "fisher is not installed"
 
+    # === cargo (rustup) ===
+    - name: Check cargo is installed
+      ansible.builtin.command: cargo --version
+      become: true
+      become_user: romira
+      register: cargo_check
+      changed_when: false
+      failed_when: false
+      environment:
+        PATH: "/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH | default('/usr/bin:/bin') }}"
+
+    - name: Assert cargo is installed
+      ansible.builtin.assert:
+        that:
+          - cargo_check.rc == 0
+        fail_msg: "cargo is not installed"
+
     # === tmux-thumbs ===
     - name: Check tmux-thumbs is cloned
       ansible.builtin.stat:

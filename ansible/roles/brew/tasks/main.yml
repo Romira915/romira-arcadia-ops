@@ -1,71 +1,5 @@
 ---
 # tasks file for roles/brew
-# - name: Temporary directory
-#   ansible.builtin.file:
-#     path: "{{ linuxbrew_install_tmp }}"
-#     state: directory
-#     mode: "0700"
-#   become: false
-
-# - name: Download Homebrew install script
-#   ansible.builtin.get_url:
-#     url: "{{ linuxbrew_install_url }}"
-#     dest: "{{ linuxbrew_install_tmp }}/install.sh"
-#     checksum: "{{ linuxbrew_install_checksum | default(omit) }}"
-#     mode: "0700"
-#   become: false
-
-# - name: Install Homebrew with the installer
-#   ansible.builtin.command: sh -c "{{ linuxbrew_install_tmp }}/install.sh"
-#   register: install_result
-#   changed_when: "install_result.rc == 0"
-#   become: false
-
-# - name: Remove temporary directory
-#   ansible.builtin.file:
-#     path: "{{ linuxbrew_install_tmp }}"
-#     state: absent
-#   become: false
-
-# - name: Install homebrew package
-#   community.general.homebrew:
-#     name: "{{ brew.package }}"
-#     state: present
-#     update_homebrew: true
-
-# - name: Temporary directory
-#   ansible.builtin.file:
-#     path: "{{ linuxbrew_install_tmp }}"
-#     state: directory
-#     mode: "0700"
-#   become: false
-
-# - name: Download Homebrew install script
-#   ansible.builtin.get_url:
-#     url: "{{ linuxbrew_install_url }}"
-#     dest: "{{ linuxbrew_install_tmp }}/install.sh"
-#     checksum: "{{ linuxbrew_install_checksum | default(omit) }}"
-#     mode: "0700"
-#   become: false
-
-# - name: Install Homebrew with the installer
-#   ansible.builtin.command: sh -c "{{ linuxbrew_install_tmp }}/install.sh"
-#   register: install_result
-#   changed_when: "install_result.rc == 0"
-#   become: false
-
-# - name: Remove temporary directory
-#   ansible.builtin.file:
-#     path: "{{ linuxbrew_install_tmp }}"
-#     state: absent
-#   become: false
-
-# - name: Install homebrew package
-#   community.general.homebrew:
-#     name: "{{ brew.package }}"
-#     state: present
-#     update_homebrew: true
-
 - name: Install homebrew package
   community.general.homebrew:
     name: "{{ item }}"
@@ -75,3 +9,13 @@
     PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
   loop: "{{ brew.package }}"
   when: brew.package is iterable
+
+- name: Install homebrew cask package
+  community.general.homebrew_cask:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ brew.cask }}"
+  when:
+    - ansible_os_family == 'Darwin'
+    - brew.cask is defined
+    - brew.cask is iterable

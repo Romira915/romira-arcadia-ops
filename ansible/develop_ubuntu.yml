@@ -1,27 +1,41 @@
 ---
-- name: Provisioning
+# Play 1: System provisioning (root)
+- name: System provisioning
   hosts: develop_ubuntu
   roles:
     - user
     - apt
+  tags: develop_ubuntu
+
+# Play 2: Linuxbrew installation
+# linuxbrew ロールは内部で become: true (apt) / false (installer) を使い分けるため
+# play レベルの become_user と相性が悪い。単独 Play にする
+- name: Linuxbrew installation
+  hosts: develop_ubuntu
+  roles:
     - markosamuli.linuxbrew
-    - brew
-    - bitwarden
-    - gh
   vars:
     linuxbrew_use_installer: true
     linuxbrew_init_shell: false
   tags: develop_ubuntu
 
-- name: Ensure that deployed config file
+# Play 3: User tools provisioning (setup_user)
+- name: User tools provisioning
   hosts: develop_ubuntu
-  tasks:
-    - name: Gather facts
-      ansible.builtin.gather_facts:
-      when: ansible_facts.env.PATH is not defined
-      tags:
-        - develop_configuration
+  become: true
+  become_user: "{{ setup_user }}"
+  roles:
+    - brew
+    - bitwarden
+    - gh
+  tags: develop_ubuntu
 
+# Play 4: User environment setup (setup_user)
+- name: User environment setup
+  hosts: develop_ubuntu
+  become: true
+  become_user: "{{ setup_user }}"
+  tasks:
     - name: Ensure directory is exists
       ansible.builtin.file:
         path: "{{ item }}"
@@ -39,14 +53,6 @@
       tags:
         - develop_configuration
 
-    - name: Set romira-s-config remote to SSH
-      ansible.builtin.command:
-        cmd: git remote set-url origin git@github.com:Romira915/romira-s-config.git
-        chdir: ~/.config/romira-s-config
-      changed_when: false
-      tags:
-        - develop_configuration
-
     - name: Create symbolic links
       ansible.builtin.file:
         src: "{{ item.src }}"
@@ -57,17 +63,14 @@
       tags:
         - develop_configuration
 
-  tags: develop_ubuntu
-
-- name: Set up zsh
-  hosts: develop_ubuntu
-  tasks:
     - name: Clone zprezto repogitory
       ansible.builtin.git:
         repo: https://github.com/sorin-ionescu/prezto.git
         dest: ~/.zprezto
         update: true
         force: true
+      tags:
+        - develop_configuration
 
     - name: Create symbolic links for zprezto
       ansible.builtin.file:
@@ -76,57 +79,67 @@
         state: link
         force: true
       loop: [zlogin, zlogout, zprofile, zshenv]
-  tags:
-    - develop_configuration
+      tags:
+        - develop_configuration
 
-- name: Set login shell to fish
-  hosts: develop_ubuntu
-  tasks:
     - name: Set login shell to fish
       ansible.builtin.shell: chsh -s $(which fish)
       args:
         stdin: "{{ vault_user.vault_romira.vault_password }}"
       changed_when: false
-  tags:
-    - develop_configuration
+      tags:
+        - develop_configuration
 
-- name: Set up fish
-  hosts: develop_ubuntu
-  tasks:
     - name: Ensure fisher is installed
-      ansible.builtin.shell: >-
-        curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source &&
-        fisher install jorgebucaran/fisher
-      args:
-        executable: /usr/bin/fish
+      ansible.builtin.command:
+        cmd: >-
+          fish -c '
+          curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source &&
+          fisher install jorgebucaran/fisher'
       changed_when: false
       tags:
         - develop_configuration
 
     - name: Ensure fisher plugin is installed
-      ansible.builtin.shell: >-
-        fisher install
-        oh-my-fish/theme-bobthefish
-        jethrokuan/z
-        0rax/fish-bd
-        oh-my-fish/plugin-balias
-        edc/bass
-        oh-my-fish/plugin-peco
-        jethrokuan/fzf
-        decors/fish-ghq
-        yoshiori/fish-peco_select_ghq_repository
-        tsu-nera/fish-peco_recentd
-      args:
-        executable: /usr/bin/fish
+      ansible.builtin.command:
+        cmd: >-
+          fish -c '
+          fisher install
+          0rax/fish-bd
+          edc/bass'
       changed_when: false
       tags:
         - develop_configuration
-  tags:
-    - develop_configuration
 
-- name: Set up tmux-thumbs
-  hosts: develop_ubuntu
-  tasks:
+    - name: Find fish custom function files
+      ansible.builtin.find:
+        paths: ~/.config/romira-s-config/fish/functions
+        patterns: "*.fish"
+      register: fish_custom_functions
+      tags:
+        - develop_configuration
+
+    - name: Create symbolic links for fish custom functions
+      ansible.builtin.file:
+        src: "{{ item.path }}"
+        dest: "~/.config/fish/functions/{{ item.path | basename }}"
+        state: link
+        force: true
+      loop: "{{ fish_custom_functions.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
+      tags:
+        - develop_configuration
+
+    - name: Install rustup via standard installer
+      ansible.builtin.shell: >-
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs |
+        sh -s -- -y --no-modify-path --default-toolchain stable
+      args:
+        creates: ~/.cargo/bin/cargo
+      tags:
+        - develop_configuration
+
     - name: Clone tmux-thumbs repogitory
       ansible.builtin.git:
         repo: https://github.com/fcsonline/tmux-thumbs
@@ -147,8 +160,11 @@
   tags:
     - develop_configuration
 
+# Play 5: WSL configuration
 - name: Set up only wsl configuration
   hosts: develop_ubuntu
+  become: true
+  become_user: "{{ setup_user }}"
   tasks:
     - name: Create a symbolic link for wsl.conf
       ansible.builtin.file:
@@ -158,6 +174,7 @@
         owner: root
         force: true
       become: true
+      become_user: root
       when: is_wsl
       tags:
         - develop_configuration
