@@ -1,5 +1,6 @@
 chocolatey:
   ignore_checksums: true
+  ignore_errors: true
   package:
     - googlechrome
     - firefox
@@ -37,6 +38,10 @@ chocolatey:
     - rufus
     - elevenclock
     - alt-tab-terminator
+    - claude
+    - chatgpt
+    - obsidian
+    - Ollama
     # For private
     - steam
     - musicbee
@@ -88,7 +93,7 @@ scoop:
 winget:
   package:
     - BlueStack.BlueStacks
-    - Microsoft.VisualStudio.2022.Community
+    - Microsoft.VisualStudio.Community
     - DMM.GamePlayer
     # Adobe Creative Cloud
     - XPDLPKWG9SW2WD

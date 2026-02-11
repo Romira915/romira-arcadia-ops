@@ -15,5 +15,9 @@
     ignore_checksums: "{{ chocolatey.ignore_checksums }}"
   loop: "{{ chocolatey.package }}"
   when: chocolatey.package is iterable
+  register: chocolatey_install_result
+  failed_when:
+    - chocolatey_install_result is failed
+    - not (chocolatey.ignore_errors | default(false))
   tags:
     - chocolatey

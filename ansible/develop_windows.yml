@@ -8,7 +8,7 @@
     - winget
     - bitwarden
     - gh
-    - wsl
+    # - wsl
   tags: develop_windows
 
 # Play 2: User environment setup
