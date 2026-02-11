@@ -62,7 +62,6 @@ scoop:
   bucket:
     - name: extras
     - name: versions
-      repo: https://github.com/rkbk60/scoop-for-jp
     - name: java
     - name: nonportable
     - name: nerd-fonts
