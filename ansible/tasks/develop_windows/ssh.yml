@@ -1,0 +1,14 @@
+---
+- name: Ensure that ssh private key is exists
+  ansible.windows.win_command:
+    argv:
+      - bw
+      - get
+      - attachment
+      - "{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+      - --itemid
+      - "{{ develop_configuration.bw_ssh_private_key_item_id }}"
+      - --output
+      - "C:\\Users\\{{ ansible_user }}\\.ssh\\{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
+  args:
+    stdin: "{{ bitwarden.password }}"

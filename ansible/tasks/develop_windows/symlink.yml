@@ -1,0 +1,16 @@
+---
+- name: Create symbolic links
+  ansible.windows.win_shell: "cmd /c mklink {{ item.dest }} {{ item.src }}"
+  failed_when: "'already exists' not in create_symbolic_link.stderr and create_symbolic_link.rc != 0"
+  changed_when: create_symbolic_link.rc == 0
+  register: create_symbolic_link
+  loop: "{{ develop_configuration.symbolic_links }}"
+
+- name: Create hard links
+  ansible.windows.win_shell: |
+    del {{ item.dest }}
+    cmd /c mklink /H {{ item.dest }} {{ item.src }}
+  failed_when: "'already exists' not in create_hard_links.stderr and create_hard_links.rc != 0"
+  changed_when: create_hard_links.rc == 0
+  register: create_hard_links
+  loop: "{{ develop_configuration.hard_links }}"

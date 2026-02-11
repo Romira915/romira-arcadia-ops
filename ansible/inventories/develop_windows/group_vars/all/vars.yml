@@ -110,6 +110,8 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.bashrc
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\git\.bash_profile
       dest: C:\Users\{{ ansible_user }}\.bash_profile
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\wsl2\.wslconfig
+      dest: C:\Users\{{ ansible_user }}\.wslconfig
   hard_links:
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\WindowsTerminal\settings.json
       dest: C:\Users\{{ ansible_user }}\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
@@ -133,6 +135,17 @@ fonts:
       dest: C:\Users\{{ ansible_user }}\.tmp\fonts\Noto_Sans_JP.zip
     - url: https://fonts.google.com/download?family=Noto%20Serif%20JP
       dest: C:\Users\{{ ansible_user }}\.tmp\fonts\Noto_Serif_JP.zip
+    - url: https://github.com/microsoft/cascadia-code/releases/download/v2407.24/CascadiaCode-2407.24.zip
+      dest: C:\Users\{{ ansible_user }}\.tmp\fonts\CascadiaCode-2407.24.zip
+    - url: https://github.com/tomokuni/Myrica/raw/master/product/Myrica.zip
+      dest: C:\Users\{{ ansible_user }}\.tmp\fonts\Myrica.zip
+    - url: https://github.com/tomokuni/Myrica/raw/master/product/MyricaM.zip
+      dest: C:\Users\{{ ansible_user }}\.tmp\fonts\MyricaM.zip
+msys2:
+  packages:
+    - zsh
+    - fish
+  login_shell: fish
 optional_feature:
   features:
     - Microsoft-Hyper-V-All

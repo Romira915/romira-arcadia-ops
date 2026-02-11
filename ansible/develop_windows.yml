@@ -1,4 +1,5 @@
 ---
+# Play 1: Provisioning
 - name: Provisioning
   hosts: develop_windows
   roles:
@@ -7,50 +8,32 @@
     - winget
     - bitwarden
     - gh
-    - gh
+    - wsl
   tags: develop_windows
 
-- name: Ensure that deployed config file
+# Play 2: User environment setup
+- name: User environment setup
   hosts: develop_windows
   tasks:
-    - name: Create symbolic links
-      ansible.windows.win_shell: "cmd /c mklink {{ item.dest }} {{ item.src }}"
-      failed_when: "'already exists' not in create_symbolic_link.stderr and create_symbolic_link.rc != 0"
-      changed_when: create_symbolic_link.rc == 0
-      register: create_symbolic_link
-      loop: "{{ develop_configuration.symbolic_links }}"
+    - import_tasks: tasks/develop_windows/symlink.yml
       tags:
         - develop_configuration
+        - symlink
 
-    - name: Create hard_links links
-      ansible.windows.win_shell: |
-        del {{ item.dest }}
-        cmd /c mklink /H {{ item.dest }} {{ item.src }}
-      failed_when: "'already exists' not in create_hard_links.stderr and create_hard_links.rc != 0"
-      changed_when: create_hard_links.rc == 0
-      register: create_hard_links
-      loop: "{{ develop_configuration.hard_links }}"
+    - import_tasks: tasks/develop_windows/ssh.yml
       tags:
         - develop_configuration
-        - debug
+        - ssh
 
-    - name: Ensure that ssh private key is exists
-      ansible.windows.win_command:
-        argv:
-          - bw
-          - get
-          - attachment
-          - "{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
-          - --itemid
-          - "{{ develop_configuration.bw_ssh_private_key_item_id }}"
-          - --output
-          - "C:\\Users\\{{ ansible_user }}\\.ssh\\{{ develop_configuration.bw_ssh_private_key_attachment_name }}"
-      args:
-        stdin: "{{ bitwarden.password }}"
+    - import_tasks: tasks/develop_windows/msys2.yml
       tags:
         - develop_configuration
+        - msys2
+  tags:
+    - develop_configuration
 
-- name: Setup fonts file
+# Play 3: Fonts setup
+- name: Setup fonts
   hosts: develop_windows
   tasks:
     - name: Ensure fonts dir is exists
@@ -70,36 +53,22 @@
         - develop_configuration
         - fonts
 
-- name: Enable windows optional feature
+# Play 4: Windows optional features
+- name: Enable windows optional features
   hosts: develop_windows
   tasks:
-    - name: Enable windows optional feature
+    - name: Enable windows optional features
       ansible.windows.win_optional_feature:
         name: "{{ optional_feature.features }}"
         state: present
       register: win_optional_feature_status
       tags:
         - develop_configuration
+        - optional_feature
 
     - name: Reboot if installing feature requires it
       ansible.windows.win_reboot:
       when: win_optional_feature_status.reboot_required
       tags:
         - develop_configuration
-
-- name: Enable windows optional feature
-  hosts: develop_windows
-  tasks:
-    - name: Enable windows optional feature
-      ansible.windows.win_optional_feature:
-        name: "{{ optional_feature.features }}"
-        state: present
-      register: win_optional_feature_status
-      tags:
-        - develop_configuration
-
-    - name: Reboot if installing feature requires it
-      ansible.windows.win_reboot:
-      when: win_optional_feature_status.reboot_required
-      tags:
-        - develop_configuration
+        - optional_feature

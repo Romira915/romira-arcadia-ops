@@ -1,0 +1,20 @@
+---
+- name: Update msys2 packages
+  ansible.windows.win_shell: >
+    C:\Users\{{ ansible_user }}\scoop\apps\msys2\current\usr\bin\bash.exe -lc
+    "pacman -Syu --noconfirm"
+
+- name: Install msys2 packages
+  ansible.windows.win_shell: >
+    C:\Users\{{ ansible_user }}\scoop\apps\msys2\current\usr\bin\bash.exe -lc
+    "pacman -S --noconfirm {{ msys2.packages | join(' ') }}"
+
+- name: Set login shell to {{ msys2.login_shell }}
+  ansible.windows.win_shell: >
+    C:\Users\{{ ansible_user }}\scoop\apps\msys2\current\usr\bin\bash.exe -lc
+    "sed -i -e 's/LOGINSHELL=[ba]*[z]*sh/LOGINSHELL={{ msys2.login_shell }}/' /msys2_shell.cmd"
+
+- name: Add Windows PATH to msys2
+  ansible.windows.win_shell: >
+    C:\Users\{{ ansible_user }}\scoop\apps\msys2\current\usr\bin\bash.exe -lc
+    "grep -q ORIGINAL_PATH /etc/profile || echo 'export PATH=$(cygpath -p -u $ORIGINAL_PATH):$PATH' >> /etc/profile"
