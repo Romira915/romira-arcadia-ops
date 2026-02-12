@@ -17,17 +17,17 @@
   tasks:
     - name: Import symlink tasks
       ansible.builtin.import_tasks:
-        file: tasks/develop_ubuntu/symlink.yml
+        file: tasks/common/symlink.yml
       tags: [develop_configuration, symlink]
 
     - name: Import ssh tasks
       ansible.builtin.import_tasks:
-        file: tasks/develop_ubuntu/ssh.yml
+        file: tasks/common/ssh.yml
       tags: [develop_configuration, ssh]
 
     - name: Import zprezto tasks
       ansible.builtin.import_tasks:
-        file: tasks/develop_ubuntu/zprezto.yml
+        file: tasks/common/zprezto.yml
       tags: [develop_configuration, zprezto]
 
     - name: Import fish tasks
@@ -37,12 +37,12 @@
 
     - name: Import rustup tasks
       ansible.builtin.import_tasks:
-        file: tasks/develop_ubuntu/rustup.yml
+        file: tasks/common/rustup.yml
       tags: [develop_configuration, rustup]
 
     - name: Import tmux tasks
       ansible.builtin.import_tasks:
-        file: tasks/develop_ubuntu/tmux.yml
+        file: tasks/common/tmux.yml
       tags: [develop_configuration, tmux]
 
     - name: Import macos_defaults tasks
