@@ -6,8 +6,12 @@
   tags:
     - bitwarden
 
-- import_tasks: unix_bitwarden.yml
+- name: Import unix bitwarden tasks
+  ansible.builtin.import_tasks:
+    file: unix_bitwarden.yml
   when: ansible_facts.system in ['Linux', 'Darwin']
 
-- import_tasks: win_bitwarden.yml
+- name: Import windows bitwarden tasks
+  ansible.builtin.import_tasks:
+    file: win_bitwarden.yml
   when: ansible_facts.system in ['Win32NT']
