@@ -49,5 +49,10 @@
       ansible.builtin.import_tasks:
         file: tasks/develop_macOS/macos_defaults.yml
       tags: [develop_configuration, macos_defaults]
+
+    - name: Import mas tasks
+      ansible.builtin.import_tasks:
+        file: tasks/develop_macOS/mas.yml
+      tags: [develop_configuration, mas]
   tags:
     - develop_configuration

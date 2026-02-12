@@ -1,0 +1,18 @@
+---
+# Mac App Store アプリのインストール (mas CLI経由)
+- name: Ensure mas is installed
+  community.general.homebrew:
+    name: mas
+    state: present
+  environment:
+    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+
+- name: Install Mac App Store apps
+  ansible.builtin.command: mas install {{ item.id }}
+  environment:
+    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+  loop: "{{ mas_apps }}"
+  loop_control:
+    label: "{{ item.name }} ({{ item.id }})"
+  register: mas_result
+  changed_when: "'already installed' not in mas_result.stdout"

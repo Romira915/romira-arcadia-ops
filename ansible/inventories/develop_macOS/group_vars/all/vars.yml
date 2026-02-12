@@ -41,6 +41,10 @@ brew_extra_packages:
   - sshpass
   - wakeonlan
 
+mas_apps:
+  - id: 1451685025
+    name: WireGuard
+
 bitwarden:
   server: https://vaultwarden.romira.dev
   email_address: "{{ vault_bitwarden.vault_email_address }}"
