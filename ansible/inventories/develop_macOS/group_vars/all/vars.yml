@@ -2,7 +2,35 @@ additional_path: /opt/homebrew/bin:/opt/homebrew/sbin:~/.cargo/bin
 
 macos_defaults:
   dock_tilesize: 48
+  dock_magnification: true
   dock_largesize: 128
+  dock_show_recents: false
+  dock_autohide: false
+  dock_autohide_delay: 0.5
+  dock_orientation: bottom
+  dock_mineffect: genie
+  dock_static_only: false
+  dock_mru_spaces: true
+  dock_expose_group_apps: false
+  finder_show_all_files: "YES"
+  finder_show_pathbar: true
+  finder_show_status_bar: false
+  finder_default_search_scope: SCcf
+  finder_preferred_view_style: icnv
+  finder_sort_folders_first: false
+  finder_extension_change_warning: true
+  finder_save_to_cloud: true
+  global_show_all_extensions: true
+  global_press_and_hold_enabled: false
+  global_close_always_confirms_changes: false
+  keyboard_ui_mode: 0
+  trackpad_tap_to_click: true
+  screenshot_location: ~/Pictures/Screenshots
+  screenshot_type: png
+  screenshot_disable_shadow: false
+  screenshot_show_thumbnail: false
+  launch_services_quarantine: true
+  timemachine_do_not_offer_new_disks: false
 
 brew_extra_packages:
   - curl
