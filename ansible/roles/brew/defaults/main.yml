@@ -69,7 +69,8 @@ brew:
     - deno
     - ollama
     - zig
-    - xsel
+    - gh
+    - bitwarden-cli
   cask:
     # Fonts
     - font-hackgen
@@ -87,19 +88,15 @@ brew:
     - google-chrome
     - firefox
     - slack
-    - openvpn-connect
     - jetbrains-toolbox
     - vlc
     - deepl
     - wireshark
-    - docker
     - google-japanese-ime
     - vivaldi
-    - microsoft-office
     - unity
     - teamviewer
     - google-drive
-    - virtualbox
     - parsec
     - zoom
     - notion
@@ -112,14 +109,24 @@ brew:
     - iterm2
     - microsoft-edge
     - skim
-    - vmware-fusion
+    # vmware-fusion: disabled in homebrew cask since 2025-06-23, install manually from Broadcom
+    # - vmware-fusion
     - openmtp
     - mathpix-snipping-tool
     - dbeaver-community
     - obs
     - orbstack
-    - keycastr
     - zulip
     - tailscale
     - rectangle
     - jordanbaird-ice
+    - claude
+    - chatgpt
+    - obsidian
+    - 1password
+    - alt-tab
+    - scroll-reverser
+    - deskflow
+    - ollama-app
+
+brew_extra_packages: []

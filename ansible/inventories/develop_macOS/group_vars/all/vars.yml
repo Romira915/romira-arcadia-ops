@@ -1,0 +1,61 @@
+additional_path: /opt/homebrew/bin:/opt/homebrew/sbin:~/.cargo/bin
+
+brew_extra_packages:
+  - curl
+  - cmake
+  - keychain
+  - zsh
+  - fish
+  - sshpass
+  - wakeonlan
+
+bitwarden:
+  server: https://vaultwarden.romira.dev
+  email_address: "{{ vault_bitwarden.vault_email_address }}"
+  password: "{{ vault_bitwarden.vault_password }}"
+
+gh:
+  github_fine_grained_token: "{{ vault_gh.vault_github_fine_grained_token }}"
+  repository:
+    - repo: Romira915/ssh-config
+      dest: ~/.tmp/.ssh
+    - repo: Romira915/romira-s-config
+      dest: ~/.config/romira-s-config
+
+develop_configuration:
+  bw_ssh_private_key_attachment_name: id_ed25519_romira_private_key
+  bw_ssh_private_key_item_id: 2c5a6eeb-b1e8-4217-b0b5-4d9d69d3cf76
+  ssh_passphrase: "{{ vault_develop_configuration.vault_ssh_passphrase }}"
+  directories:
+    - ~/.config/fish/
+    - ~/.config/mcfly/
+    - ~/.local/bin/
+    - ~/workspace/repositories
+    - ~/.claude/
+  symbolic_links:
+    - src: ~/.config/romira-s-config/git/.gitconfig
+      dest: ~/.gitconfig
+    - src: ~/.config/romira-s-config/fish/config.fish
+      dest: ~/.config/fish/config.fish
+    - src: ~/.config/romira-s-config/zsh/.zshrc
+      dest: ~/.zshrc
+    - src: ~/.config/romira-s-config/zsh/.zpreztorc
+      dest: ~/.zpreztorc
+    - src: ~/.config/romira-s-config/vim/.vim
+      dest: ~/.vim
+    - src: ~/.config/romira-s-config/vim/.vimrc
+      dest: ~/.vimrc
+    - src: ~/.config/romira-s-config/tmux/.tmux.conf
+      dest: ~/.tmux.conf
+    - src: ~/.config/romira-s-config/latex/.latexmkrc
+      dest: ~/.latexmkrc
+    - src: ~/.config/romira-s-config/starship/starship.toml
+      dest: ~/.config/starship.toml
+    - src: ~/.config/romira-s-config/mcfly/mcfly.fish
+      dest: ~/.config/mcfly/mcfly.fish
+    - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
+      dest: ~/.claude/CLAUDE.md
+    - src: ~/.config/romira-s-config/claude-code/settings.json
+      dest: ~/.claude/settings.json
+    - src: ~/.config/romira-s-config/claude-code/skills
+      dest: ~/.claude/skills

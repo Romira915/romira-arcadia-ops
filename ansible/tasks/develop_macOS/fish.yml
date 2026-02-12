@@ -1,0 +1,45 @@
+---
+- name: Ensure fish is in /etc/shells
+  ansible.builtin.lineinfile:
+    path: /etc/shells
+    line: /opt/homebrew/bin/fish
+    state: present
+  become: true
+
+- name: Set login shell to fish
+  ansible.builtin.command: dscl . -create /Users/{{ ansible_user_id }} UserShell /opt/homebrew/bin/fish
+  become: true
+  changed_when: false
+
+- name: Ensure fisher is installed
+  ansible.builtin.command:
+    cmd: >-
+      fish -c '
+      curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source &&
+      fisher install jorgebucaran/fisher'
+  changed_when: false
+
+- name: Ensure fisher plugin is installed
+  ansible.builtin.command:
+    cmd: >-
+      fish -c '
+      fisher install
+      0rax/fish-bd
+      edc/bass'
+  changed_when: false
+
+- name: Find fish custom function files
+  ansible.builtin.find:
+    paths: ~/.config/romira-s-config/fish/functions
+    patterns: "*.fish"
+  register: fish_custom_functions
+
+- name: Create symbolic links for fish custom functions
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "~/.config/fish/functions/{{ item.path | basename }}"
+    state: link
+    force: true
+  loop: "{{ fish_custom_functions.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
