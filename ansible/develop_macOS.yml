@@ -32,5 +32,8 @@
 
     - import_tasks: tasks/develop_ubuntu/tmux.yml
       tags: [develop_configuration, tmux]
+
+    - import_tasks: tasks/develop_macOS/macos_defaults.yml
+      tags: [develop_configuration, macos_defaults]
   tags:
     - develop_configuration

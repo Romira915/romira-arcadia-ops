@@ -1,0 +1,101 @@
+---
+# Dock
+- name: "Dock: Set icon size to {{ macos_defaults.dock_tilesize }}"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: tilesize
+    type: int
+    value: "{{ macos_defaults.dock_tilesize }}"
+
+- name: "Dock: Enable magnification"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: magnification
+    type: bool
+    value: true
+
+- name: "Dock: Set magnified icon size to {{ macos_defaults.dock_largesize }}"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: largesize
+    type: int
+    value: "{{ macos_defaults.dock_largesize }}"
+
+- name: "Dock: Hide recent applications"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: show-recents
+    type: bool
+    value: false
+
+# Finder
+- name: "Finder: Show hidden files"
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: AppleShowAllFiles
+    type: bool
+    value: true
+
+- name: "Finder: Show path bar"
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: ShowPathbar
+    type: bool
+    value: true
+
+- name: "Finder: Search current folder by default"
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: FXDefaultSearchScope
+    type: string
+    value: SCcf
+
+# Global
+- name: "Global: Show all file extensions"
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleShowAllExtensions
+    type: bool
+    value: true
+
+- name: "Global: Enable key repeat (disable press-and-hold)"
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: ApplePressAndHoldEnabled
+    type: bool
+    value: false
+
+# Trackpad
+- name: "Trackpad: Enable tap to click"
+  community.general.osx_defaults:
+    domain: com.apple.AppleMultitouchTrackpad
+    key: Clicking
+    type: bool
+    value: true
+
+# Screenshot
+- name: "Screenshot: Ensure save directory exists"
+  ansible.builtin.file:
+    path: ~/Pictures/Screenshots
+    state: directory
+    mode: "0755"
+
+- name: "Screenshot: Set save location"
+  community.general.osx_defaults:
+    domain: com.apple.screencapture
+    key: location
+    type: string
+    value: ~/Pictures/Screenshots
+
+# Restart affected apps
+- name: Restart Dock to apply settings
+  ansible.builtin.command: killall Dock
+  changed_when: true
+
+- name: Restart Finder to apply settings
+  ansible.builtin.command: killall Finder
+  changed_when: true
+
+- name: Restart SystemUIServer to apply settings
+  ansible.builtin.command: killall SystemUIServer
+  changed_when: true
