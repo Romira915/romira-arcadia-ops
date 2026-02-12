@@ -15,25 +15,39 @@
 - name: User environment setup
   hosts: develop_macOS
   tasks:
-    - import_tasks: tasks/develop_ubuntu/symlink.yml
+    - name: Import symlink tasks
+      ansible.builtin.import_tasks:
+        file: tasks/develop_ubuntu/symlink.yml
       tags: [develop_configuration, symlink]
 
-    - import_tasks: tasks/develop_ubuntu/ssh.yml
+    - name: Import ssh tasks
+      ansible.builtin.import_tasks:
+        file: tasks/develop_ubuntu/ssh.yml
       tags: [develop_configuration, ssh]
 
-    - import_tasks: tasks/develop_ubuntu/zprezto.yml
+    - name: Import zprezto tasks
+      ansible.builtin.import_tasks:
+        file: tasks/develop_ubuntu/zprezto.yml
       tags: [develop_configuration, zprezto]
 
-    - import_tasks: tasks/develop_macOS/fish.yml
+    - name: Import fish tasks
+      ansible.builtin.import_tasks:
+        file: tasks/develop_macOS/fish.yml
       tags: [develop_configuration, fish]
 
-    - import_tasks: tasks/develop_ubuntu/rustup.yml
+    - name: Import rustup tasks
+      ansible.builtin.import_tasks:
+        file: tasks/develop_ubuntu/rustup.yml
       tags: [develop_configuration, rustup]
 
-    - import_tasks: tasks/develop_ubuntu/tmux.yml
+    - name: Import tmux tasks
+      ansible.builtin.import_tasks:
+        file: tasks/develop_ubuntu/tmux.yml
       tags: [develop_configuration, tmux]
 
-    - import_tasks: tasks/develop_macOS/macos_defaults.yml
+    - name: Import macos_defaults tasks
+      ansible.builtin.import_tasks:
+        file: tasks/develop_macOS/macos_defaults.yml
       tags: [develop_configuration, macos_defaults]
   tags:
     - develop_configuration

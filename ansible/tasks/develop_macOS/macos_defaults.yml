@@ -1,91 +1,256 @@
 ---
 # Dock
+# 通常時のアイコンサイズ (px)
 - name: "Dock: Set icon size to {{ macos_defaults.dock_tilesize }}"
   community.general.osx_defaults:
     domain: com.apple.dock
     key: tilesize
-    type: int
+    type: float
     value: "{{ macos_defaults.dock_tilesize }}"
 
-- name: "Dock: Enable magnification"
+# マウスオーバー時のアイコン拡大を有効にする
+- name: "Dock: Set magnification to {{ macos_defaults.dock_magnification }}"
   community.general.osx_defaults:
     domain: com.apple.dock
     key: magnification
     type: bool
-    value: true
+    value: "{{ macos_defaults.dock_magnification }}"
 
+# 拡大時のアイコンサイズ (px)
 - name: "Dock: Set magnified icon size to {{ macos_defaults.dock_largesize }}"
   community.general.osx_defaults:
     domain: com.apple.dock
     key: largesize
-    type: int
+    type: float
     value: "{{ macos_defaults.dock_largesize }}"
 
-- name: "Dock: Hide recent applications"
+# 最近使ったアプリのセクションを表示する
+- name: "Dock: Set show-recents to {{ macos_defaults.dock_show_recents }}"
   community.general.osx_defaults:
     domain: com.apple.dock
     key: show-recents
     type: bool
-    value: false
+    value: "{{ macos_defaults.dock_show_recents }}"
+
+# Dockを自動的に隠す
+- name: "Dock: Set autohide to {{ macos_defaults.dock_autohide }}"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: autohide
+    type: bool
+    value: "{{ macos_defaults.dock_autohide }}"
+
+# 自動非表示の遅延時間 (秒)
+- name: "Dock: Set autohide delay to {{ macos_defaults.dock_autohide_delay }}"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: autohide-delay
+    type: float
+    value: "{{ macos_defaults.dock_autohide_delay }}"
+
+# Dockの位置 (bottom/left/right)
+- name: "Dock: Set orientation to {{ macos_defaults.dock_orientation }}"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: orientation
+    type: string
+    value: "{{ macos_defaults.dock_orientation }}"
+
+# 最小化アニメーション (genie/scale)
+- name: "Dock: Set minimize effect to {{ macos_defaults.dock_mineffect }}"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: mineffect
+    type: string
+    value: "{{ macos_defaults.dock_mineffect }}"
+
+# アクティブなアプリのみDockに表示する
+- name: "Dock: Set static-only to {{ macos_defaults.dock_static_only }}"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: static-only
+    type: bool
+    value: "{{ macos_defaults.dock_static_only }}"
+
+# Mission Control: 使用状況に基づいてSpacesを自動並べ替え
+- name: "Dock: Set mru-spaces to {{ macos_defaults.dock_mru_spaces }}"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: mru-spaces
+    type: bool
+    value: "{{ macos_defaults.dock_mru_spaces }}"
+
+# Mission Control: アプリケーション別にウィンドウをグループ化
+- name: "Dock: Set expose-group-apps to {{ macos_defaults.dock_expose_group_apps }}"
+  community.general.osx_defaults:
+    domain: com.apple.dock
+    key: expose-group-apps
+    type: bool
+    value: "{{ macos_defaults.dock_expose_group_apps }}"
 
 # Finder
-- name: "Finder: Show hidden files"
+# 隠しファイル(ドットファイル)を表示する
+- name: "Finder: Set AppleShowAllFiles to {{ macos_defaults.finder_show_all_files }}"
   community.general.osx_defaults:
     domain: com.apple.finder
     key: AppleShowAllFiles
-    type: bool
-    value: true
+    type: string
+    value: "{{ macos_defaults.finder_show_all_files }}"
 
-- name: "Finder: Show path bar"
+# ウィンドウ下部にパスバーを表示する
+- name: "Finder: Set ShowPathbar to {{ macos_defaults.finder_show_pathbar }}"
   community.general.osx_defaults:
     domain: com.apple.finder
     key: ShowPathbar
     type: bool
-    value: true
+    value: "{{ macos_defaults.finder_show_pathbar }}"
 
-- name: "Finder: Search current folder by default"
+# ウィンドウ下部にステータスバーを表示する
+- name: "Finder: Set ShowStatusBar to {{ macos_defaults.finder_show_status_bar }}"
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: ShowStatusBar
+    type: bool
+    value: "{{ macos_defaults.finder_show_status_bar }}"
+
+# 検索時のデフォルトスコープ (SCcf=現在のフォルダ, SCsp=前回のスコープ, SCev=Mac全体)
+- name: "Finder: Set FXDefaultSearchScope to {{ macos_defaults.finder_default_search_scope }}"
   community.general.osx_defaults:
     domain: com.apple.finder
     key: FXDefaultSearchScope
     type: string
-    value: SCcf
+    value: "{{ macos_defaults.finder_default_search_scope }}"
+
+# デフォルト表示スタイル (icnv=アイコン, Nlsv=リスト, clmv=カラム, Flwv=ギャラリー)
+- name: "Finder: Set FXPreferredViewStyle to {{ macos_defaults.finder_preferred_view_style }}"
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: FXPreferredViewStyle
+    type: string
+    value: "{{ macos_defaults.finder_preferred_view_style }}"
+
+# フォルダを常にリストの先頭に表示する
+- name: "Finder: Set _FXSortFoldersFIrst to {{ macos_defaults.finder_sort_folders_first }}"
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: _FXSortFoldersFIrst
+    type: bool
+    value: "{{ macos_defaults.finder_sort_folders_first }}"
+
+# 拡張子変更時に警告を表示する
+- name: "Finder: Set FXEnableExtensionChangeWarning to {{ macos_defaults.finder_extension_change_warning }}"
+  community.general.osx_defaults:
+    domain: com.apple.finder
+    key: FXEnableExtensionChangeWarning
+    type: bool
+    value: "{{ macos_defaults.finder_extension_change_warning }}"
+
+# 新規ファイルの保存先をiCloudにする (falseでローカル優先)
+- name: "Finder: Set NSDocumentSaveNewDocumentsToCloud to {{ macos_defaults.finder_save_to_cloud }}"
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: NSDocumentSaveNewDocumentsToCloud
+    type: bool
+    value: "{{ macos_defaults.finder_save_to_cloud }}"
 
 # Global
-- name: "Global: Show all file extensions"
+# 拡張子を常に表示する
+- name: "Global: Set AppleShowAllExtensions to {{ macos_defaults.global_show_all_extensions }}"
   community.general.osx_defaults:
     domain: NSGlobalDomain
     key: AppleShowAllExtensions
     type: bool
-    value: true
+    value: "{{ macos_defaults.global_show_all_extensions }}"
 
-- name: "Global: Enable key repeat (disable press-and-hold)"
+# キーの長押しで特殊文字入力ではなくキーリピートを有効にする
+- name: "Global: Set ApplePressAndHoldEnabled to {{ macos_defaults.global_press_and_hold_enabled }}"
   community.general.osx_defaults:
     domain: NSGlobalDomain
     key: ApplePressAndHoldEnabled
     type: bool
-    value: false
+    value: "{{ macos_defaults.global_press_and_hold_enabled }}"
+
+# 閉じる時に常に保存確認ダイアログを表示する
+- name: "Global: Set NSCloseAlwaysConfirmsChanges to {{ macos_defaults.global_close_always_confirms_changes }}"
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: NSCloseAlwaysConfirmsChanges
+    type: bool
+    value: "{{ macos_defaults.global_close_always_confirms_changes }}"
+
+# Keyboard
+# Tabキーによるフォーカス移動 (0=テキストフィールドのみ, 2=すべてのコントロール)
+- name: "Keyboard: Set AppleKeyboardUIMode to {{ macos_defaults.keyboard_ui_mode }}"
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: AppleKeyboardUIMode
+    type: int
+    value: "{{ macos_defaults.keyboard_ui_mode }}"
 
 # Trackpad
-- name: "Trackpad: Enable tap to click"
+# タップでクリックを有効にする
+- name: "Trackpad: Set tap to click to {{ macos_defaults.trackpad_tap_to_click }}"
   community.general.osx_defaults:
     domain: com.apple.AppleMultitouchTrackpad
     key: Clicking
     type: bool
-    value: true
+    value: "{{ macos_defaults.trackpad_tap_to_click }}"
 
 # Screenshot
+# スクリーンショットの保存先ディレクトリ
 - name: "Screenshot: Ensure save directory exists"
   ansible.builtin.file:
-    path: ~/Pictures/Screenshots
+    path: "{{ macos_defaults.screenshot_location }}"
     state: directory
     mode: "0755"
 
-- name: "Screenshot: Set save location"
+- name: "Screenshot: Set save location to {{ macos_defaults.screenshot_location }}"
   community.general.osx_defaults:
     domain: com.apple.screencapture
     key: location
     type: string
-    value: ~/Pictures/Screenshots
+    value: "{{ macos_defaults.screenshot_location }}"
+
+# 保存形式 (png/jpg/pdf/tiff/gif/bmp)
+- name: "Screenshot: Set format to {{ macos_defaults.screenshot_type }}"
+  community.general.osx_defaults:
+    domain: com.apple.screencapture
+    key: type
+    type: string
+    value: "{{ macos_defaults.screenshot_type }}"
+
+# ウィンドウ撮影時の影を無効化する
+- name: "Screenshot: Set disable-shadow to {{ macos_defaults.screenshot_disable_shadow }}"
+  community.general.osx_defaults:
+    domain: com.apple.screencapture
+    key: disable-shadow
+    type: bool
+    value: "{{ macos_defaults.screenshot_disable_shadow }}"
+
+# 撮影後のサムネイルプレビューを表示する
+- name: "Screenshot: Set show-thumbnail to {{ macos_defaults.screenshot_show_thumbnail }}"
+  community.general.osx_defaults:
+    domain: com.apple.screencapture
+    key: show-thumbnail
+    type: bool
+    value: "{{ macos_defaults.screenshot_show_thumbnail }}"
+
+# Misc
+# ダウンロードしたファイルの検疫警告(「開いてもよろしいですか？」)を表示する
+- name: "LaunchServices: Set LSQuarantine to {{ macos_defaults.launch_services_quarantine }}"
+  community.general.osx_defaults:
+    domain: com.apple.LaunchServices
+    key: LSQuarantine
+    type: bool
+    value: "{{ macos_defaults.launch_services_quarantine }}"
+
+# 新しいディスク接続時にTime Machineバックアップ先として提案しない
+- name: "TimeMachine: Set DoNotOfferNewDisksForBackup to {{ macos_defaults.timemachine_do_not_offer_new_disks }}"
+  community.general.osx_defaults:
+    domain: com.apple.TimeMachine
+    key: DoNotOfferNewDisksForBackup
+    type: bool
+    value: "{{ macos_defaults.timemachine_do_not_offer_new_disks }}"
 
 # Restart affected apps
 - name: Restart Dock to apply settings
