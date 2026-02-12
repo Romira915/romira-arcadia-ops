@@ -12,6 +12,18 @@
   tags:
     - brew
 
+- name: Install extra homebrew packages
+  community.general.homebrew:
+    name: "{{ item }}"
+    state: present
+    update_homebrew: false
+  environment:
+    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+  loop: "{{ brew_extra_packages }}"
+  when: brew_extra_packages | length > 0
+  tags:
+    - brew
+
 - name: Install homebrew cask package
   community.general.homebrew_cask:
     name: "{{ item }}"
@@ -24,5 +36,11 @@
     - ansible_os_family == 'Darwin'
     - brew.cask is defined
     - brew.cask is iterable
+  register: brew_cask_result
+  failed_when:
+    - brew_cask_result is failed
+    - "'already installed' not in (brew_cask_result.msg | default(''))"
+    - "'already an App' not in (brew_cask_result.msg | default(''))"
+    - "'a password is required' not in (brew_cask_result.msg | default(''))"
   tags:
     - brew
