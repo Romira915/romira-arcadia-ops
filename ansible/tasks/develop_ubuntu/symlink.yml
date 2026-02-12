@@ -31,25 +31,33 @@
     force: true
   loop: "{{ develop_configuration.symbolic_links }}"
 
-- name: Ensure ~/.claude/skills directory exists
+- name: Ensure AI tool skills directories exist
   ansible.builtin.file:
-    path: ~/.claude/skills
+    path: "{{ item }}"
     state: directory
     mode: "0755"
+  loop: "{{ ai_skills.destinations }}"
 
-- name: Find claude skill files
+- name: Check if AI skills source directory exists
+  ansible.builtin.stat:
+    path: "{{ ai_skills.src }}"
+  register: ai_skills_src_stat
+
+- name: Find AI skill entries
   ansible.builtin.find:
-    paths: ~/.config/romira-s-config/claude-code/skills
+    paths: "{{ ai_skills.src }}"
     patterns: "*"
     file_type: any
-  register: claude_skill_files
+  register: ai_skill_entries
+  when: ai_skills_src_stat.stat.exists
 
-- name: Create symbolic links for claude skills
+- name: Create symbolic links for AI skills
   ansible.builtin.file:
-    src: "{{ item.path }}"
-    dest: "~/.claude/skills/{{ item.path | basename }}"
+    src: "{{ item.0.path }}"
+    dest: "{{ item.1 }}/{{ item.0.path | basename }}"
     state: link
     force: true
-  loop: "{{ claude_skill_files.files }}"
+  loop: "{{ ai_skill_entries.files | product(ai_skills.destinations) | list }}"
   loop_control:
-    label: "{{ item.path | basename }}"
+    label: "{{ item.1 }}/{{ item.0.path | basename }}"
+  when: ai_skill_entries.files is defined
