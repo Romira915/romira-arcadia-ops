@@ -1,5 +1,9 @@
 additional_path: /opt/homebrew/bin:/opt/homebrew/sbin:~/.cargo/bin
 
+macos_defaults:
+  dock_tilesize: 48
+  dock_largesize: 128
+
 brew_extra_packages:
   - curl
   - cmake
