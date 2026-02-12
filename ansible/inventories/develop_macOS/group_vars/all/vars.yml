@@ -36,6 +36,9 @@ develop_configuration:
     - ~/.local/bin/
     - ~/workspace/repositories
     - ~/.claude/
+    - ~/.codex/
+    - ~/.gemini/
+    - ~/.config/opencode/
   symbolic_links:
     - src: ~/.config/romira-s-config/git/.gitconfig
       dest: ~/.gitconfig
@@ -59,5 +62,19 @@ develop_configuration:
       dest: ~/.config/mcfly/mcfly.fish
     - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
       dest: ~/.claude/CLAUDE.md
+    - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
+      dest: ~/.codex/AGENTS.md
+    - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
+      dest: ~/.gemini/GEMINI.md
+    - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
+      dest: ~/.config/opencode/AGENTS.md
     - src: ~/.config/romira-s-config/claude-code/settings.json
       dest: ~/.claude/settings.json
+
+ai_skills:
+  src: ~/.config/romira-s-config/ai-skills
+  destinations:
+    - ~/.claude/skills
+    - ~/.codex/skills
+    - ~/.gemini/skills
+    - ~/.config/opencode/skills
