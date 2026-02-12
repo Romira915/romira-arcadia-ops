@@ -18,6 +18,13 @@
    ansible-playbook --diff -i inventories/develop_ubuntu/hosts site.yml --limit 127.0.0.1 --connection local
    ```
 
+## develop_macOS
+
+1. Execute ansible-playbook.
+   ```shell
+   ansible-playbook --diff -i inventories/develop_macOS/hosts develop_macOS.yml --limit localhost --connection local
+   ```
+
 ## develop_windows
 
 ### Setup for windows

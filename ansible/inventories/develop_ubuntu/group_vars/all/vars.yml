@@ -113,3 +113,5 @@ user:
       authorized_keys: https://github.com/Romira915.keys
   absent_users: []
 additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/romira/.cargo/bin
+brew_extra_packages:
+  - xsel

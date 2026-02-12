@@ -1,9 +1,36 @@
 ---
-- name: Provisioning
+# Play 1: User tools provisioning
+- name: User tools provisioning
   hosts: develop_macOS
   roles:
-    - brew
-  vars:
-    # linuxbrew_use_installer: true
-    linuxbrew_init_shell: false
+    - role: brew
+      tags: brew
+    - role: bitwarden
+      tags: bitwarden
+    - role: gh
+      tags: gh
   tags: develop_macOS
+
+# Play 2: User environment setup
+- name: User environment setup
+  hosts: develop_macOS
+  tasks:
+    - import_tasks: tasks/develop_ubuntu/symlink.yml
+      tags: [develop_configuration, symlink]
+
+    - import_tasks: tasks/develop_ubuntu/ssh.yml
+      tags: [develop_configuration, ssh]
+
+    - import_tasks: tasks/develop_ubuntu/zprezto.yml
+      tags: [develop_configuration, zprezto]
+
+    - import_tasks: tasks/develop_macOS/fish.yml
+      tags: [develop_configuration, fish]
+
+    - import_tasks: tasks/develop_ubuntu/rustup.yml
+      tags: [develop_configuration, rustup]
+
+    - import_tasks: tasks/develop_ubuntu/tmux.yml
+      tags: [develop_configuration, tmux]
+  tags:
+    - develop_configuration
