@@ -61,5 +61,3 @@ develop_configuration:
       dest: ~/.claude/CLAUDE.md
     - src: ~/.config/romira-s-config/claude-code/settings.json
       dest: ~/.claude/settings.json
-    - src: ~/.config/romira-s-config/claude-code/skills
-      dest: ~/.claude/skills
