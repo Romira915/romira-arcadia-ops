@@ -9,7 +9,8 @@
   tags:
     - bitwarden
 
-- block:
+- name: Configure bitwarden server
+  block:
     - name: Check bw config server value
       ansible.builtin.command: "bw config server"
       environment:

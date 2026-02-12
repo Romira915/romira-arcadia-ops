@@ -7,7 +7,8 @@
     - bitwarden
     - scoop
 
-- block:
+- name: Configure bitwarden server
+  block:
     - name: Check bw config server value
       ansible.windows.win_command: bw config server
       changed_when: false
@@ -21,7 +22,8 @@
       tags:
         - bitwarden
 
-- block:
+- name: Login to bitwarden
+  block:
     - name: Check bw login status
       ansible.windows.win_command: bw login --check
       failed_when: false
