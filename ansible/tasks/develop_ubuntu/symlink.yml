@@ -30,3 +30,26 @@
     state: link
     force: true
   loop: "{{ develop_configuration.symbolic_links }}"
+
+- name: Ensure ~/.claude/skills directory exists
+  ansible.builtin.file:
+    path: ~/.claude/skills
+    state: directory
+    mode: "0755"
+
+- name: Find claude skill files
+  ansible.builtin.find:
+    paths: ~/.config/romira-s-config/claude-code/skills
+    patterns: "*"
+    file_type: any
+  register: claude_skill_files
+
+- name: Create symbolic links for claude skills
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "~/.claude/skills/{{ item.path | basename }}"
+    state: link
+    force: true
+  loop: "{{ claude_skill_files.files }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
