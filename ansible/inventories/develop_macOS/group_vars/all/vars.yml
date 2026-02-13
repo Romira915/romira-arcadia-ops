@@ -75,6 +75,8 @@ develop_configuration:
   symbolic_links:
     - src: ~/.config/romira-s-config/git/.gitconfig
       dest: ~/.gitconfig
+    - src: ~/.config/romira-s-config/shell/.profile
+      dest: ~/.profile
     - src: ~/.config/romira-s-config/fish/config.fish
       dest: ~/.config/fish/config.fish
     - src: ~/.config/romira-s-config/zsh/.zshrc
