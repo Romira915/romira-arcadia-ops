@@ -193,8 +193,8 @@
   community.general.osx_defaults:
     domain: com.apple.AppleMultitouchTrackpad
     key: Clicking
-    type: bool
-    value: "{{ macos_defaults.trackpad_tap_to_click }}"
+    type: int
+    value: "{{ macos_defaults.trackpad_tap_to_click | int }}"
 
 # Screenshot
 # スクリーンショットの保存先ディレクトリ

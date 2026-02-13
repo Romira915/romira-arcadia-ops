@@ -24,7 +24,7 @@ macos_defaults:
   global_press_and_hold_enabled: false
   global_close_always_confirms_changes: false
   keyboard_ui_mode: 0
-  trackpad_tap_to_click: true
+  trackpad_tap_to_click: 1
   screenshot_location: ~/Pictures/Screenshots
   screenshot_type: png
   screenshot_disable_shadow: false
