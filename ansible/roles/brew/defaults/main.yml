@@ -81,6 +81,7 @@ brew:
     - font-plemol-jp-hs
     - font-myrica
     - font-myricam
+    - font-hack-nerd-font
     - font-noto-sans-jp
     - font-noto-serif-jp
     # GUI Apps
@@ -124,9 +125,11 @@ brew:
     - chatgpt
     - obsidian
     - 1password
+    - 1password-cli
     - alt-tab
     - scroll-reverser
     - deskflow
+    - shottr
     - ollama-app
 
 brew_extra_packages: []
