@@ -252,6 +252,22 @@
     type: bool
     value: "{{ macos_defaults.timemachine_do_not_offer_new_disks }}"
 
+# iTerm2
+# 設定ファイルの読み込み先をromira-s-configに指定する
+- name: "iTerm2: Set custom preferences folder"
+  community.general.osx_defaults:
+    domain: com.googlecode.iterm2
+    key: PrefsCustomFolder
+    type: string
+    value: "{{ macos_defaults.iterm2_prefs_custom_folder }}"
+
+- name: "iTerm2: Enable loading preferences from custom folder"
+  community.general.osx_defaults:
+    domain: com.googlecode.iterm2
+    key: LoadPrefsFromCustomFolder
+    type: bool
+    value: true
+
 # Restart affected apps
 - name: Restart Dock to apply settings
   ansible.builtin.command: killall Dock

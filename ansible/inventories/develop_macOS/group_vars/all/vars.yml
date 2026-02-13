@@ -31,6 +31,7 @@ macos_defaults:
   screenshot_show_thumbnail: false
   launch_services_quarantine: true
   timemachine_do_not_offer_new_disks: false
+  iterm2_prefs_custom_folder: ~/.config/romira-s-config/iterm2
 
 brew_extra_packages:
   - curl
