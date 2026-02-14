@@ -80,15 +80,15 @@ develop_configuration:
       dest: ~/.config/starship.toml
     - src: ~/.config/romira-s-config/mcfly/mcfly.fish
       dest: ~/.config/mcfly/mcfly.fish
-    - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
+    - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.claude/CLAUDE.md
-    - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
+    - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.codex/AGENTS.md
-    - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
+    - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.gemini/GEMINI.md
-    - src: ~/.config/romira-s-config/claude-code/CLAUDE.md
+    - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.config/opencode/AGENTS.md
-    - src: ~/.config/romira-s-config/claude-code/settings.json
+    - src: ~/.config/romira-s-config/ai-config/settings.json
       dest: ~/.claude/settings.json
   wsl_symbolic_links:
     - src: /mnt/c/Windows/System32/clip.exe
@@ -121,7 +121,7 @@ user:
   absent_users: []
 additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/romira/.cargo/bin
 ai_skills:
-  src: ~/.config/romira-s-config/ai-skills
+  src: ~/.config/romira-s-config/ai-config/skills
   destinations:
     - ~/.claude/skills
     - ~/.codex/skills
