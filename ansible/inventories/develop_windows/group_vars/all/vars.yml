@@ -62,6 +62,7 @@ chocolatey:
     - valorant
     - ea-app
     - tailscale
+    - deskflow
     - "{{ vault_chocolatey.vault_package }}"
 scoop:
   bucket:
