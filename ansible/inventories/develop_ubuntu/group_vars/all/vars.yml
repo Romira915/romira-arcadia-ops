@@ -127,5 +127,9 @@ ai_skills:
     - ~/.codex/skills
     - ~/.gemini/skills
     - ~/.config/opencode/skills
+ai_rules:
+  src: ~/.config/romira-s-config/ai-config/rules
+  destinations:
+    - ~/.claude/rules
 brew_extra_packages:
   - xsel
