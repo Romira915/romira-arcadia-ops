@@ -68,11 +68,13 @@
     state: directory
     mode: "0755"
   loop: "{{ ai_rules.destinations }}"
+  when: ai_rules is defined
 
 - name: Check if AI rules source directory exists
   ansible.builtin.stat:
     path: "{{ ai_rules.src }}"
   register: ai_rules_src_stat
+  when: ai_rules is defined
 
 - name: Find AI rule entries
   ansible.builtin.find:
@@ -80,7 +82,7 @@
     patterns: "*"
     file_type: any
   register: ai_rule_entries
-  when: ai_rules_src_stat.stat.exists
+  when: ai_rules is defined and ai_rules_src_stat.stat.exists
 
 - name: Create symbolic links for AI rules
   ansible.builtin.file:
@@ -91,4 +93,4 @@
   loop: "{{ ai_rule_entries.files | product(ai_rules.destinations) | list }}"
   loop_control:
     label: "{{ item.1 }}/{{ item.0.path | basename }}"
-  when: ai_rule_entries.files is defined
+  when: ai_rules is defined and ai_rule_entries.files is defined
