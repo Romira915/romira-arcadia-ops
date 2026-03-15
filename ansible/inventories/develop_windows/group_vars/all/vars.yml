@@ -86,6 +86,7 @@ scoop:
     - rambox
     - nu
     - starship
+    - zoxide
     - gcc
     - mathpix
     - bitwarden-cli
@@ -118,6 +119,8 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.bash_profile
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\wsl2\.wslconfig
       dest: C:\Users\{{ ansible_user }}\.wslconfig
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\shell\.profile
+      dest: C:\Users\{{ ansible_user }}\.profile
   hard_links:
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\WindowsTerminal\settings.json
       dest: C:\Users\{{ ansible_user }}\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
@@ -147,10 +150,14 @@ fonts:
       dest: C:\Users\{{ ansible_user }}\.tmp\fonts\Myrica.zip
     - url: https://github.com/tomokuni/Myrica/raw/master/product/MyricaM.zip
       dest: C:\Users\{{ ansible_user }}\.tmp\fonts\MyricaM.zip
+cargo:
+  packages:
+    - mcfly
 msys2:
   packages:
     - zsh
     - fish
+    - python
   login_shell: fish
 optional_feature:
   features:

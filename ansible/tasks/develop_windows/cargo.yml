@@ -1,0 +1,11 @@
+---
+- name: Ensure GNU toolchain is installed
+  ansible.windows.win_shell: rustup toolchain install stable-x86_64-pc-windows-gnu
+  changed_when: "'installing' in cargo_gnu_toolchain.stdout"
+  register: cargo_gnu_toolchain
+
+- name: Install cargo packages
+  ansible.windows.win_shell: rustup run stable-x86_64-pc-windows-gnu cargo install {{ item }}
+  loop: "{{ cargo.packages }}"
+  register: cargo_install
+  changed_when: "'Installed package' in cargo_install.stderr"
