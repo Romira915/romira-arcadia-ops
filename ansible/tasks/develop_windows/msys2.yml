@@ -14,7 +14,12 @@
     C:\Users\{{ ansible_user }}\scoop\apps\msys2\current\usr\bin\bash.exe -lc
     "sed -i -e 's/LOGINSHELL=[ba]*[z]*sh/LOGINSHELL={{ msys2.login_shell }}/' /msys2_shell.cmd"
 
-- name: Add Windows PATH to msys2
+- name: Set MSYS2 home directory to Windows home
   ansible.windows.win_shell: >
     C:\Users\{{ ansible_user }}\scoop\apps\msys2\current\usr\bin\bash.exe -lc
-    "grep -q ORIGINAL_PATH /etc/profile || echo 'export PATH=$(cygpath -p -u $ORIGINAL_PATH):$PATH' >> /etc/profile"
+    "sed -i -e 's/^db_home:.*/db_home: windows/' /etc/nsswitch.conf"
+
+- name: Enable MSYS2_PATH_TYPE=inherit
+  ansible.windows.win_shell: >
+    C:\Users\{{ ansible_user }}\scoop\apps\msys2\current\usr\bin\bash.exe -lc
+    "sed -i -e 's/^rem set MSYS2_PATH_TYPE=inherit/set MSYS2_PATH_TYPE=inherit/' /msys2_shell.cmd"
