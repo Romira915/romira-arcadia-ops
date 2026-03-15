@@ -187,6 +187,27 @@
     type: int
     value: "{{ macos_defaults.keyboard_ui_mode }}"
 
+# F1, F2などのキーを標準のファンクションキーとして使用する
+- name: "Keyboard: Set function keys as standard to {{ macos_defaults.keyboard_fn_state }}"
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: com.apple.keyboard.fnState
+    type: bool
+    value: "{{ macos_defaults.keyboard_fn_state }}"
+
+# Modifier Keys
+# 修飾キーのリマッピングを設定する (Option⇄Command⇄Globe)
+# currentHostドメインに書き込む必要がある
+- name: "Modifier Keys: Set modifier key mappings for keyboard {{ macos_defaults.modifier_key_mapping_id }}"
+  ansible.builtin.shell: >-
+    defaults -currentHost write -g
+    'com.apple.keyboard.modifiermapping.{{ macos_defaults.modifier_key_mapping_id }}'
+    -array
+    {% for m in macos_defaults.modifier_key_mappings %}
+    '<dict><key>HIDKeyboardModifierMappingDst</key><integer>{{ m.dst }}</integer><key>HIDKeyboardModifierMappingSrc</key><integer>{{ m.src }}</integer></dict>'
+    {% endfor %}
+  changed_when: true
+
 # Trackpad
 # タップでクリックを有効にする
 - name: "Trackpad: Set tap to click to {{ macos_defaults.trackpad_tap_to_click }}"
@@ -195,6 +216,115 @@
     key: Clicking
     type: int
     value: "{{ macos_defaults.trackpad_tap_to_click | int }}"
+
+# 2本指クリックで右クリック (1=有効, 0=無効)
+- name: "Trackpad: Set right click to {{ macos_defaults.trackpad_right_click }}"
+  community.general.osx_defaults:
+    domain: com.apple.AppleMultitouchTrackpad
+    key: TrackpadRightClick
+    type: int
+    value: "{{ macos_defaults.trackpad_right_click | int }}"
+
+# トラッキング速度 (0.0〜3.0)
+- name: "Trackpad: Set tracking speed to {{ macos_defaults.trackpad_tracking_speed }}"
+  community.general.osx_defaults:
+    domain: NSGlobalDomain
+    key: com.apple.trackpad.scaling
+    type: float
+    value: "{{ macos_defaults.trackpad_tracking_speed }}"
+
+# 3本指ドラッグ (0=無効, 1=有効)
+- name: "Trackpad: Set three finger drag to {{ macos_defaults.trackpad_three_finger_drag }}"
+  community.general.osx_defaults:
+    domain: com.apple.AppleMultitouchTrackpad
+    key: TrackpadThreeFingerDrag
+    type: int
+    value: "{{ macos_defaults.trackpad_three_finger_drag | int }}"
+
+# 強めのクリックと触覚フィードバックを無効化 (0=有効, 1=無効)
+- name: "Trackpad: Set force suppressed to {{ macos_defaults.trackpad_force_suppressed }}"
+  community.general.osx_defaults:
+    domain: com.apple.AppleMultitouchTrackpad
+    key: ForceSuppressed
+    type: int
+    value: "{{ macos_defaults.trackpad_force_suppressed | int }}"
+
+# 触覚フィードバック (0=無効, 1=有効)
+- name: "Trackpad: Set actuate detents to {{ macos_defaults.trackpad_actuate_detents }}"
+  community.general.osx_defaults:
+    domain: com.apple.AppleMultitouchTrackpad
+    key: ActuateDetents
+    type: int
+    value: "{{ macos_defaults.trackpad_actuate_detents | int }}"
+
+# クリックの強さ (0=弱い, 1=中, 2=強い)
+- name: "Trackpad: Set first click threshold to {{ macos_defaults.trackpad_first_click_threshold }}"
+  community.general.osx_defaults:
+    domain: com.apple.AppleMultitouchTrackpad
+    key: FirstClickThreshold
+    type: int
+    value: "{{ macos_defaults.trackpad_first_click_threshold | int }}"
+
+# 強めのクリックの強さ (0=弱い, 1=中, 2=強い)
+- name: "Trackpad: Set second click threshold to {{ macos_defaults.trackpad_second_click_threshold }}"
+  community.general.osx_defaults:
+    domain: com.apple.AppleMultitouchTrackpad
+    key: SecondClickThreshold
+    type: int
+    value: "{{ macos_defaults.trackpad_second_click_threshold | int }}"
+
+# Input Sources
+# 有効な入力ソースを設定する (ABC + 絵文字 + 50音)
+- name: "Input Sources: Set enabled input sources"
+  ansible.builtin.command:
+    argv:
+      - defaults
+      - write
+      - com.apple.HIToolbox
+      - AppleEnabledInputSources
+      - -array
+      - >-
+        <dict>
+        <key>InputSourceKind</key><string>Keyboard Layout</string>
+        <key>KeyboardLayout ID</key><integer>{{ macos_defaults.input_source_keyboard_layout_id }}</integer>
+        <key>KeyboardLayout Name</key><string>{{ macos_defaults.input_source_keyboard_layout_name }}</string>
+        </dict>
+      - >-
+        <dict>
+        <key>Bundle ID</key><string>com.apple.CharacterPaletteIM</string>
+        <key>InputSourceKind</key><string>Non Keyboard Input Method</string>
+        </dict>
+      - >-
+        <dict>
+        <key>Bundle ID</key><string>com.apple.50onPaletteIM</string>
+        <key>InputSourceKind</key><string>Non Keyboard Input Method</string>
+        </dict>
+  changed_when: true
+
+# Keyboard Shortcuts
+# キーボードショートカットを設定する (要ログアウト/ログインで反映)
+- name: "Keyboard Shortcuts: Configure {{ item.name }}"
+  ansible.builtin.command:
+    argv:
+      - defaults
+      - write
+      - com.apple.symbolichotkeys
+      - AppleSymbolicHotKeys
+      - -dict-add
+      - "{{ item.id | string }}"
+      - >-
+        <dict>
+        <key>enabled</key>{% if item.enabled %}<true/>{% else %}<false/>{% endif %}
+        <key>value</key><dict>
+        <key>parameters</key><array>
+        <integer>{{ item.ascii_code }}</integer>
+        <integer>{{ item.key_code }}</integer>
+        <integer>{{ item.modifier }}</integer>
+        </array>
+        <key>type</key><string>standard</string>
+        </dict></dict>
+  loop: "{{ macos_defaults.keyboard_shortcuts }}"
+  changed_when: true
 
 # Screenshot
 # スクリーンショットの保存先ディレクトリ

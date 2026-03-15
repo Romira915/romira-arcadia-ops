@@ -24,7 +24,63 @@ macos_defaults:
   global_press_and_hold_enabled: false
   global_close_always_confirms_changes: false
   keyboard_ui_mode: 0
+  keyboard_fn_state: true
+  # Modifier keys (Apple Internal Keyboard/Trackpad)
+  # HID key codes: CapsLock=30064771129, LCtrl=30064771296, LOption=30064771298,
+  #   LCommand=30064771299, RCtrl=30064771300, ROption=30064771302,
+  #   RCommand=30064771303, Globe=1095216660483, Globe(variant)=280379760050179
+  modifier_key_mapping_id: "0-0-0"
+  modifier_key_mappings:
+    # Globe (variant) → Left Command
+    - src: 280379760050179
+      dst: 30064771299
+    # Globe → Right Command
+    - src: 1095216660483
+      dst: 30064771303
+    # Left Command → Left Option
+    - src: 30064771299
+      dst: 30064771298
+    # Right Command → Right Option
+    - src: 30064771303
+      dst: 30064771302
+    # Right Option → Globe
+    - src: 30064771302
+      dst: 1095216660483
+    # Left Option → Globe
+    - src: 30064771298
+      dst: 1095216660483
+  # Input sources
+  input_source_keyboard_layout_id: 252
+  input_source_keyboard_layout_name: "ABC"
+  # Keyboard shortcuts
+  # Modifier flags: Shift=131072, Control=262144, Option=524288, Command=1048576
+  keyboard_shortcuts:
+    - name: "Spotlight (Ctrl+Space)"
+      id: 64
+      enabled: true
+      ascii_code: 32
+      key_code: 49
+      modifier: 262144
+    - name: "Previous input source (Cmd+Space)"
+      id: 60
+      enabled: true
+      ascii_code: 32
+      key_code: 49
+      modifier: 1048576
+    - name: "Next input source (Ctrl+Option+Space)"
+      id: 61
+      enabled: true
+      ascii_code: 32
+      key_code: 49
+      modifier: 786432
   trackpad_tap_to_click: 1
+  trackpad_right_click: 1
+  trackpad_tracking_speed: 2.5
+  trackpad_three_finger_drag: 0
+  trackpad_force_suppressed: 0
+  trackpad_actuate_detents: 1
+  trackpad_first_click_threshold: 0
+  trackpad_second_click_threshold: 0
   screenshot_location: ~/Pictures/Screenshots
   screenshot_type: png
   screenshot_disable_shadow: false
