@@ -1,0 +1,47 @@
+---
+- name: Ensure fisher is installed
+  ansible.windows.win_shell: >
+    C:\Users\{{ ansible_user }}\scoop\apps\msys2\current\usr\bin\bash.exe -lc
+    "fish -c 'curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source &&
+    fisher install jorgebucaran/fisher'"
+  changed_when: false
+
+- name: Ensure fisher plugin is installed
+  ansible.windows.win_shell: >
+    C:\Users\{{ ansible_user }}\scoop\apps\msys2\current\usr\bin\bash.exe -lc
+    "fish -c 'fisher install
+    0rax/fish-bd
+    edc/bass'"
+  changed_when: false
+
+- name: Find fish custom function files
+  ansible.windows.win_find:
+    paths: C:\Users\{{ ansible_user }}\.config\romira-s-config\fish\functions
+    patterns: "*.fish"
+  register: fish_custom_functions
+
+- name: Ensure fish functions directory exists
+  ansible.windows.win_file:
+    path: C:\Users\{{ ansible_user }}\.config\fish\functions
+    state: directory
+
+- name: Create symbolic link for fish config
+  ansible.windows.win_shell: >
+    cmd /c mklink
+    "C:\Users\{{ ansible_user }}\.config\fish\config.fish"
+    "C:\Users\{{ ansible_user }}\.config\romira-s-config\fish\config.fish"
+  failed_when: "'already exists' not in create_fish_config_link.stderr and create_fish_config_link.rc != 0"
+  changed_when: create_fish_config_link.rc == 0
+  register: create_fish_config_link
+
+- name: Create symbolic links for fish custom functions
+  ansible.windows.win_shell: >
+    cmd /c mklink
+    "C:\Users\{{ ansible_user }}\.config\fish\functions\{{ item.filename }}"
+    "{{ item.path }}"
+  failed_when: "'already exists' not in create_fish_function_link.stderr and create_fish_function_link.rc != 0"
+  changed_when: create_fish_function_link.rc == 0
+  register: create_fish_function_link
+  loop: "{{ fish_custom_functions.files }}"
+  loop_control:
+    label: "{{ item.filename }}"

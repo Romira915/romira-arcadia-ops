@@ -25,10 +25,20 @@
         - develop_configuration
         - ssh
 
+    - import_tasks: tasks/develop_windows/cargo.yml
+      tags:
+        - develop_configuration
+        - cargo
+
     - import_tasks: tasks/develop_windows/msys2.yml
       tags:
         - develop_configuration
         - msys2
+
+    - import_tasks: tasks/develop_windows/fish.yml
+      tags:
+        - develop_configuration
+        - fish
   tags:
     - develop_configuration
 
