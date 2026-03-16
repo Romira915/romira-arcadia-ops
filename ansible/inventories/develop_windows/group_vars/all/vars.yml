@@ -93,6 +93,7 @@ scoop:
     - Noto-NF
     - uv
     - eza
+    - skim
 winget:
   package:
     - BlueStack.BlueStacks
