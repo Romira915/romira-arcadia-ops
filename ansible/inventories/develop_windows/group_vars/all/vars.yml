@@ -123,6 +123,9 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.wslconfig
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\shell\.profile
       dest: C:\Users\{{ ansible_user }}\.profile
+  directory_symbolic_links:
+    - src: D:\Users\{{ ansible_user }}\workspace\repositories
+      dest: C:\Users\{{ ansible_user }}\workspace\repositories
   hard_links:
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\WindowsTerminal\settings.json
       dest: C:\Users\{{ ansible_user }}\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
