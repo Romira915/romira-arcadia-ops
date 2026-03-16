@@ -92,6 +92,7 @@ scoop:
     - bitwarden-cli
     - Noto-NF
     - uv
+    - eza
 winget:
   package:
     - BlueStack.BlueStacks
