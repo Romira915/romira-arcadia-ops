@@ -122,7 +122,6 @@ develop_configuration:
   ssh_passphrase: "{{ vault_develop_configuration.vault_ssh_passphrase }}"
   directories:
     - ~/.config/fish/
-    - ~/.config/mcfly/
     - ~/.local/bin/
     - ~/workspace/repositories
     - ~/.claude/
@@ -150,8 +149,6 @@ develop_configuration:
       dest: ~/.latexmkrc
     - src: ~/.config/romira-s-config/starship/starship.toml
       dest: ~/.config/starship.toml
-    - src: ~/.config/romira-s-config/mcfly/mcfly.fish
-      dest: ~/.config/mcfly/mcfly.fish
     - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.claude/CLAUDE.md
     - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
