@@ -102,6 +102,8 @@ winget:
     # Adobe Creative Cloud
     - XPDLPKWG9SW2WD
     - DevToys-app.DevToys
+    # Raycast
+    - 9PFXXSHC64H3
   override_package:
     - name: Microsoft.VisualStudioCode
       override: /mergetasks=addcontextmenufiles,addcontextmenufolders,!runcode /lang=english /verysilent
