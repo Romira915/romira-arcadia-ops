@@ -398,6 +398,24 @@
     type: bool
     value: true
 
+# AltTab
+- name: "AltTab: Import preferences from dotfiles"
+  ansible.builtin.command:
+    cmd: defaults import com.lwouis.alt-tab-macos {{ macos_defaults.dotfiles_dir }}/alttab/com.lwouis.alt-tab-macos.plist
+  changed_when: true
+
+# Rectangle
+- name: "Rectangle: Import preferences from dotfiles"
+  ansible.builtin.command:
+    cmd: defaults import com.knollsoft.Rectangle {{ macos_defaults.dotfiles_dir }}/rectangle/com.knollsoft.Rectangle.plist
+  changed_when: true
+
+# Raycast
+- name: "Raycast: Import preferences from dotfiles"
+  ansible.builtin.command:
+    cmd: defaults import com.raycast.macos {{ macos_defaults.dotfiles_dir }}/raycast/com.raycast.macos.plist
+  changed_when: true
+
 # Restart affected apps
 - name: Restart Dock to apply settings
   ansible.builtin.command: killall Dock
