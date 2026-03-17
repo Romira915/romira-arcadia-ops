@@ -55,12 +55,12 @@ macos_defaults:
   # Keyboard shortcuts
   # Modifier flags: Shift=131072, Control=262144, Option=524288, Command=1048576
   keyboard_shortcuts:
-    - name: "Spotlight (Ctrl+Space)"
+    - name: "Spotlight (disabled, replaced by Raycast)"
       id: 64
-      enabled: true
+      enabled: false
       ascii_code: 32
       key_code: 49
-      modifier: 262144
+      modifier: 524288
     - name: "Previous input source (Cmd+Space)"
       id: 60
       enabled: true
