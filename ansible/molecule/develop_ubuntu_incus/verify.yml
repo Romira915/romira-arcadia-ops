@@ -145,7 +145,6 @@
       register: dir_check
       loop:
         - "{{ romira_home }}/.config/fish"
-        - "{{ romira_home }}/.config/mcfly"
         - "{{ romira_home }}/.local/bin"
         - "{{ romira_home }}/workspace/repositories"
 
