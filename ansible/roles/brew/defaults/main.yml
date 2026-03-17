@@ -78,7 +78,7 @@ brew:
     - font-hackgen-nerd
     - font-plemol-jp
     - font-plemol-jp-nf
-    - font-plemol-jp-nfj
+
     - font-plemol-jp-hs
     - font-myrica
     - font-myricam
@@ -96,7 +96,7 @@ brew:
     - wireshark
     - google-japanese-ime
     - vivaldi
-    - unity
+
     - teamviewer
     - google-drive
     - parsec
@@ -129,7 +129,7 @@ brew:
     - 1password-cli
     - alt-tab
     - scroll-reverser
-    - deskflow
+
     - shottr
     - ollama-app
     - raycast
