@@ -71,6 +71,7 @@ brew:
     - zig
     - gh
     - bitwarden-cli
+    - gogcli
   cask:
     # Fonts
     - font-hackgen
