@@ -131,5 +131,7 @@ brew:
     - deskflow
     - shottr
     - ollama-app
+    - raycast
+    - input-source-pro
 
 brew_extra_packages: []
