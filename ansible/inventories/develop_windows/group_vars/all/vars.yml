@@ -117,10 +117,6 @@ develop_configuration:
   symbolic_links:
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\git\.gitconfig
       dest: C:\Users\{{ ansible_user }}\.gitconfig
-    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\git\.bashrc
-      dest: C:\Users\{{ ansible_user }}\.bashrc
-    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\git\.bash_profile
-      dest: C:\Users\{{ ansible_user }}\.bash_profile
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\wsl2\.wslconfig
       dest: C:\Users\{{ ansible_user }}\.wslconfig
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\shell\.profile
@@ -138,10 +134,6 @@ gh:
       dest: C:\Users\{{ ansible_user }}\.ssh
     - repo: Romira915/romira-s-config
       dest: C:\Users\{{ ansible_user }}\.config\romira-s-config
-    - repo: chris-marsh/pureline
-      dest: C:\Users\{{ ansible_user }}\pureline
-    - repo: mzyy94/RictyDiminished-for-Powerline
-      dest: C:\Users\{{ ansible_user }}\.tmp\fonts\RictyDiminished-for-Powerline
 fonts:
   dir: C:\Users\{{ ansible_user }}\.tmp\fonts\
   fonts:
