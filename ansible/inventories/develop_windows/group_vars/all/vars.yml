@@ -94,6 +94,7 @@ scoop:
     - Noto-NF
     - uv
     - eza
+    - jq
     - fzf
 winget:
   package:
