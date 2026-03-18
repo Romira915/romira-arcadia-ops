@@ -1,0 +1,11 @@
+---
+- name: Deploy .gitconfig.local for Windows OpenSSH
+  ansible.windows.win_template:
+    src: templates/develop_windows/gitconfig.local.j2
+    dest: "{{ ansible_env.USERPROFILE }}\\.gitconfig.local"
+
+- name: Enable ssh-agent service
+  ansible.windows.win_service:
+    name: ssh-agent
+    start_mode: auto
+    state: started
