@@ -96,7 +96,6 @@ scoop:
     - eza
     - jq
     - fzf
-    - skim
 winget:
   package:
     - BlueStack.BlueStacks
