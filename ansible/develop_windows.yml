@@ -20,6 +20,11 @@
         - develop_configuration
         - symlink
 
+    - import_tasks: tasks/develop_windows/git.yml
+      tags:
+        - develop_configuration
+        - git
+
     - import_tasks: tasks/develop_windows/ssh.yml
       tags:
         - develop_configuration
