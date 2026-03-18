@@ -303,7 +303,7 @@
 
 # Keyboard Shortcuts
 # キーボードショートカットを設定する (要ログアウト/ログインで反映)
-- name: "Keyboard Shortcuts: Configure {{ item.name }}"
+- name: "Keyboard Shortcuts: Configure {{ item.name }}"  # noqa: template-error
   ansible.builtin.command:
     argv:
       - defaults
