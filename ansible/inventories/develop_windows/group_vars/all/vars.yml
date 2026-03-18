@@ -33,6 +33,7 @@ chocolatey:
     - crystaldiskinfo
     - crystaldiskmark
     - powertoys
+    - autohotkey
     - figma
     - bitwarden
     - rufus
