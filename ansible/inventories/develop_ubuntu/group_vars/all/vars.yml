@@ -94,6 +94,8 @@ develop_configuration:
       dest: ~/.local/bin/msedge
     - src: ~/.local/share/JetBrains/Toolbox/apps/rustrover/bin/rustrover
       dest: ~/.local/bin/rustrover
+    - src: /mnt/c/Users/{{ windows_user }}/AppData/Local/Programs/Obsidian/Obsidian.exe
+      dest: ~/.local/bin/obsidian
 gh:
   github_fine_grained_token: "{{ vault_gh.vault_github_fine_grained_token }}"
   repository:
