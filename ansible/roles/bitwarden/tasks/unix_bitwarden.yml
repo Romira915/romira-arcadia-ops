@@ -15,6 +15,7 @@
       ansible.builtin.command: "bw config server"
       environment:
         PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+      check_mode: false
       changed_when: false
       register: check_bw_config_server
       tags:

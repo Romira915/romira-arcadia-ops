@@ -11,6 +11,7 @@
   block:
     - name: Check bw config server value
       ansible.windows.win_command: bw config server
+      check_mode: false
       changed_when: false
       register: check_bw_config_server
       tags:
@@ -26,6 +27,7 @@
   block:
     - name: Check bw login status
       ansible.windows.win_command: bw login --check
+      check_mode: false
       failed_when: false
       changed_when: false
       register: check_bw_login
