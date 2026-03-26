@@ -83,6 +83,8 @@ develop_configuration:
       dest: ~/.config/opencode/AGENTS.md
     - src: ~/.config/romira-s-config/ai-config/settings.json
       dest: ~/.claude/settings.json
+    - src: ~/.config/romira-s-config/topgrade/topgrade.toml
+      dest: ~/.config/topgrade.toml
   wsl_symbolic_links:
     - src: /mnt/c/Windows/System32/clip.exe
       dest: ~/.local/bin/clip
