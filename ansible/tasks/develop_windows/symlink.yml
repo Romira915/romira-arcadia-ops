@@ -1,4 +1,11 @@
 ---
+- name: Ensure AI config directories exist
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: directory
+  loop: "{{ ai_config_dirs }}"
+  when: ai_config_dirs is defined
+
 - name: Create symbolic links
   ansible.windows.win_shell: "cmd /c mklink {{ item.dest }} {{ item.src }}"
   failed_when: "'already exists' not in create_symbolic_link.stderr and create_symbolic_link.rc != 0"
@@ -27,3 +34,63 @@
   changed_when: create_hard_links.rc == 0
   register: create_hard_links
   loop: "{{ develop_configuration.hard_links }}"
+
+- name: Ensure AI skills destination directories exist
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: directory
+  loop: "{{ ai_skills.destinations }}"
+  when: ai_skills is defined
+
+- name: Check if AI skills source directory exists
+  ansible.windows.win_stat:
+    path: "{{ ai_skills.src }}"
+  register: ai_skills_src_stat
+  when: ai_skills is defined
+
+- name: Find AI skill entries
+  ansible.windows.win_find:
+    paths: "{{ ai_skills.src }}"
+    file_type: directory
+  register: ai_skill_entries
+  when: ai_skills is defined and ai_skills_src_stat.stat.exists
+
+- name: Create symbolic links for AI skills
+  ansible.windows.win_shell: "cmd /c mklink /D \"{{ item.1 }}\\{{ item.0.filename }}\" \"{{ item.0.path }}\""
+  failed_when: "'already exists' not in create_ai_skill_link.stderr and create_ai_skill_link.rc != 0"
+  changed_when: create_ai_skill_link.rc == 0
+  register: create_ai_skill_link
+  loop: "{{ ai_skill_entries.files | product(ai_skills.destinations) | list }}"
+  loop_control:
+    label: "{{ item.1 }}\\{{ item.0.filename }}"
+  when: ai_skills is defined and ai_skill_entries.files is defined
+
+- name: Ensure AI rules destination directories exist
+  ansible.windows.win_file:
+    path: "{{ item }}"
+    state: directory
+  loop: "{{ ai_rules.destinations }}"
+  when: ai_rules is defined
+
+- name: Check if AI rules source directory exists
+  ansible.windows.win_stat:
+    path: "{{ ai_rules.src }}"
+  register: ai_rules_src_stat
+  when: ai_rules is defined
+
+- name: Find AI rule entries
+  ansible.windows.win_find:
+    paths: "{{ ai_rules.src }}"
+    file_type: file
+  register: ai_rule_entries
+  when: ai_rules is defined and ai_rules_src_stat.stat.exists
+
+- name: Create symbolic links for AI rules
+  ansible.windows.win_shell: "cmd /c mklink \"{{ item.1 }}\\{{ item.0.filename }}\" \"{{ item.0.path }}\""
+  failed_when: "'already exists' not in create_ai_rule_link.stderr and create_ai_rule_link.rc != 0"
+  changed_when: create_ai_rule_link.rc == 0
+  register: create_ai_rule_link
+  loop: "{{ ai_rule_entries.files | product(ai_rules.destinations) | list }}"
+  loop_control:
+    label: "{{ item.1 }}\\{{ item.0.filename }}"
+  when: ai_rules is defined and ai_rule_entries.files is defined
