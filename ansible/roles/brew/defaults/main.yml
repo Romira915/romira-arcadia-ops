@@ -55,7 +55,7 @@ brew:
     - ansible-lint
     - ansible-language-server
     - azure-cli
-    - volta
+    - mise
     - pyenv
     - poetry
     - ffmpeg
