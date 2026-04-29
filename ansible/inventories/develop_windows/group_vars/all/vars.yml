@@ -83,7 +83,7 @@ scoop:
     - vim
     - gradle
     - ghq
-    - volta
+    - mise
     - rambox
     - nu
     - starship
