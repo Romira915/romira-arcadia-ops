@@ -83,15 +83,15 @@ develop_configuration:
       dest: ~/.gemini/GEMINI.md
     - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.config/opencode/AGENTS.md
-    - src: ~/.config/romira-s-config/ai-config/settings.json
+    - src: ~/.config/romira-s-config/ai-config/claude-code/settings.json
       dest: ~/.claude/settings.json
-    - src: ~/.config/romira-s-config/ai-config/claude-free
+    - src: ~/.config/romira-s-config/ai-config/litellm/claude-free
       dest: ~/.local/bin/claude-free
-    - src: ~/.config/romira-s-config/ai-config/claude-copilot
+    - src: ~/.config/romira-s-config/ai-config/claude-code-router/claude-copilot
       dest: ~/.local/bin/claude-copilot
-    - src: ~/.config/romira-s-config/ai-config/litellm.yaml
+    - src: ~/.config/romira-s-config/ai-config/litellm/config.yaml
       dest: ~/.config/litellm/config.yaml
-    - src: ~/.config/romira-s-config/ai-config/ccr-config.json
+    - src: ~/.config/romira-s-config/ai-config/claude-code-router/config.json
       dest: ~/.claude-code-router/config.json
     - src: ~/.config/romira-s-config/topgrade/topgrade.toml
       dest: ~/.config/topgrade.toml
