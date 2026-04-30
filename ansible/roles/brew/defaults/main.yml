@@ -66,6 +66,7 @@ brew:
     - gemini-cli
     - claude-code
     - codex
+    - copilot-cli
     - deno
     - ollama
     - zig
