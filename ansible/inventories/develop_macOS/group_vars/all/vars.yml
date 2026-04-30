@@ -126,6 +126,7 @@ develop_configuration:
     - ~/.gemini/
     - ~/.config/opencode/
     - ~/.config/litellm/
+    - ~/.claude-code-router/
   symbolic_links:
     - src: ~/.config/romira-s-config/git/.gitconfig
       dest: ~/.gitconfig
@@ -159,8 +160,12 @@ develop_configuration:
       dest: ~/.claude/settings.json
     - src: ~/.config/romira-s-config/ai-config/claude-free
       dest: ~/.local/bin/claude-free
+    - src: ~/.config/romira-s-config/ai-config/claude-copilot
+      dest: ~/.local/bin/claude-copilot
     - src: ~/.config/romira-s-config/ai-config/litellm.yaml
       dest: ~/.config/litellm/config.yaml
+    - src: ~/.config/romira-s-config/ai-config/ccr-config.json
+      dest: ~/.claude-code-router/config.json
 
 ai_skills:
   src: ~/.config/romira-s-config/ai-config/skills
