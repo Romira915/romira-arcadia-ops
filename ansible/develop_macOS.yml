@@ -40,6 +40,11 @@
         file: tasks/common/rustup.yml
       tags: [develop_configuration, rustup]
 
+    - name: Import litellm tasks
+      ansible.builtin.import_tasks:
+        file: tasks/common/litellm.yml
+      tags: [develop_configuration, litellm]
+
     - name: Import tmux tasks
       ansible.builtin.import_tasks:
         file: tasks/common/tmux.yml

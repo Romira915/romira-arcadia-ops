@@ -1,0 +1,10 @@
+---
+# Install LiteLLM proxy via `uv tool install`. Required by ~/.local/bin/claude-free
+# (which auto-starts the proxy on demand). Pinned to Python 3.13 because uvloop
+# is not yet compatible with Python 3.14.
+- name: Install LiteLLM proxy via uv tool
+  ansible.builtin.command:
+    cmd: uv tool install --python 3.13 litellm[proxy]
+    creates: "{{ ansible_env.HOME }}/.local/bin/litellm"
+  environment:
+    PATH: "/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
