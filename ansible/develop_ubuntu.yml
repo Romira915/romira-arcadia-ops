@@ -81,6 +81,13 @@
         - develop_configuration
         - litellm
 
+    - name: Import copilot-api tasks
+      ansible.builtin.import_tasks:
+        file: tasks/common/copilot_api.yml
+      tags:
+        - develop_configuration
+        - copilot_api
+
     - name: Import tmux tasks
       ansible.builtin.import_tasks:
         file: tasks/common/tmux.yml

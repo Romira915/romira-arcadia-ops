@@ -1,0 +1,11 @@
+---
+# Install copilot-api globally via npm. Required by ~/.local/bin/claude-copilot,
+# which auto-starts copilot-api on demand and routes Claude Code through
+# GitHub Copilot Enterprise via claude-code-router.
+- name: Install copilot-api globally via npm
+  community.general.npm:
+    name: copilot-api
+    global: true
+    state: present
+  environment:
+    PATH: "/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
