@@ -1,0 +1,6 @@
+---
+# Install LiteLLM proxy via `uv tool install` on Windows.
+- name: Install LiteLLM proxy via uv tool (Windows)
+  ansible.windows.win_shell: uv tool install --python 3.13 litellm[proxy]
+  args:
+    creates: "C:\\Users\\{{ ansible_user }}\\.local\\bin\\litellm.exe"
