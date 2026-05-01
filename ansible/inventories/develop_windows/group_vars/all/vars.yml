@@ -1,3 +1,9 @@
+# Windows ホストは fact 収集前から Windows と確定しているため、
+# inventory 変数として宣言しておく。これにより tasks/common 配下のタスクで
+# WinRM 経由の fact 収集が失敗・遅延した場合でも `ansible_os_family` の
+# 判定が壊れない。
+ansible_os_family: Windows
+
 chocolatey:
   ignore_checksums: true
   ignore_errors: true
