@@ -36,16 +36,6 @@
         - develop_configuration
         - cargo
 
-    - import_tasks: tasks/common/litellm.yml
-      tags:
-        - develop_configuration
-        - litellm
-
-    - import_tasks: tasks/common/copilot_api.yml
-      tags:
-        - develop_configuration
-        - copilot_api
-
     - import_tasks: tasks/develop_windows/msys2.yml
       tags:
         - develop_configuration
@@ -55,6 +45,16 @@
       tags:
         - develop_configuration
         - fish
+
+    - import_tasks: tasks/develop_windows/litellm.yml
+      tags:
+        - develop_configuration
+        - litellm
+
+    - import_tasks: tasks/develop_windows/copilot_api.yml
+      tags:
+        - develop_configuration
+        - copilot_api
   tags:
     - develop_configuration
 

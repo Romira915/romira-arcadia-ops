@@ -7,13 +7,9 @@
     name: copilot-api
     global: true
     state: present
-  when: ansible_os_family | default('Linux') != 'Windows'
   environment:
     PATH: "/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
 
-- name: Install copilot-api globally via npm (Windows)
-  ansible.windows.win_shell: npm install -g copilot-api
-  when: ansible_os_family | default('Linux') == 'Windows'
 
 
 

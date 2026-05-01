@@ -5,16 +5,10 @@
 - name: Install LiteLLM proxy via uv tool
   ansible.builtin.command:
     cmd: uv tool install --python 3.13 litellm[proxy]
-    creates: "{{ ansible_env.HOME | default('C:\\Users\\' + ansible_user) }}/.local/bin/litellm"
-  when: ansible_os_family | default('Linux') != 'Windows'
+    creates: "{{ ansible_env.HOME }}/.local/bin/litellm"
   environment:
     PATH: "/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH }}"
 
-- name: Install LiteLLM proxy via uv tool (Windows)
-  ansible.windows.win_shell: uv tool install --python 3.13 litellm[proxy]
-  args:
-    creates: "C:\\Users\\{{ ansible_user }}\\.local\\bin\\litellm.exe"
-  when: ansible_os_family | default('Linux') == 'Windows'
 
 
 
