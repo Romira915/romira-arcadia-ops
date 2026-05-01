@@ -14,6 +14,7 @@
 # Play 2: User environment setup
 - name: User environment setup
   hosts: develop_windows
+  gather_facts: true
   tasks:
     - import_tasks: tasks/develop_windows/symlink.yml
       tags:
