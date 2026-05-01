@@ -14,6 +14,7 @@
 # Play 2: User environment setup
 - name: User environment setup
   hosts: develop_macOS
+  gather_facts: true
   tasks:
     - name: Import symlink tasks
       ansible.builtin.import_tasks:
