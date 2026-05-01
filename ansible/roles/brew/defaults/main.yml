@@ -65,7 +65,6 @@ brew:
     - uv
     - gemini-cli
     - claude-code
-    - claude-code-router
     - codex
     - copilot-cli
     - deno
