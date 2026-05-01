@@ -38,6 +38,7 @@
   hosts: develop_ubuntu
   become: true
   become_user: "{{ setup_user }}"
+  gather_facts: true
   tasks:
     - name: Import symlink tasks
       ansible.builtin.import_tasks:
