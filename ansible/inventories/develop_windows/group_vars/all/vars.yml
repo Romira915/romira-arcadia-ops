@@ -102,6 +102,7 @@ scoop:
     - eza
     - jq
     - fzf
+    - psmux
 winget:
   package:
     - BlueStack.BlueStacks
@@ -141,6 +142,8 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.claude\settings.json
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\starship\starship.toml
       dest: C:\Users\{{ ansible_user }}\.config\starship.toml
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\tmux\.tmux.conf
+      dest: C:\Users\{{ ansible_user }}\.tmux.conf
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\litellm\claude-free
       dest: C:\Users\{{ ansible_user }}\.local\bin\claude-free
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\claude-code-router\claude-copilot
