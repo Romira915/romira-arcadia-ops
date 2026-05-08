@@ -46,6 +46,11 @@
         - develop_configuration
         - fish
 
+    - import_tasks: tasks/develop_windows/tmux.yml
+      tags:
+        - develop_configuration
+        - tmux
+
     - import_tasks: tasks/common/litellm.yml
       tags:
         - develop_configuration
