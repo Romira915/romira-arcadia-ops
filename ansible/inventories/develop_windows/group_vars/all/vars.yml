@@ -102,7 +102,6 @@ scoop:
     - eza
     - jq
     - fzf
-    - psmux
 winget:
   package:
     - BlueStack.BlueStacks
@@ -200,6 +199,7 @@ msys2:
     - zsh
     - fish
     - python
+    - tmux
   login_shell: fish
 optional_feature:
   features:
