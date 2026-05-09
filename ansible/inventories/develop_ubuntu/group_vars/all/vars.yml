@@ -95,6 +95,8 @@ develop_configuration:
       dest: ~/.claude-code-router/config.json
     - src: ~/.config/romira-s-config/ai-config/opencode/tui.json
       dest: ~/.config/opencode/tui.json
+    - src: ~/.config/romira-s-config/ai-config/opencode/opencode.json
+      dest: ~/.config/opencode/opencode.json
     - src: ~/.config/romira-s-config/topgrade/topgrade.toml
       dest: ~/.config/topgrade.toml
   wsl_symbolic_links:
