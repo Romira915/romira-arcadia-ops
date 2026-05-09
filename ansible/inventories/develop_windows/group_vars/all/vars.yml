@@ -147,6 +147,8 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.local\bin\claude-free
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\claude-code-router\claude-copilot
       dest: C:\Users\{{ ansible_user }}\.local\bin\claude-copilot
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\opencode\tui.json
+      dest: C:\Users\{{ ansible_user }}\.config\opencode\tui.json
   directory_symbolic_links:
     - src: D:\Users\{{ ansible_user }}\workspace\repositories
       dest: C:\Users\{{ ansible_user }}\workspace\repositories

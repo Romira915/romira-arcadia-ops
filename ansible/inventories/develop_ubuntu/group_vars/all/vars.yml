@@ -93,6 +93,8 @@ develop_configuration:
       dest: ~/.config/litellm/config.yaml
     - src: ~/.config/romira-s-config/ai-config/claude-code-router/config.json
       dest: ~/.claude-code-router/config.json
+    - src: ~/.config/romira-s-config/ai-config/opencode/tui.json
+      dest: ~/.config/opencode/tui.json
     - src: ~/.config/romira-s-config/topgrade/topgrade.toml
       dest: ~/.config/topgrade.toml
   wsl_symbolic_links:
