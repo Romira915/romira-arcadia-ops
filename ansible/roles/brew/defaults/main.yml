@@ -55,6 +55,7 @@ brew:
     - ansible-lint
     - ansible-language-server
     - azure-cli
+    - gcloud-cli
     - mise
     - pyenv
     - poetry
