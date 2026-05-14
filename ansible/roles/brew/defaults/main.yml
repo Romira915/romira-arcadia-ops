@@ -15,7 +15,7 @@ brew:
     - gradle
     - java
     - openjdk
-    - terraform
+    - hashicorp/tap/terraform
     - sqlite
     - oci-cli
     - go
