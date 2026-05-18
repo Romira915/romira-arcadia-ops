@@ -57,8 +57,6 @@ brew:
     - azure-cli
     - gcloud-cli
     - mise
-    - pyenv
-    - poetry
     - ffmpeg
     - tree
     - yt-dlp
