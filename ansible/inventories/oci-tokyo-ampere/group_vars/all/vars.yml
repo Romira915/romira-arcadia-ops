@@ -1,6 +1,45 @@
 ---
 # vars for oci-tokyo-ampere
 
+target_inventory: oci-tokyo-ampere
+
+apt:
+  package:
+    - certbot
+    - fail2ban
+    - iptables-persistent
+    - mariadb-server
+    - nginx
+    - openvpn
+    - python3-certbot-nginx
+    - rsync
+    - valkey-server
+    - xrdp
+  install_state: present
+
+iptables:
+  allowed_ports:
+    - port: 33999
+      protocol: tcp
+      comment: ssh
+    - port: 80
+      protocol: tcp
+      comment: http
+    - port: 443
+      protocol: tcp
+      comment: https
+    - port: 36778
+      protocol: tcp
+    - port: 25565,25575
+      protocol: tcp
+      comment: For Minecraft
+    - port: 62656
+      protocol: tcp
+      comment: For Minecraft Origin
+  allowed_input_interfaces: []
+  allowed_forward: []
+  allowed_nat: []
+
 postgresql:
   databases:
     - name: blog_romira_dev
