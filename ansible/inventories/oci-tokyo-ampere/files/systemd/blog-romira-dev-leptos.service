@@ -1,0 +1,14 @@
+[Unit]
+Description=blog-romira-dev server process leptos ver.
+BindsTo=valkey-server.service
+After=valkey-server.service
+
+[Service]
+EnvironmentFile=/usr/local/blog-romira-dev-leptos/systemd_env
+ExecStart=/usr/local/blog-romira-dev-leptos/bin/blog-romira-dev-server
+Restart=always
+RestartSec=10s
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

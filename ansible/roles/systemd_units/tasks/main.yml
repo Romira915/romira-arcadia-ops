@@ -1,0 +1,26 @@
+---
+- name: Copy systemd unit files
+  ansible.builtin.copy:
+    src: "{{ systemd_units_src_dir }}/{{ item.src | default(item.name) }}"
+    dest: "/etc/systemd/system/{{ item.name }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  loop: "{{ systemd_units }}"
+  notify: Reload systemd
+  tags:
+    - systemd-units
+    - configuration
+
+- name: Ensure systemd units are enabled and started
+  ansible.builtin.systemd:
+    name: "{{ item.name }}"
+    enabled: "{{ item.enabled | default(true) }}"
+    state: "{{ item.state | default('started') }}"
+    daemon_reload: true
+  become: true
+  loop: "{{ systemd_units }}"
+  tags:
+    - systemd-units
+    - systemd
