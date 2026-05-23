@@ -1,0 +1,10 @@
+---
+nginx_package: nginx
+nginx_service: nginx.service
+nginx_src_dir: "{{ playbook_dir }}/inventories/{{ target_inventory }}/files/nginx"
+
+nginx:
+  config_file: nginx.conf
+  conf_d_files: []
+  site_files: []
+  enabled_sites: []

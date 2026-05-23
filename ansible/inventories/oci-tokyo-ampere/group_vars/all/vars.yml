@@ -40,6 +40,29 @@ iptables:
   allowed_forward: []
   allowed_nat: []
 
+nginx:
+  config_file: nginx.conf
+  conf_d_files:
+    - mime.conf
+    - newrelic.conf
+  site_files:
+    - blog.romira.dev.conf
+    - dev-site.romira.dev.conf
+    - librechat.romira.dev.conf
+    - obsidian-sync.romira.dev
+    - vaultwarden.romira.dev.conf
+  enabled_sites:
+    - name: blog.romira.dev.conf
+      src: ../sites-available/blog.romira.dev.conf
+    - name: dev-site.romira.dev.conf
+      src: ../sites-available/dev-site.romira.dev.conf
+    - name: librechat.romira.dev.conf
+      src: /etc/nginx/sites-available/librechat.romira.dev.conf
+    - name: obsidian-sync.romira.dev
+      src: /etc/nginx/sites-available/obsidian-sync.romira.dev
+    - name: vaultwarden.romira.dev.conf
+      src: ../sites-available/vaultwarden.romira.dev.conf
+
 postgresql:
   databases:
     - name: blog_romira_dev
