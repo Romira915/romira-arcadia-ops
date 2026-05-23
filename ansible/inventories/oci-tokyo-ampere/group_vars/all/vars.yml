@@ -44,10 +44,13 @@ postgresql:
   databases:
     - name: blog_romira_dev
       owner: blog
+    - name: comiketer
+      owner: comiketer
   users:
     - name: blog
       password: "{{ vault_postgresql_blog_password }}"
       db: blog_romira_dev
+    - name: comiketer
 
 # Docker data-root migration settings
 docker:
