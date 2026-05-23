@@ -1,0 +1,14 @@
+[Unit]
+Description=vaultwarden container
+
+[Service]
+WorkingDirectory=/usr/local/vaultwarden
+ExecStart=docker compose up --build
+ExecStop=docker compose stop
+ExecReload=docker compose restart
+Restart=always
+RestartSec=10s
+Type=simple
+
+[Install]
+WantedBy=multi-user.target

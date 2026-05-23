@@ -75,6 +75,11 @@ postgresql:
       db: blog_romira_dev
     - name: comiketer
 
+systemd_units:
+  - name: blog-romira-dev-leptos.service
+  - name: discord-bot-mgpf.service
+  - name: vaultwarden.service
+
 # Docker data-root migration settings
 docker:
   migrate_data_root: true
