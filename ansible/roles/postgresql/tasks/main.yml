@@ -36,7 +36,8 @@
 - name: Ensure that database users exist
   community.postgresql.postgresql_user:
     name: "{{ item.name }}"
-    password: "{{ item.password }}"
+    password: "{{ item.password | default(omit) }}"
+    no_password_changes: "{{ item.password is not defined }}"
     state: present
   become: true
   become_user: postgres
