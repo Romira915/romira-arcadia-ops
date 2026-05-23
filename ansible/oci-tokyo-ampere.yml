@@ -4,6 +4,7 @@
   roles:
     - apt
     - iptables
+    - nginx
     - docker
     - postgresql
   tags: oci-tokyo-ampere

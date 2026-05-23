@@ -1,0 +1,15 @@
+---
+- name: Validate nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
+  check_mode: false
+  become: true
+  listen: Reload nginx
+
+- name: Reload nginx
+  ansible.builtin.systemd:
+    name: "{{ nginx_service }}"
+    state: reloaded
+  become: true
+  when: not ansible_check_mode
+  listen: Reload nginx
