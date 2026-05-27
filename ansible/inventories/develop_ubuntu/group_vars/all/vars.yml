@@ -142,5 +142,8 @@ ai_rules:
   src: ~/.config/romira-s-config/ai-config/rules
   destinations:
     - ~/.claude/rules
+    - ~/.codex/rules
+    - ~/.gemini/rules
+    - ~/.config/opencode/rules
 brew_extra_packages:
   - xsel
