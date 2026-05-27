@@ -183,3 +183,6 @@ ai_rules:
   src: ~/.config/romira-s-config/ai-config/rules
   destinations:
     - ~/.claude/rules
+    - ~/.codex/rules
+    - ~/.gemini/rules
+    - ~/.config/opencode/rules
