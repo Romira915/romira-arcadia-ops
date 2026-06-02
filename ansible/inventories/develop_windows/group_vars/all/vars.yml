@@ -113,6 +113,7 @@ winget:
     - DevToys-app.DevToys
     # Raycast
     - 9PFXXSHC64H3
+    - ZedIndustries.Zed
   override_package:
     - name: Microsoft.VisualStudioCode
       override: /mergetasks=addcontextmenufiles,addcontextmenufolders,!runcode /lang=english /verysilent
