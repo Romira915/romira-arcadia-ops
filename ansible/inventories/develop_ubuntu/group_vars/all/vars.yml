@@ -112,6 +112,8 @@ develop_configuration:
       dest: ~/.local/bin/rustrover
     - src: /mnt/c/Users/{{ windows_user }}/AppData/Local/Programs/Obsidian/Obsidian.exe
       dest: ~/.local/bin/obsidian
+    - src: /mnt/c/Users/{{ windows_user }}/AppData/Local/Programs/Zed/bin/zed
+      dest: ~/.local/bin/zed
 gh:
   github_fine_grained_token: "{{ vault_gh.vault_github_fine_grained_token }}"
   repository:
