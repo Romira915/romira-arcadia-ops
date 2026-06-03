@@ -154,6 +154,8 @@ develop_configuration:
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\opencode\opencode.json
       dest: C:\Users\{{ ansible_user }}\.config\opencode\opencode.json
   directory_symbolic_links:
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\opencode\prompts
+      dest: C:\Users\{{ ansible_user }}\.config\opencode\prompts
     - src: D:\Users\{{ ansible_user }}\workspace\repositories
       dest: C:\Users\{{ ansible_user }}\workspace\repositories
   hard_links:

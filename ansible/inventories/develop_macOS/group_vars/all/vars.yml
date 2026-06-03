@@ -170,6 +170,8 @@ develop_configuration:
       dest: ~/.config/opencode/tui.json
     - src: ~/.config/romira-s-config/ai-config/opencode/opencode.json
       dest: ~/.config/opencode/opencode.json
+    - src: ~/.config/romira-s-config/ai-config/opencode/prompts
+      dest: ~/.config/opencode/prompts
 
 ai_skills:
   src: ~/.config/romira-s-config/ai-config/skills
