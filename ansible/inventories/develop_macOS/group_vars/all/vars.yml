@@ -5,7 +5,7 @@ macos_defaults:
   dock_magnification: true
   dock_largesize: 128
   dock_show_recents: false
-  dock_autohide: false
+  dock_autohide: true
   dock_autohide_delay: 0.5
   dock_orientation: bottom
   dock_mineffect: genie
