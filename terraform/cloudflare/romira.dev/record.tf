@@ -1,23 +1,3 @@
-resource "cloudflare_record" "api_want-this" {
-  name    = "api.want-this"
-  value   = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
-  type    = "A"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = true
-}
-
-resource "cloudflare_record" "app" {
-  name    = "app"
-  value   = data.terraform_remote_state.tokyo_always_free.outputs.e2-1-micro-01-public_ip
-  type    = "A"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = true
-}
-
 resource "cloudflare_record" "blog" {
   name    = "blog"
   value   = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
@@ -59,16 +39,6 @@ resource "cloudflare_record" "oci-e2-1-micro" {
   proxied         = false
 }
 
-resource "cloudflare_record" "sdtd" {
-  name    = "sdtd"
-  value   = "20.249.86.8"
-  type    = "A"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = true
-}
-
 resource "cloudflare_record" "vaultwarden" {
   name    = "vaultwarden"
   value   = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
@@ -77,36 +47,6 @@ resource "cloudflare_record" "vaultwarden" {
 
   allow_overwrite = false
   proxied         = true
-}
-
-resource "cloudflare_record" "want-this" {
-  name    = "want-this"
-  value   = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
-  type    = "A"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = true
-}
-
-resource "cloudflare_record" "comiketer" {
-  name    = "comiketer"
-  value   = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
-  type    = "A"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = true
-}
-
-resource "cloudflare_record" "_05295d161c46149e048ecadbac759e27_digital-dragons" {
-  name    = "_05295d161c46149e048ecadbac759e27.digital-dragons"
-  value   = "_ccf3a28b26eabca0664e6dd35cec50f7.kdbplsmznr.acm-validations.aws"
-  type    = "CNAME"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = false
 }
 
 resource "cloudflare_record" "_5922315cc2292383243deff9301b2cb9_blog" {
@@ -119,48 +59,8 @@ resource "cloudflare_record" "_5922315cc2292383243deff9301b2cb9_blog" {
   proxied         = false
 }
 
-resource "cloudflare_record" "api_ptera" {
-  name    = "api.ptera"
-  value   = "d-z9sldpgjw8.execute-api.ap-northeast-1.amazonaws.com"
-  type    = "CNAME"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = true
-}
 
 
-resource "cloudflare_record" "digital-dragons" {
-  name    = "digital-dragons"
-  value   = "d399yoy34yzvoi.cloudfront.net"
-  type    = "CNAME"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = true
-}
-
-
-resource "cloudflare_record" "_e4013bc4e3da0a0ee2ef9ced93fd4829_api_ptera" {
-  name    = "_e4013bc4e3da0a0ee2ef9ced93fd4829.api.ptera"
-  value   = "_f48a780a328ccf9b404ee94ef7703c87.dhzvlrndnj.acm-validations.aws"
-  type    = "CNAME"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = false
-}
-
-
-resource "cloudflare_record" "rustknock" {
-  name    = "rustknock"
-  value   = "lemon-pond-09fbd3f00.1.azurestaticapps.net"
-  type    = "CNAME"
-  zone_id = data.cloudflare_zone.romira_dev.id
-
-  allow_overwrite = false
-  proxied         = true
-}
 
 resource "cloudflare_record" "atproto" {
   name    = "_atproto"
@@ -250,4 +150,134 @@ resource "cloudflare_record" "obsidian_sync_A" {
 
   allow_overwrite = false
   proxied         = false
+}
+
+# --- 以下、Terraform 未管理だったレコード (imported) ---
+
+resource "cloudflare_record" "opencode" {
+  name    = "opencode"
+  value   = "138.2.19.89"
+  type    = "A"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+  proxied         = false
+  comment         = "opencode in openchamber"
+}
+
+resource "cloudflare_record" "astro" {
+  name    = "astro"
+  value   = "astro-cloudflare-sandbox.pages.dev"
+  type    = "CNAME"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+  proxied         = true
+}
+
+resource "cloudflare_record" "cdn_blog" {
+  name    = "cdn.blog"
+  value   = "public.r2.dev"
+  type    = "CNAME"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+  proxied         = true
+}
+
+resource "cloudflare_record" "cloud_hinokuni" {
+  name    = "cloud-hinokuni"
+  value   = "5181ba52-9a6d-4472-9445-16ff3be3d0b8.cfargotunnel.com"
+  type    = "CNAME"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+  proxied         = true
+}
+
+resource "cloudflare_record" "files_misskey" {
+  name    = "files.misskey"
+  value   = "public.r2.dev"
+  type    = "CNAME"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+  proxied         = true
+}
+
+resource "cloudflare_record" "public_comiketer" {
+  name    = "public.comiketer"
+  value   = "public.r2.dev"
+  type    = "CNAME"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+  proxied         = true
+}
+
+resource "cloudflare_record" "mx_route1" {
+  name     = "@"
+  value    = "route1.mx.cloudflare.net"
+  type     = "MX"
+  zone_id  = data.cloudflare_zone.romira_dev.id
+  priority = 54
+
+  allow_overwrite = false
+}
+
+resource "cloudflare_record" "mx_route2" {
+  name     = "@"
+  value    = "route2.mx.cloudflare.net"
+  type     = "MX"
+  zone_id  = data.cloudflare_zone.romira_dev.id
+  priority = 79
+
+  allow_overwrite = false
+}
+
+resource "cloudflare_record" "mx_route3" {
+  name     = "@"
+  value    = "route3.mx.cloudflare.net"
+  type     = "MX"
+  zone_id  = data.cloudflare_zone.romira_dev.id
+  priority = 44
+
+  allow_overwrite = false
+}
+
+resource "cloudflare_record" "spf" {
+  name    = "@"
+  value   = "v=spf1 include:_spf.mx.cloudflare.net ~all"
+  type    = "TXT"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+}
+
+resource "cloudflare_record" "dmarc" {
+  name    = "_dmarc"
+  value   = "\"v=DMARC1;  p=none; rua=mailto:0d96724bef164d0eb8e53d9a7a87659c@dmarc-reports.cloudflare.net\""
+  type    = "TXT"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+}
+
+resource "cloudflare_record" "cf2024_domainkey" {
+  name    = "cf2024-1._domainkey"
+  value   = "\"v=DKIM1; h=sha256; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAiweykoi+o48IOGuP7GR3X0MOExCUDY/BCRHoWBnh3rChl7WhdyCxW3jgq1daEjPPqoi7sJvdg5hEQVsgVRQP4DcnQDVjGMbASQtrY4WmB1VebF+RPJB2ECPsEDTpeiI5ZyUAwJaVX7r6bznU67g7LvFq35yIo4sdlmtZGV+i0H4cpYH9+3JJ78k\" \"m4KXwaf9xUJCWF6nxeD+qG6Fyruw1Qlbds2r85U9dkNDVAS3gioCvELryh1TxKGiVTkg4wqHTyHfWsp7KD3WQHYJn0RyfJJu6YEmL77zonn7p2SRMvTMP3ZEXibnC9gz3nnhR6wcYL8Q7zXypKTMD58bTixDSJwIDAQAB\""
+  type    = "TXT"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+}
+
+resource "cloudflare_record" "frontend_comiketer" {
+  name    = "frontend.comiketer"
+  value   = "100::"
+  type    = "AAAA"
+  zone_id = data.cloudflare_zone.romira_dev.id
+
+  allow_overwrite = false
+  proxied         = true
 }
