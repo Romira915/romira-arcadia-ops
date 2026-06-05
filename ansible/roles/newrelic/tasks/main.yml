@@ -1,0 +1,36 @@
+---
+- name: Ensure New Relic Infrastructure Agent package is installed
+  ansible.builtin.apt:
+    name: "{{ newrelic.infra.package_name | default('newrelic-infra') }}"
+    state: present
+  become: true
+  when: newrelic.infra.enabled | bool
+  tags:
+    - newrelic
+    - apt
+
+- name: Configure New Relic Infrastructure Agent
+  ansible.builtin.template:
+    src: newrelic-infra.yml.j2
+    dest: "{{ newrelic.infra.config_path | default('/etc/newrelic-infra.yml') }}"
+    owner: root
+    group: root
+    mode: "0600"
+  become: true
+  no_log: true
+  notify: Restart newrelic-infra
+  when: newrelic.infra.enabled | bool
+  tags:
+    - newrelic
+    - configuration
+
+- name: Ensure New Relic Infrastructure Agent is enabled and started
+  ansible.builtin.systemd:
+    name: "{{ newrelic.infra.service_name | default('newrelic-infra.service') }}"
+    enabled: true
+    state: started
+  become: true
+  when: newrelic.infra.enabled | bool
+  tags:
+    - newrelic
+    - systemd

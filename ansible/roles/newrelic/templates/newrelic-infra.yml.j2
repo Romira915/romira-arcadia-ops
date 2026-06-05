@@ -1,0 +1,8 @@
+enable_process_metrics: {{ newrelic.infra.enable_process_metrics | default(true) | bool | lower }}
+status_server_enabled: {{ newrelic.infra.status_server_enabled | default(true) | bool | lower }}
+status_server_port: {{ newrelic.infra.status_server_port | default(18003) }}
+license_key: {{ vault_newrelic_license_key }}
+custom_attributes:
+{% for key, value in newrelic.infra.custom_attributes | default({}) | dictsort %}
+  {{ key }}: {{ value }}
+{% endfor %}
