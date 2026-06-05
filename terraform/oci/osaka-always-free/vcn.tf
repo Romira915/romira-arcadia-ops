@@ -62,6 +62,15 @@ resource "oci_core_security_list" "security_list_for_main" {
   ingress_security_rules {
     protocol    = "6"
     source      = "0.0.0.0/0"
+    description = "ssh port"
+    tcp_options {
+      max = 33999
+      min = 33999
+    }
+  }
+  ingress_security_rules {
+    protocol    = "6"
+    source      = "0.0.0.0/0"
     description = "http port"
     tcp_options {
       max = 80
