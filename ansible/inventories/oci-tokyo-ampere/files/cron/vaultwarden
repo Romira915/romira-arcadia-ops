@@ -1,0 +1,5 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+0 4 * * * root BACKUP_FILENAME=vaultwarden-backup-$(date +"\%Y-\%m-\%dT\%H-\%M-\%S").tar.bz2 && mkdir -p /tmp/vaultwarden && tar -jcvf /tmp/vaultwarden/$BACKUP_FILENAME /usr/local/vaultwarden && aws s3 --profile oci_s3 --endpoint-url https://nr7eduszgfzb.compat.objectstorage.ap-tokyo-1.oraclecloud.com cp /tmp/vaultwarden/$BACKUP_FILENAME s3://vaultwarden-backup && rm -f /tmp/vaultwarden/$BACKUP_FILENAME
+30 4 * * * root cd /usr/local/vaultwarden && docker compose pull | grep "Downloaded newer image" && systemctl restart vaultwarden.service && docker image prune -f

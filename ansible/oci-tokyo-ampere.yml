@@ -5,8 +5,11 @@
     - apt
     - iptables
     - nginx
+    - cron
     - docker
     - postgresql
+    - app_layout
+    - newrelic
     - systemd_units
   tags: oci-tokyo-ampere
 

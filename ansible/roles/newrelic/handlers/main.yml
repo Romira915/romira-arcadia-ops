@@ -1,0 +1,6 @@
+---
+- name: Restart newrelic-infra
+  ansible.builtin.systemd:
+    name: "{{ newrelic.infra.service_name | default('newrelic-infra.service') }}"
+    state: restarted
+  become: true

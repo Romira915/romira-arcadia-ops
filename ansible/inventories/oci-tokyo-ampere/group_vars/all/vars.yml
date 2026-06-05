@@ -48,18 +48,18 @@ nginx:
   site_files:
     - blog.romira.dev.conf
     - dev-site.romira.dev.conf
-    - librechat.romira.dev.conf
     - obsidian-sync.romira.dev
+    - opencode.romira.dev.conf
     - vaultwarden.romira.dev.conf
   enabled_sites:
     - name: blog.romira.dev.conf
       src: ../sites-available/blog.romira.dev.conf
     - name: dev-site.romira.dev.conf
       src: ../sites-available/dev-site.romira.dev.conf
-    - name: librechat.romira.dev.conf
-      src: /etc/nginx/sites-available/librechat.romira.dev.conf
     - name: obsidian-sync.romira.dev
       src: /etc/nginx/sites-available/obsidian-sync.romira.dev
+    - name: opencode.romira.dev.conf
+      src: /etc/nginx/sites-available/opencode.romira.dev.conf
     - name: vaultwarden.romira.dev.conf
       src: ../sites-available/vaultwarden.romira.dev.conf
 
@@ -86,3 +86,61 @@ docker:
   data_root: "/mnt/d/docker"
   old_data_root: "/var/lib/docker"
   remove_old_data: false
+
+app_layouts:
+  - name: blog-romira-dev-leptos
+    path: /usr/local/blog-romira-dev-leptos
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+    directories:
+      - path: bin
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+    required_files:
+      - path: systemd_env
+        managed: false
+      - path: bin/blog-romira-dev-server
+        managed: false
+
+  - name: vaultwarden
+    path: /usr/local/vaultwarden
+    owner: root
+    group: root
+    mode: "0755"
+    directories:
+      - path: vw-data
+        owner: root
+        group: root
+        mode: "0755"
+    required_files:
+      - path: docker-compose.yml
+        managed: false
+
+  - name: obsidian-livesync
+    path: /usr/local/obsidian-livesync
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+    required_files:
+      - path: compose.yaml
+        managed: false
+
+newrelic:
+  infra:
+    enabled: true
+    enable_process_metrics: true
+    status_server_enabled: true
+    status_server_port: 18003
+    custom_attributes:
+      nr_deployed_by: ansible
+
+vault_newrelic_license_key: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  39383965306137323061393966353931613931373434623531336539313535663831343766373830
+  6338343461336433633437323531303665616435316366630a653765386133323861333164633162
+  61306166353137393663646161353465363134666235613766656133356265643932646235643032
+  3333633761373739380a306463323666313762373263613034663665383834623565376530386633
+  36633066643465346335636538383834656532623230643331376665366261366364356235646638
+  3738303562323630373737656337396162336431366234376165
