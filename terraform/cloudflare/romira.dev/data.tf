@@ -1,3 +1,3 @@
-data "cloudflare_zone" "romira_dev" {
+data "cloudflare_zones" "romira_dev" {
   name = "romira.dev"
 }
