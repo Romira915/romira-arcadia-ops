@@ -46,12 +46,15 @@ nginx:
     - mime.conf
     - newrelic.conf
   site_files:
+    - api.hasu-music-quiz.aileafmura.com.conf
     - blog.romira.dev.conf
     - dev-site.romira.dev.conf
     - obsidian-sync.romira.dev
     - opencode.romira.dev.conf
     - vaultwarden.romira.dev.conf
   enabled_sites:
+    - name: api.hasu-music-quiz.aileafmura.com.conf
+      src: ../sites-available/api.hasu-music-quiz.aileafmura.com.conf
     - name: blog.romira.dev.conf
       src: ../sites-available/blog.romira.dev.conf
     - name: dev-site.romira.dev.conf
@@ -78,6 +81,7 @@ postgresql:
 systemd_units:
   - name: blog-romira-dev-leptos.service
   - name: discord-bot-mgpf.service
+  - name: hasu-music-quiz-backend.service
   - name: vaultwarden.service
 
 # Docker data-root migration settings
@@ -88,6 +92,22 @@ docker:
   remove_old_data: false
 
 app_layouts:
+  - name: hasu-music-quiz-backend
+    path: /usr/local/hasu-music-quiz-backend
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+    directories:
+      - path: bin
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+    required_files:
+      - path: systemd_env
+        managed: false
+      - path: bin/hasu-music-quiz-backend
+        managed: false
+
   - name: blog-romira-dev-leptos
     path: /usr/local/blog-romira-dev-leptos
     owner: ubuntu

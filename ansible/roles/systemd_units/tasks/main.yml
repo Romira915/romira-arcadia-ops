@@ -13,6 +13,14 @@
     - systemd-units
     - configuration
 
+- name: Gather systemd service facts in check mode
+  ansible.builtin.service_facts:
+  become: true
+  when: ansible_check_mode
+  tags:
+    - systemd-units
+    - systemd
+
 - name: Ensure systemd units are enabled and started
   ansible.builtin.systemd:
     name: "{{ item.name }}"
@@ -21,6 +29,7 @@
     daemon_reload: true
   become: true
   loop: "{{ systemd_units }}"
+  when: not ansible_check_mode or item.name in ansible_facts.services
   tags:
     - systemd-units
     - systemd

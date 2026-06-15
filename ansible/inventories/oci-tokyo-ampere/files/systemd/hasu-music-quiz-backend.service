@@ -1,0 +1,22 @@
+[Unit]
+Description=Hasu Music Quiz backend
+BindsTo=valkey-server.service
+After=network.target valkey-server.service
+
+[Service]
+EnvironmentFile=/usr/local/hasu-music-quiz-backend/systemd_env
+WorkingDirectory=/usr/local/hasu-music-quiz-backend
+ExecStart=/usr/local/hasu-music-quiz-backend/bin/hasu-music-quiz-backend
+User=ubuntu
+Group=ubuntu
+Restart=always
+RestartSec=10s
+Type=simple
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
