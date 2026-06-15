@@ -70,6 +70,7 @@
     src: "{{ item.src }}"
     dest: "/etc/nginx/sites-enabled/{{ item.name }}"
     state: link
+    force: "{{ ansible_check_mode }}"
     owner: root
     group: root
   become: true
