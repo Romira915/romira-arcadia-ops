@@ -4,9 +4,9 @@ BindsTo=valkey-server.service
 After=network.target valkey-server.service
 
 [Service]
-EnvironmentFile=/usr/local/hasu-music-quiz-backend/systemd_env
-WorkingDirectory=/usr/local/hasu-music-quiz-backend
-ExecStart=/usr/local/hasu-music-quiz-backend/bin/hasu-music-quiz-backend
+EnvironmentFile=/opt/hasu-music-quiz-backend/systemd_env
+WorkingDirectory=/opt/hasu-music-quiz-backend
+ExecStart=/opt/hasu-music-quiz-backend/bin/hasu-music-quiz-backend
 User=ubuntu
 Group=ubuntu
 Restart=always
