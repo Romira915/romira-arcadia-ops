@@ -93,18 +93,21 @@ docker:
 
 app_layouts:
   - name: hasu-music-quiz-backend
-    path: /usr/local/hasu-music-quiz-backend
-    owner: ubuntu
-    group: ubuntu
+    path: /opt/hasu-music-quiz-backend
+    owner: root
+    group: root
     mode: "0755"
     directories:
       - path: bin
-        owner: ubuntu
-        group: ubuntu
+        owner: root
+        group: root
         mode: "0755"
     required_files:
       - path: systemd_env
-        managed: false
+        managed: true
+        owner: root
+        group: root
+        mode: "0600"
       - path: bin/hasu-music-quiz-backend
         managed: false
 
