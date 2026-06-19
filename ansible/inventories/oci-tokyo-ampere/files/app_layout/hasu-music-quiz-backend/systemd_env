@@ -1,4 +1,0 @@
-BIND_ADDR=127.0.0.1:26128
-VALKEY_URL=redis://127.0.0.1:51032/1
-VALKEY_KEY_PREFIX=hasu-music-quiz:
-FRONTEND_ORIGINS=https://hasu-music-quiz.aileafmura.com

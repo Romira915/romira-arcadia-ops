@@ -40,7 +40,27 @@
   loop: "{{ app_layouts | subelements('required_files', skip_missing=True) }}"
   loop_control:
     label: "{{ item.0.name }}:{{ item.1.path }}"
-  when: item.1.managed | default(false) | bool
+  when:
+    - item.1.managed | default(false) | bool
+    - not (item.1.src | default(item.0.name ~ '/' ~ item.1.path)).endswith('.j2')
+  tags:
+    - app-layout
+    - configuration
+
+- name: Template managed app required files (.j2)
+  ansible.builtin.template:
+    src: "{{ app_layout_src_dir }}/{{ item.1.src | default(item.0.name ~ '/' ~ item.1.path) }}"
+    dest: "{{ item.0.path }}/{{ item.1.path }}"
+    owner: "{{ item.1.owner | default(item.0.owner | default('root')) }}"
+    group: "{{ item.1.group | default(item.0.group | default('root')) }}"
+    mode: "{{ item.1.mode | default('0644') }}"
+  become: true
+  loop: "{{ app_layouts | subelements('required_files', skip_missing=True) }}"
+  loop_control:
+    label: "{{ item.0.name }}:{{ item.1.path }}"
+  when:
+    - item.1.managed | default(false) | bool
+    - (item.1.src | default(item.0.name ~ '/' ~ item.1.path)).endswith('.j2')
   tags:
     - app-layout
     - configuration

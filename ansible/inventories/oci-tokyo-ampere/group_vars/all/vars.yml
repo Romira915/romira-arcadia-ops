@@ -99,11 +99,12 @@ app_layouts:
     mode: "0755"
     directories:
       - path: bin
-        owner: root
-        group: root
+        owner: "1001"
+        group: "1001"
         mode: "0755"
     required_files:
       - path: systemd_env
+        src: hasu-music-quiz-backend/systemd_env.j2
         managed: true
         owner: root
         group: root
@@ -149,6 +150,8 @@ app_layouts:
     required_files:
       - path: compose.yaml
         managed: false
+
+hasu_music_quiz_new_relic_license_key: "{{ vault_hasu_music_quiz_new_relic_license_key }}"
 
 newrelic:
   infra:
