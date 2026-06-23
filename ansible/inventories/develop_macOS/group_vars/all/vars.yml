@@ -125,6 +125,7 @@ develop_configuration:
     - ~/.codex/
     - ~/.gemini/
     - ~/.config/opencode/
+    - ~/.hermes/
     - ~/.config/litellm/
     - ~/.claude-code-router/
   symbolic_links:
@@ -156,6 +157,8 @@ develop_configuration:
       dest: ~/.gemini/GEMINI.md
     - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.config/opencode/AGENTS.md
+    - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
+      dest: ~/.hermes/SOUL.md
     - src: ~/.config/romira-s-config/ai-config/claude-code/settings.json
       dest: ~/.claude/settings.json
     - src: ~/.config/romira-s-config/ai-config/litellm/claude-free
@@ -180,6 +183,7 @@ ai_skills:
     - ~/.codex/skills
     - ~/.gemini/skills
     - ~/.config/opencode/skills
+    - ~/.hermes/skills
 
 ai_rules:
   src: ~/.config/romira-s-config/ai-config/rules
