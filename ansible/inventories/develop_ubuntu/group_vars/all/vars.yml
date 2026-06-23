@@ -86,6 +86,8 @@ develop_configuration:
       dest: ~/.config/opencode/AGENTS.md
     - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.hermes/SOUL.md
+    - src: ~/.config/romira-s-config/ai-config/hermes-agent/config.yaml
+      dest: ~/.hermes/config.yaml
     - src: ~/.config/romira-s-config/ai-config/claude-code/settings.json
       dest: ~/.claude/settings.json
     - src: ~/.config/romira-s-config/ai-config/litellm/claude-free
