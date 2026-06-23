@@ -142,6 +142,8 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.config\opencode\AGENTS.md
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\CLAUDE.md
       dest: C:\Users\{{ ansible_user }}\.hermes\SOUL.md
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\hermes-agent\config.yaml
+      dest: C:\Users\{{ ansible_user }}\.hermes\config.yaml
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\settings.json
       dest: C:\Users\{{ ansible_user }}\.claude\settings.json
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\starship\starship.toml
