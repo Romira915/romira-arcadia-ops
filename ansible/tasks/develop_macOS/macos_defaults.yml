@@ -398,12 +398,6 @@
     type: bool
     value: true
 
-# AltTab
-- name: "AltTab: Import preferences from dotfiles"
-  ansible.builtin.command:
-    cmd: defaults import com.lwouis.alt-tab-macos {{ macos_defaults.dotfiles_dir }}/alttab/com.lwouis.alt-tab-macos.plist
-  changed_when: true
-
 # Rectangle
 - name: "Rectangle: Import preferences from dotfiles"
   ansible.builtin.command:
