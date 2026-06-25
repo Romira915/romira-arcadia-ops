@@ -128,7 +128,7 @@ brew:
     - obsidian
     - 1password
     - 1password-cli
-    - alt-tab
+    - bettercmdtab
     - scroll-reverser
 
     - shottr
