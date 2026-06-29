@@ -124,6 +124,7 @@ brew:
     - rectangle
     - jordanbaird-ice
     - claude
+    - codex-app
     - chatgpt
     - obsidian
     - 1password
