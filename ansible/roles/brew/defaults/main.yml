@@ -122,7 +122,6 @@ brew:
     - zulip
     - tailscale
     - rectangle
-    - bettertouchtool
     - jordanbaird-ice
     - claude
     - codex-app
@@ -131,6 +130,7 @@ brew:
     - 1password
     - 1password-cli
     - bettercmdtab
+    - dimentium/autoraise/autoraiseapp
     - scroll-reverser
 
     - shottr
