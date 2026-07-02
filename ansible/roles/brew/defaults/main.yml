@@ -122,6 +122,7 @@ brew:
     - zulip
     - tailscale
     - rectangle
+    - bettertouchtool
     - jordanbaird-ice
     - claude
     - codex-app
