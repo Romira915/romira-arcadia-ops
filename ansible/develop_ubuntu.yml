@@ -47,6 +47,13 @@
         - develop_configuration
         - symlink
 
+    - name: Import opencode env tasks
+      ansible.builtin.import_tasks:
+        file: tasks/common/opencode_env.yml
+      tags:
+        - develop_configuration
+        - opencode_env
+
     - name: Import ssh tasks
       ansible.builtin.import_tasks:
         file: tasks/common/ssh.yml
