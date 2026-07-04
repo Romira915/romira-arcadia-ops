@@ -1,0 +1,23 @@
+---
+# Place OpenCode env files (Google OAuth credentials) with restrictive permissions.
+# Secrets are pulled from Ansible Vault (opencode_env_files[*].content).
+- name: Ensure OpenCode env directory exists
+  ansible.builtin.file:
+    path: "{{ item.dest | dirname }}"
+    state: directory
+    mode: "0700"
+  loop: "{{ opencode_env_files | default([]) }}"
+  loop_control:
+    label: "{{ item.dest | dirname }}"
+  when: opencode_env_files is defined
+
+- name: Place OpenCode env files
+  ansible.builtin.copy:
+    dest: "{{ item.dest }}"
+    content: "{{ item.content }}"
+    mode: "0600"
+  loop: "{{ opencode_env_files | default([]) }}"
+  loop_control:
+    label: "{{ item.dest }}"
+  no_log: true
+  when: opencode_env_files is defined
