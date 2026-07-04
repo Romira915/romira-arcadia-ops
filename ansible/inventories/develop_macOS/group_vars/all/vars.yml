@@ -177,6 +177,8 @@ develop_configuration:
       dest: ~/.config/opencode/opencode.json
     - src: ~/.config/romira-s-config/ai-config/opencode/prompts
       dest: ~/.config/opencode/prompts
+    - src: ~/.config/romira-s-config/herdr/config.toml
+      dest: ~/.config/herdr/config.toml
 
 ai_skills:
   src: ~/.config/romira-s-config/ai-config/skills
@@ -194,3 +196,10 @@ ai_rules:
     - ~/.codex/rules
     - ~/.gemini/rules
     - ~/.config/opencode/rules
+opencode_env_files:
+  - dest: ~/.config/opencode/env/google-oauth-client-id
+    content: "{{ vault_opencode_env.google_oauth_client_id }}"
+  - dest: ~/.config/opencode/env/google-oauth-client-secret
+    content: "{{ vault_opencode_env.google_oauth_client_secret }}"
+  - dest: ~/.config/opencode/env/user-google-email
+    content: "{{ vault_opencode_env.user_google_email }}"

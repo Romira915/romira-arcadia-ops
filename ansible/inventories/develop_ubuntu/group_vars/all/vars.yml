@@ -106,6 +106,8 @@ develop_configuration:
       dest: ~/.config/opencode/prompts
     - src: ~/.config/romira-s-config/topgrade/topgrade.toml
       dest: ~/.config/topgrade.toml
+    - src: ~/.config/romira-s-config/herdr/config.toml
+      dest: ~/.config/herdr/config.toml
   wsl_symbolic_links:
     - src: /mnt/c/Windows/System32/clip.exe
       dest: ~/.local/bin/clip
@@ -155,5 +157,12 @@ ai_rules:
     - ~/.codex/rules
     - ~/.gemini/rules
     - ~/.config/opencode/rules
+opencode_env_files:
+  - dest: ~/.config/opencode/env/google-oauth-client-id
+    content: "{{ vault_opencode_env.google_oauth_client_id }}"
+  - dest: ~/.config/opencode/env/google-oauth-client-secret
+    content: "{{ vault_opencode_env.google_oauth_client_secret }}"
+  - dest: ~/.config/opencode/env/user-google-email
+    content: "{{ vault_opencode_env.user_google_email }}"
 brew_extra_packages:
   - xsel

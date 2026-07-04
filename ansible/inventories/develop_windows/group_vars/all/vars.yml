@@ -159,6 +159,8 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.config\opencode\tui.json
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\opencode\opencode.json
       dest: C:\Users\{{ ansible_user }}\.config\opencode\opencode.json
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\herdr\config.toml
+      dest: C:\Users\{{ ansible_user }}\.config\herdr\config.toml
   directory_symbolic_links:
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\opencode\prompts
       dest: C:\Users\{{ ansible_user }}\.config\opencode\prompts
@@ -207,6 +209,13 @@ ai_rules:
   src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\rules
   destinations:
     - C:\Users\{{ ansible_user }}\.claude\rules
+opencode_env_files:
+  - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\google-oauth-client-id
+    content: "{{ vault_opencode_env.google_oauth_client_id }}"
+  - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\google-oauth-client-secret
+    content: "{{ vault_opencode_env.google_oauth_client_secret }}"
+  - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\user-google-email
+    content: "{{ vault_opencode_env.user_google_email }}"
 cargo:
   packages:
     - mcfly

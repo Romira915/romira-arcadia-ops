@@ -21,6 +21,11 @@
         - develop_configuration
         - symlink
 
+    - import_tasks: tasks/common/opencode_env.yml
+      tags:
+        - develop_configuration
+        - opencode_env
+
     - import_tasks: tasks/develop_windows/git.yml
       tags:
         - develop_configuration
