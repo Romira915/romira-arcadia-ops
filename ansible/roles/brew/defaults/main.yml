@@ -88,6 +88,7 @@ brew:
     - font-noto-serif-jp
     # GUI Apps
     - visual-studio-code
+    - zed
     - google-chrome
     - firefox
     - slack
