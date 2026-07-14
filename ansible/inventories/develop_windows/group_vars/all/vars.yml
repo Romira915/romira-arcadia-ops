@@ -137,6 +137,12 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.claude\CLAUDE.md
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\CLAUDE.md
       dest: C:\Users\{{ ansible_user }}\.codex\AGENTS.md
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\codex\config.toml
+      dest: C:\Users\{{ ansible_user }}\.codex\config.toml
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\codex\hooks.windows.json
+      dest: C:\Users\{{ ansible_user }}\.codex\hooks.json
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\codex\herdr-agent-state.cmd
+      dest: C:\Users\{{ ansible_user }}\.codex\herdr-agent-state.cmd
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\CLAUDE.md
       dest: C:\Users\{{ ansible_user }}\.gemini\GEMINI.md
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\CLAUDE.md
@@ -145,7 +151,7 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.hermes\SOUL.md
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\hermes-agent\config.yaml
       dest: C:\Users\{{ ansible_user }}\.hermes\config.yaml
-    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\settings.json
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\claude-code\settings.json
       dest: C:\Users\{{ ansible_user }}\.claude\settings.json
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\starship\starship.toml
       dest: C:\Users\{{ ansible_user }}\.config\starship.toml

@@ -73,6 +73,7 @@ brew:
     - bitwarden-cli
     - gogcli
     - mkcert
+    - herdr
   cask:
     # Fonts
     - font-hackgen
