@@ -80,6 +80,10 @@ develop_configuration:
       dest: ~/.claude/CLAUDE.md
     - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.codex/AGENTS.md
+    - src: ~/.config/romira-s-config/ai-config/codex/config.toml
+      dest: ~/.codex/config.toml
+    - src: ~/.config/romira-s-config/ai-config/codex/hooks.json
+      dest: ~/.codex/hooks.json
     - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
       dest: ~/.gemini/GEMINI.md
     - src: ~/.config/romira-s-config/ai-config/CLAUDE.md
