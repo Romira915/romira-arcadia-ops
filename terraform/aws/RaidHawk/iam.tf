@@ -152,7 +152,6 @@ resource "aws_iam_role_policy" "github_actions_lambda_deploy" {
           "lambda:GetFunctionConfiguration",
           "lambda:CreateFunction",
           "lambda:DeleteFunction",
-          "lambda:PutFunctionConcurrency",
           "lambda:PublishVersion",
           "lambda:UpdateAlias",
           "lambda:CreateAlias",
