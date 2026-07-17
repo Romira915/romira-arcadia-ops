@@ -29,3 +29,44 @@ variable "github_repo" {
   default     = "Romira915/RaidHawk"
 }
 
+variable "calendar_lambda_function_name" {
+  description = "Name of the CalendarSync Lambda function"
+  type        = string
+  default     = "RaidHawkCalendarSync"
+}
+
+variable "calendar_dynamodb_table_name" {
+  description = "Name of the CalendarSync DynamoDB table"
+  type        = string
+  default     = "RaidHawk-calendar-events"
+}
+
+variable "calendar_iam_role_name" {
+  description = "Name of the CalendarSync Lambda execution role"
+  type        = string
+  default     = "RaidHawkCalendarSync-execution-role"
+}
+
+variable "calendar_iam_policy_name" {
+  description = "Name of the CalendarSync Lambda execution policy"
+  type        = string
+  default     = "RaidHawkCalendarSync-execution-policy"
+}
+
+variable "calendar_parameter_path_prefix" {
+  description = "SSM Parameter Store path containing CalendarSync credentials"
+  type        = string
+  default     = "/RaidHawk/calendar"
+}
+
+variable "calendar_lambda_deployed" {
+  description = "Create EventBridge target and Lambda permission after cargo-lambda has deployed the function"
+  type        = bool
+  default     = true
+}
+
+variable "calendar_schedule_enabled" {
+  description = "Enable the CalendarSync hourly schedule after manual invocation has been verified"
+  type        = bool
+  default     = true
+}

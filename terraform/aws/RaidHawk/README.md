@@ -42,6 +42,25 @@ echo "ENCRYPTED_BASE64_VALUE" | base64 -d | aws kms decrypt \
 # Validate configuration
 terraform validate
 
-# Plan changes (apply is forbidden per CLAUDE.md)
+# Initial CalendarSync infrastructure plan. The schedule remains disabled and
+# no Lambda target/permission is created before cargo-lambda deployment.
+terraform plan \
+  -var='calendar_lambda_deployed=false' \
+  -var='calendar_schedule_enabled=false'
+
+# After RaidHawkCalendarSync has been deployed and manually verified:
 terraform plan
 ```
+
+`terraform apply` is forbidden per this repository's `CLAUDE.md`; an
+infrastructure administrator must perform the reviewed change through the
+approved workflow.
+
+## CalendarSync cost controls
+
+- DynamoDB Standard: PAY_PER_REQUEST
+- DynamoDB PITR: disabled
+- SSM Parameter Store: Standard tier under `/RaidHawk/calendar/*`
+- CloudWatch Logs retention: 1 day
+- EventBridge rule: disabled until the Lambda manual test is complete
+- Secrets Manager and customer-managed KMS keys are not used
