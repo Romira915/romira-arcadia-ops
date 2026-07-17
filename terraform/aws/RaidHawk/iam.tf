@@ -47,6 +47,63 @@ resource "aws_iam_role_policy" "lambda_execution_policy" {
   })
 }
 
+# CalendarSync uses a separate role so Google Calendar and AI analyzer failures
+# cannot expand the blast radius of the existing notifier.
+resource "aws_iam_role" "calendar_lambda_execution_role" {
+  name = var.calendar_iam_role_name
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+      }
+    ]
+  })
+
+  tags = local.common_tags
+}
+
+resource "aws_iam_role_policy" "calendar_lambda_execution_policy" {
+  name = var.calendar_iam_policy_name
+  role = aws_iam_role.calendar_lambda_execution_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "WriteCalendarSyncLogs"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "${aws_cloudwatch_log_group.calendar_lambda_logs.arn}:*"
+      },
+      {
+        Sid    = "ReadAndWriteCalendarSyncState"
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:Scan"
+        ]
+        Resource = aws_dynamodb_table.calendar_events.arn
+      },
+      {
+        Sid      = "ReadCalendarSyncCredentials"
+        Effect   = "Allow"
+        Action   = "ssm:GetParameter"
+        Resource = "arn:aws:ssm:${local.region}:${data.aws_caller_identity.current.account_id}:parameter${var.calendar_parameter_path_prefix}/*"
+      }
+    ]
+  })
+}
+
 # Use existing OIDC Provider for GitHub Actions
 data "aws_iam_openid_connect_provider" "github_actions" {
   url = "https://token.actions.githubusercontent.com"
@@ -95,20 +152,27 @@ resource "aws_iam_role_policy" "github_actions_lambda_deploy" {
           "lambda:GetFunctionConfiguration",
           "lambda:CreateFunction",
           "lambda:DeleteFunction",
+          "lambda:PutFunctionConcurrency",
           "lambda:PublishVersion",
           "lambda:UpdateAlias",
           "lambda:CreateAlias",
           "lambda:DeleteAlias",
           "lambda:GetAlias"
         ]
-        Resource = "arn:aws:lambda:${local.region}:*:function:${var.lambda_function_name}"
+        Resource = [
+          "arn:aws:lambda:${local.region}:*:function:${var.lambda_function_name}",
+          "arn:aws:lambda:${local.region}:*:function:${var.calendar_lambda_function_name}"
+        ]
       },
       {
         Effect = "Allow"
         Action = [
           "iam:PassRole"
         ]
-        Resource = aws_iam_role.lambda_execution_role.arn
+        Resource = [
+          aws_iam_role.lambda_execution_role.arn,
+          aws_iam_role.calendar_lambda_execution_role.arn
+        ]
       }
     ]
   })

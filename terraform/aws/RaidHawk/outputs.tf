@@ -39,3 +39,23 @@ output "github_actions_role_arn" {
   description = "ARN of the GitHub Actions IAM role"
   value       = aws_iam_role.github_actions_role.arn
 }
+
+output "calendar_lambda_function_name" {
+  description = "Name of the CalendarSync Lambda function"
+  value       = var.calendar_lambda_function_name
+}
+
+output "calendar_dynamodb_table_name" {
+  description = "Name of the CalendarSync DynamoDB table"
+  value       = aws_dynamodb_table.calendar_events.name
+}
+
+output "calendar_eventbridge_rule_arn" {
+  description = "ARN of the CalendarSync EventBridge rule"
+  value       = aws_cloudwatch_event_rule.calendar_lambda_schedule.arn
+}
+
+output "calendar_iam_role_arn" {
+  description = "ARN of the CalendarSync Lambda execution role"
+  value       = aws_iam_role.calendar_lambda_execution_role.arn
+}
