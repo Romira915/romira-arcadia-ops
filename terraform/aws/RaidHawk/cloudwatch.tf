@@ -9,6 +9,7 @@ resource "aws_cloudwatch_event_rule" "lambda_schedule" {
   name                = "RaidHawk-schedule"
   description         = "RaidHawk battle content monitoring schedule"
   schedule_expression = "rate(2 hours)"
+  state               = var.legacy_schedule_enabled ? "ENABLED" : "DISABLED"
 }
 
 # EventBridge Target for Lambda
@@ -28,7 +29,7 @@ resource "aws_cloudwatch_event_rule" "calendar_lambda_schedule" {
   name                = "RaidHawkCalendarSync-schedule"
   description         = "RaidHawk DQX event calendar synchronization schedule"
   schedule_expression = "rate(2 hours)"
-  state               = var.calendar_schedule_enabled ? "ENABLED" : "DISABLED"
+  state               = var.legacy_schedule_enabled && var.calendar_schedule_enabled ? "ENABLED" : "DISABLED"
   tags                = local.common_tags
 
   lifecycle {

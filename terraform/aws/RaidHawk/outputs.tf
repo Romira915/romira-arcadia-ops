@@ -55,6 +55,16 @@ output "calendar_eventbridge_rule_arn" {
   value       = aws_cloudwatch_event_rule.calendar_lambda_schedule.arn
 }
 
+output "scheduler_schedule_arn" {
+  description = "ARN of the replacement RaidHawk EventBridge Scheduler schedule"
+  value       = aws_scheduler_schedule.lambda_schedule.arn
+}
+
+output "calendar_scheduler_schedule_arn" {
+  description = "ARN of the replacement CalendarSync EventBridge Scheduler schedule"
+  value       = try(aws_scheduler_schedule.calendar_lambda_schedule[0].arn, null)
+}
+
 output "calendar_iam_role_arn" {
   description = "ARN of the CalendarSync Lambda execution role"
   value       = aws_iam_role.calendar_lambda_execution_role.arn
