@@ -1,5 +1,8 @@
 locals {
-  scheduler_event_input = jsonencode({
+  # EventBridge Scheduler replaces context attributes only when angle brackets
+  # remain literal. Terraform's jsonencode escapes them, so restore them after
+  # encoding while keeping the rest of the payload safely JSON-encoded.
+  scheduler_event_input = replace(replace(jsonencode({
     version       = "0"
     id            = "<aws.scheduler.execution-id>"
     "detail-type" = "Scheduled Event"
@@ -9,7 +12,7 @@ locals {
     region        = local.region
     resources     = ["<aws.scheduler.schedule-arn>"]
     detail        = {}
-  })
+  }), "\\u003c", "<"), "\\u003e", ">")
 }
 
 resource "aws_scheduler_schedule_group" "raidhawk" {
