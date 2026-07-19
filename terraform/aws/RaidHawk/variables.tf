@@ -66,7 +66,19 @@ variable "calendar_lambda_deployed" {
 }
 
 variable "calendar_schedule_enabled" {
-  description = "Enable the CalendarSync hourly schedule after manual invocation has been verified"
+  description = "Enable the CalendarSync schedule after manual invocation has been verified"
   type        = bool
   default     = true
+}
+
+variable "legacy_schedule_enabled" {
+  description = "Keep the legacy EventBridge scheduled rules enabled during the Scheduler migration"
+  type        = bool
+  default     = true
+}
+
+variable "scheduler_schedule_enabled" {
+  description = "Enable the replacement EventBridge Scheduler schedules after they have been provisioned and verified"
+  type        = bool
+  default     = false
 }
