@@ -183,6 +183,8 @@ develop_configuration:
       dest: ~/.config/opencode/prompts
     - src: ~/.config/romira-s-config/herdr/config.toml
       dest: ~/.config/herdr/config.toml
+    - src: ~/.config/romira-s-config/mise/config.toml
+      dest: ~/.config/mise/config.toml
 
 ai_skills:
   src: ~/.config/romira-s-config/ai-config/skills

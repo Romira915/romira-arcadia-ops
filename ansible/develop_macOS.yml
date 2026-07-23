@@ -56,6 +56,11 @@
         file: tasks/common/copilot_api.yml
       tags: [develop_configuration, copilot_api]
 
+    - name: Import mise tasks
+      ansible.builtin.import_tasks:
+        file: tasks/common/mise.yml
+      tags: [develop_configuration, mise]
+
     - name: Import tmux tasks
       ansible.builtin.import_tasks:
         file: tasks/common/tmux.yml

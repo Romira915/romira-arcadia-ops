@@ -112,6 +112,8 @@ develop_configuration:
       dest: ~/.config/topgrade.toml
     - src: ~/.config/romira-s-config/herdr/config.toml
       dest: ~/.config/herdr/config.toml
+    - src: ~/.config/romira-s-config/mise/config.toml
+      dest: ~/.config/mise/config.toml
   wsl_symbolic_links:
     - src: /mnt/c/Windows/System32/clip.exe
       dest: ~/.local/bin/clip
