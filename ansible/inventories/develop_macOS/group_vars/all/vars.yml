@@ -98,6 +98,7 @@ brew_extra_packages:
   - fish
   - sshpass
   - wakeonlan
+  - mas
 
 
 bitwarden:

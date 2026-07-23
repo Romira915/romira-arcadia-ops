@@ -75,6 +75,8 @@ brew:
     - mkcert
     - herdr
     - lazygit
+    - agent-browser
+    - anomalyco/tap/opencode
   cask:
     # Fonts
     - font-hackgen
@@ -139,6 +141,6 @@ brew:
     - shottr
     - ollama-app
     - raycast
-    - input-source-pro
+    - azookey
 
 brew_extra_packages: []
