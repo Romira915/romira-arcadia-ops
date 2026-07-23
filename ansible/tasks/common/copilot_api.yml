@@ -17,12 +17,21 @@
     creates: "C:\\Users\\{{ ansible_user }}\\AppData\\Roaming\\npm\\copilot-api.cmd"
   when: ansible_os_family == 'Windows'
 
+- name: Check if ccr command exists
+  ansible.builtin.command:
+    cmd: which ccr
+  register: ccr_exists
+  failed_when: false
+  changed_when: false
+
 - name: Install claude-code-router globally via npm
   community.general.npm:
     name: "@musistudio/claude-code-router"
     global: true
     state: present
-  when: ansible_os_family != 'Windows'
+  when:
+    - ansible_os_family != 'Windows'
+    - ccr_exists.rc != 0
   environment:
     PATH: "/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH | default('') }}"
 
