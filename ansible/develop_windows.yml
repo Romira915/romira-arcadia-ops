@@ -65,6 +65,11 @@
       tags:
         - develop_configuration
         - copilot_api
+
+    - import_tasks: tasks/common/mise.yml
+      tags:
+        - develop_configuration
+        - mise
   tags:
     - develop_configuration
 

@@ -1,0 +1,15 @@
+---
+# Install every tool declared in the symlinked ~/.config/mise/config.toml
+# (node/bun/pnpm plus npm: backend CLI tools such as copilot-api,
+# claude-code-router, difit). Adding a tool only requires editing that
+# config file, not this task or the playbooks that import it.
+- name: Install mise-managed tools from global config
+  ansible.builtin.command: mise install
+  changed_when: true
+  when: ansible_os_family != 'Windows'
+  environment:
+    PATH: "/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin:{{ ansible_env.PATH | default('') }}"
+
+- name: Install mise-managed tools from global config (Windows)
+  ansible.windows.win_shell: mise install
+  when: ansible_os_family == 'Windows'

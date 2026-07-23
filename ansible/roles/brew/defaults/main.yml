@@ -74,6 +74,7 @@ brew:
     - gogcli
     - mkcert
     - herdr
+    - lazygit
   cask:
     # Fonts
     - font-hackgen
