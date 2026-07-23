@@ -205,6 +205,7 @@ ai_config_dirs:
   - C:\Users\{{ ansible_user }}\.codex
   - C:\Users\{{ ansible_user }}\.gemini
   - C:\Users\{{ ansible_user }}\.config\opencode
+  - C:\Users\{{ ansible_user }}\.config\herdr
   - C:\Users\{{ ansible_user }}\.hermes
 ai_skills:
   src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\skills
