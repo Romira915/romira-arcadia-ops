@@ -56,6 +56,11 @@
         file: tasks/common/copilot_api.yml
       tags: [develop_configuration, copilot_api]
 
+    - name: Import difit tasks
+      ansible.builtin.import_tasks:
+        file: tasks/common/difit.yml
+      tags: [develop_configuration, difit]
+
     - name: Import tmux tasks
       ansible.builtin.import_tasks:
         file: tasks/common/tmux.yml
