@@ -65,6 +65,11 @@
       tags:
         - develop_configuration
         - copilot_api
+
+    - import_tasks: tasks/common/difit.yml
+      tags:
+        - develop_configuration
+        - difit
   tags:
     - develop_configuration
 

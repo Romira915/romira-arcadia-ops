@@ -103,6 +103,7 @@ scoop:
     - jq
     - fzf
     - just
+    - lazygit
 winget:
   package:
     - BlueStack.BlueStacks
