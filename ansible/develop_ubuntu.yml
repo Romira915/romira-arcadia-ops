@@ -96,12 +96,12 @@
         - develop_configuration
         - copilot_api
 
-    - name: Import difit tasks
+    - name: Import mise tasks
       ansible.builtin.import_tasks:
-        file: tasks/common/difit.yml
+        file: tasks/common/mise.yml
       tags:
         - develop_configuration
-        - difit
+        - mise
 
     - name: Import tmux tasks
       ansible.builtin.import_tasks:
