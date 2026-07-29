@@ -9,6 +9,7 @@
 - name: Inspect symbolic link destinations
   ansible.windows.win_stat:
     path: "{{ item.dest }}"
+    get_checksum: false
   register: symbolic_link_destinations
   loop: "{{ develop_configuration.symbolic_links }}"
   loop_control:
