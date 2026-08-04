@@ -210,3 +210,5 @@ opencode_env_files:
     content: "{{ vault_opencode_env.google_oauth_client_secret }}"
   - dest: ~/.config/opencode/env/user-google-email
     content: "{{ vault_opencode_env.user_google_email }}"
+  - dest: ~/.config/opencode/env/google-maps-api-key
+    content: "{{ vault_opencode_env.google_maps_api_key }}"

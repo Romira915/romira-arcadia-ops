@@ -1,0 +1,22 @@
+# Generate a user-only shell profile fragment from the encrypted Ansible Vault
+# so Codex inherits the key without storing it in the Codex config or source tree.
+- name: Ensure Google Maps shell profile directory exists
+  ansible.builtin.file:
+    path: ~/.config/romira-s-config/shell/profile.d
+    state: directory
+    mode: "0700"
+  when:
+    - vault_opencode_env is defined
+    - vault_opencode_env.google_maps_api_key is defined
+
+- name: Place Google Maps API key in the POSIX shell environment
+  ansible.builtin.copy:
+    dest: ~/.config/romira-s-config/shell/profile.d/google-maps
+    content: |
+      # Managed by Ansible. Do not edit manually.
+      export GOOGLE_MAPS_API_KEY="{{ vault_opencode_env.google_maps_api_key }}"
+    mode: "0600"
+  no_log: true
+  when:
+    - vault_opencode_env is defined
+    - vault_opencode_env.google_maps_api_key is defined
