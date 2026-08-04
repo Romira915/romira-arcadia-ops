@@ -1,0 +1,11 @@
+# Generate a shell profile fragment from the encrypted Ansible Vault. The
+# fragment is Bash-compatible because MSYS2 fish loads the POSIX profile via bass.
+- name: Include POSIX Google Maps environment tasks
+  ansible.builtin.include_tasks:
+    file: google_maps_env_posix.yml
+  when: (ansible_os_family | default("")) != "Windows"
+
+- name: Include Windows MSYS2 Google Maps environment tasks
+  ansible.builtin.include_tasks:
+    file: google_maps_env_windows.yml
+  when: (ansible_os_family | default("")) == "Windows"

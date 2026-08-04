@@ -1,0 +1,20 @@
+# MSYS2 uses the Windows home directory for $HOME, so write the same
+# Bash-compatible profile fragment with Windows modules.
+- name: Ensure Google Maps MSYS2 shell profile directory exists
+  ansible.windows.win_file:
+    path: C:\Users\{{ ansible_user }}\.config\romira-s-config\shell\profile.d
+    state: directory
+  when:
+    - vault_opencode_env is defined
+    - vault_opencode_env.google_maps_api_key is defined
+
+- name: Place Google Maps API key in the MSYS2 shell environment
+  ansible.windows.win_copy:
+    dest: C:\Users\{{ ansible_user }}\.config\romira-s-config\shell\profile.d\google-maps
+    content: |
+      # Managed by Ansible. Do not edit manually.
+      export GOOGLE_MAPS_API_KEY="{{ vault_opencode_env.google_maps_api_key }}"
+  no_log: true
+  when:
+    - vault_opencode_env is defined
+    - vault_opencode_env.google_maps_api_key is defined

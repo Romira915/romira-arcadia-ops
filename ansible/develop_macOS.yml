@@ -26,6 +26,11 @@
         file: tasks/common/opencode_env.yml
       tags: [develop_configuration, opencode_env]
 
+    - name: Import Google Maps environment tasks
+      ansible.builtin.import_tasks:
+        file: tasks/common/google_maps_env.yml
+      tags: [develop_configuration, google_maps_env]
+
     - name: Import ssh tasks
       ansible.builtin.import_tasks:
         file: tasks/common/ssh.yml

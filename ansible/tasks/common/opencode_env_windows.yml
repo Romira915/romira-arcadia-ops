@@ -1,0 +1,20 @@
+---
+- name: Ensure OpenCode env directory exists on Windows
+  ansible.windows.win_file:
+    path: "{{ item.dest | win_dirname }}"
+    state: directory
+  loop: "{{ opencode_env_files | default([]) }}"
+  loop_control:
+    label: "{{ item.dest | win_dirname }}"
+  no_log: true
+  when: opencode_env_files is defined
+
+- name: Place OpenCode env files on Windows
+  ansible.windows.win_copy:
+    dest: "{{ item.dest }}"
+    content: "{{ item.content }}"
+  loop: "{{ opencode_env_files | default([]) }}"
+  loop_control:
+    label: "{{ item.dest }}"
+  no_log: true
+  when: opencode_env_files is defined

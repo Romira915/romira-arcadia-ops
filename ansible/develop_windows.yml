@@ -21,10 +21,19 @@
         - develop_configuration
         - symlink
 
-    - import_tasks: tasks/common/opencode_env.yml
+    - name: Import OpenCode env tasks
+      ansible.builtin.import_tasks:
+        file: tasks/common/opencode_env.yml
       tags:
         - develop_configuration
         - opencode_env
+
+    - name: Import Google Maps environment tasks
+      ansible.builtin.import_tasks:
+        file: tasks/common/google_maps_env.yml
+      tags:
+        - develop_configuration
+        - google_maps_env
 
     - import_tasks: tasks/develop_windows/git.yml
       tags:
