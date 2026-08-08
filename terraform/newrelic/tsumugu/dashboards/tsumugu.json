@@ -1,0 +1,221 @@
+{
+  "name": "tsumugu",
+  "description": "x-event-agent collector / worker の監視ダッシュボード。データ定義は x-event-agent/docs/observability.md を参照。",
+  "permissions": "PRIVATE",
+  "pages": [
+    {
+      "name": "Collector Runs",
+      "description": "実行の死活・実行時間",
+      "widgets": [
+        {
+          "title": "集計run数（日別）",
+          "layout": { "column": 1, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT count(*) FROM XEventAgentRun SINCE 14 days ago TIMESERIES 1 day"
+              }
+            ]
+          }
+        },
+        {
+          "title": "直近の実行",
+          "layout": { "column": 7, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.table" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT runId, status, durationMs, collected, candidates, insertedCount, skippedCount, generationSuccessRate FROM XEventAgentRun SINCE 7 days ago LIMIT 20"
+              }
+            ]
+          }
+        },
+        {
+          "title": "実行時間 percentile",
+          "layout": { "column": 1, "row": 4, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT percentile(durationMs, 50, 95) FROM XEventAgentRun SINCE 14 days ago TIMESERIES 1 day"
+              }
+            ]
+          }
+        },
+        {
+          "title": "失敗した実行（日別）",
+          "layout": { "column": 7, "row": 4, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT count(*) FROM XEventAgentRun WHERE status = 'failed' SINCE 14 days ago TIMESERIES 1 day"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Collector Quality",
+      "description": "生成品質・backlog・レート制限",
+      "widgets": [
+        {
+          "title": "生成成功率",
+          "layout": { "column": 1, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT average(generationSuccessRate) FROM XEventAgentRun SINCE 14 days ago TIMESERIES 1 day"
+              }
+            ]
+          }
+        },
+        {
+          "title": "backlog（処理待ちキュー）",
+          "layout": { "column": 7, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT latest(queuedAtEnd) FROM XEventAgentRun SINCE 14 days ago TIMESERIES 1 day"
+              }
+            ]
+          }
+        },
+        {
+          "title": "生成失敗の理由",
+          "layout": { "column": 1, "row": 4, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": true },
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT count(*) FROM XEventAgentLog WHERE message = 'collector_candidate_requeued' FACET failureCategory SINCE 14 days ago"
+              }
+            ]
+          }
+        },
+        {
+          "title": "レート制限（アカウント別）",
+          "layout": { "column": 7, "row": 4, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": true },
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT count(*) FROM XEventAgentLog WHERE message = 'collector_rate_limited' FACET screenName SINCE 14 days ago"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worker",
+      "description": "tsumugu-web のリクエストとエラー",
+      "widgets": [
+        {
+          "title": "リクエスト数（パス別）",
+          "layout": { "column": 1, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": true },
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT count(*) FROM Log WHERE service = 'tsumugu-web' AND logtype = 'request' FACET path SINCE 24 hours ago"
+              }
+            ]
+          }
+        },
+        {
+          "title": "リクエスト数と 5xx エラー率",
+          "layout": { "column": 7, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.line" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT count(*) AS total, filter(count(*), WHERE statusCode >= 500) AS errors FROM Log WHERE service = 'tsumugu-web' AND logtype = 'request' SINCE 24 hours ago TIMESERIES 1 hour"
+              }
+            ]
+          }
+        },
+        {
+          "title": "アプリエラー（機能別）",
+          "layout": { "column": 1, "row": 4, "width": 12, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": true },
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT count(*) FROM Log WHERE service = 'tsumugu-web' AND logtype = 'app_error' FACET scope SINCE 7 days ago"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Registrations",
+      "description": "承認候補の成果",
+      "widgets": [
+        {
+          "title": "承認候補（タイプ別）",
+          "layout": { "column": 1, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.pie" },
+          "rawConfiguration": {
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT count(*) FROM XEventAgentLog WHERE message = 'collector_approval_inserted' FACET registrationType SINCE 30 days ago"
+              }
+            ]
+          }
+        },
+        {
+          "title": "日別の承認候補登録数",
+          "layout": { "column": 7, "row": 1, "width": 6, "height": 3 },
+          "linkedEntityGuids": null,
+          "visualization": { "id": "viz.bar" },
+          "rawConfiguration": {
+            "facet": { "showOtherSeries": false },
+            "nrqlQueries": [
+              {
+                "accountId": __ACCOUNT_ID__,
+                "query": "SELECT count(*) FROM XEventAgentLog WHERE message = 'collector_approval_inserted' SINCE 30 days ago TIMESERIES 1 day"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
