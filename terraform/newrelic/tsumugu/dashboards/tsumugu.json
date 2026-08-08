@@ -16,7 +16,7 @@
             "facet": { "showOtherSeries": false },
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT count(*) FROM XEventAgentRun SINCE 14 days ago TIMESERIES 1 day"
               }
             ]
@@ -30,7 +30,7 @@
           "rawConfiguration": {
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT runId, status, durationMs, collected, candidates, insertedCount, skippedCount, generationSuccessRate FROM XEventAgentRun SINCE 7 days ago LIMIT 20"
               }
             ]
@@ -44,7 +44,7 @@
           "rawConfiguration": {
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT percentile(durationMs, 50, 95) FROM XEventAgentRun SINCE 14 days ago TIMESERIES 1 day"
               }
             ]
@@ -59,7 +59,7 @@
             "facet": { "showOtherSeries": false },
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT count(*) FROM XEventAgentRun WHERE status = 'failed' SINCE 14 days ago TIMESERIES 1 day"
               }
             ]
@@ -79,7 +79,7 @@
           "rawConfiguration": {
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT average(generationSuccessRate) FROM XEventAgentRun SINCE 14 days ago TIMESERIES 1 day"
               }
             ]
@@ -94,7 +94,7 @@
             "facet": { "showOtherSeries": false },
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT latest(queuedAtEnd) FROM XEventAgentRun SINCE 14 days ago TIMESERIES 1 day"
               }
             ]
@@ -109,7 +109,7 @@
             "facet": { "showOtherSeries": true },
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT count(*) FROM XEventAgentLog WHERE message = 'collector_candidate_requeued' FACET failureCategory SINCE 14 days ago"
               }
             ]
@@ -124,7 +124,7 @@
             "facet": { "showOtherSeries": true },
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT count(*) FROM XEventAgentLog WHERE message = 'collector_rate_limited' FACET screenName SINCE 14 days ago"
               }
             ]
@@ -145,7 +145,7 @@
             "facet": { "showOtherSeries": true },
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT count(*) FROM Log WHERE service = 'tsumugu-web' AND logtype = 'request' FACET path SINCE 24 hours ago"
               }
             ]
@@ -159,7 +159,7 @@
           "rawConfiguration": {
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT count(*) AS total, filter(count(*), WHERE statusCode >= 500) AS errors FROM Log WHERE service = 'tsumugu-web' AND logtype = 'request' SINCE 24 hours ago TIMESERIES 1 hour"
               }
             ]
@@ -174,7 +174,7 @@
             "facet": { "showOtherSeries": true },
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT count(*) FROM Log WHERE service = 'tsumugu-web' AND logtype = 'app_error' FACET scope SINCE 7 days ago"
               }
             ]
@@ -194,7 +194,7 @@
           "rawConfiguration": {
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT count(*) FROM XEventAgentLog WHERE message = 'collector_approval_inserted' FACET registrationType SINCE 30 days ago"
               }
             ]
@@ -209,7 +209,7 @@
             "facet": { "showOtherSeries": false },
             "nrqlQueries": [
               {
-                "accountId": "__ACCOUNT_ID__",
+                "accountId": __ACCOUNT_ID__,
                 "query": "SELECT count(*) FROM XEventAgentLog WHERE message = 'collector_approval_inserted' SINCE 30 days ago TIMESERIES 1 day"
               }
             ]
