@@ -24,12 +24,15 @@ backend は既存プロジェクトと同じ `terraform-backend` バケット（
 
 ## アラート一覧
 
+New Relic の streaming NRQL アラートはクエリ内に `SINCE` 句を持てないため、
+評価窓は条件側の `threshold_duration`（継続時間）で表現している。
+
 | 条件 | NRQL の要点 | 既定閾値 |
 |---|---|---|
-| Collector run failed | `XEventAgentRun WHERE status='failed'` | 1 回以上 |
-| Collector stale | `XEventAgentRun` が間隔 ×2 で 0 件 | 実行間隔の 2 倍（既定 60 分） |
-| Generation failure rate | `failed / 全実行` の割合 | > 30% |
-| Worker 5xx | `Log statusCode >= 500` | 5 分窓で 10 件超 |
-| Candidate backlog | `latest(queuedAtEnd)` | > 50 |
+| Collector run failed | `XEventAgentRun WHERE status='failed'` | 1 回以上（5 分継続） |
+| Collector stale | `XEventAgentRun` の count | 0 が実行間隔 ×2 継続（既定 60 分、上限 60 分） |
+| Generation failure rate | `failed / 全実行` の割合 | > 30%（10 分継続） |
+| Worker 5xx | `Log statusCode >= 500` | 10 件超が 5 分継続 |
+| Candidate backlog | `latest(queuedAtEnd)` | > 50（10 分継続） |
 
-閾値は `variables.tf` の変数で調整できる（`collector_interval_minutes` は cron 実行間隔に合わせる）。
+閾値は `variables.tf` の変数で調整できる（`collector_interval_minutes` は cron 実行間隔に合わせる、`worker_5xx_window_minutes` は継続時間）。

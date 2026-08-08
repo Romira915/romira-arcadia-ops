@@ -4,7 +4,7 @@ variable "account_id" {
 }
 
 variable "collector_interval_minutes" {
-  description = "collector の cron 実行間隔（分）。stale 検知の窓はこの 2 倍。"
+  description = "collector の cron 実行間隔（分）。stale 判定はこの 2 倍の間イベントが無いこと（最大 60 分）。"
   type        = number
   default     = 30
 }
@@ -28,7 +28,7 @@ variable "worker_5xx_threshold" {
 }
 
 variable "worker_5xx_window_minutes" {
-  description = "worker 5xx の集計窓（分）。"
+  description = "worker 5xx が閾値超過で critical とみなす継続時間（分）。"
   type        = number
   default     = 5
 }
