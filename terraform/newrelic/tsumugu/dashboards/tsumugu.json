@@ -137,7 +137,7 @@
       "description": "tsumugu-web のリクエストとエラー",
       "widgets": [
         {
-          "title": "リクエスト数（パス別）",
+          "title": "リクエスト数（URL別）",
           "layout": { "column": 1, "row": 1, "width": 6, "height": 3 },
           "linkedEntityGuids": null,
           "visualization": { "id": "viz.bar" },
@@ -146,7 +146,7 @@
             "nrqlQueries": [
               {
                 "accountId": __ACCOUNT_ID__,
-                "query": "SELECT count(*) FROM Log WHERE service = 'tsumugu-web' AND logtype = 'request' FACET path SINCE 24 hours ago"
+                "query": "SELECT count(*) FROM Log WHERE service = 'tsumugu-web' AND logtype = 'request' FACET url SINCE 24 hours ago"
               }
             ]
           }
