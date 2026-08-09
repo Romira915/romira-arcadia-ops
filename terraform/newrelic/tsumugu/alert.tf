@@ -20,7 +20,7 @@ resource "newrelic_nrql_alert_condition" "collector_run_failed" {
     operator              = "above"
     threshold             = var.collector_run_failed_threshold
     threshold_duration    = 300
-    threshold_occurrences = "ALL"
+    threshold_occurrences = "AT_LEAST_ONCE"
   }
 }
 
