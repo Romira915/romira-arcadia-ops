@@ -38,7 +38,7 @@ resource "newrelic_nrql_alert_condition" "collector_stale" {
     query = "SELECT count(*) FROM XEventAgentRun"
   }
   critical {
-    operator              = "equal"
+    operator              = "equals"
     threshold             = 0
     threshold_duration    = min(var.collector_interval_minutes * 2 * 60, 3600)
     threshold_occurrences = "ALL"
