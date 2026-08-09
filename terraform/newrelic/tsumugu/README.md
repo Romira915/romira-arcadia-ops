@@ -9,9 +9,9 @@ x-event-agent の New Relic ダッシュボードとアラートを Terraform �
 ## 適用方法
 
 ```bash
-# 認証情報（git 管理しない）
-export NEW_RELIC_API_KEY=<User API key>
-export TF_VAR_account_id=<account id>
+# terraform.tfvars（git 管理しない）に以下を設定する
+# account_id         = "<account id>"
+# new_relic_api_key  = "<User API key>"
 export AWS_PROFILE=oci_s3   # backend（OCI S3 互換）用プロファイル
 
 terraform init
@@ -19,7 +19,7 @@ terraform plan
 terraform apply
 ```
 
-`NEW_RELIC_API_KEY` が未設定の場合は `newrelic` provider が API を呼べず plan が失敗する。
+環境変数で渡す場合は `TF_VAR_account_id` と `TF_VAR_new_relic_api_key` を使用する。
 backend は既存プロジェクトと同じ `terraform-backend` バケット（key = `newrelic/tsumugu/terraform.tfstate`）。
 
 ## アラート一覧

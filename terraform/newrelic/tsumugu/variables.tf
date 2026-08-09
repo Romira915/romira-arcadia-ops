@@ -3,6 +3,12 @@ variable "account_id" {
   type        = string
 }
 
+variable "new_relic_api_key" {
+  description = "New Relic User API key."
+  type        = string
+  sensitive   = true
+}
+
 variable "collector_interval_minutes" {
   description = "collector の cron 実行間隔（分）。stale 判定はこの 2 倍の間イベントが無いこと（最大 60 分）。"
   type        = number
