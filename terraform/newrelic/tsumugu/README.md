@@ -22,9 +22,6 @@ terraform apply
 環境変数で渡す場合は `TF_VAR_account_id` と `TF_VAR_new_relic_api_key` を使用する。
 backend は既存プロジェクトと同じ `terraform-backend` バケット（key = `newrelic/tsumugu/terraform.tfstate`）。
 
-Slack 通知には workflow enrichment で直近のエラー詳細を付与する。
-collector は失敗分類・エラーメッセージ・対象 URL・再試行回数、worker は HTTP ステータス・URL・scope・エラーメッセージを表示する。
-
 ## アラート一覧
 
 New Relic の streaming NRQL アラートはクエリ内に `SINCE` 句を持てないため、
