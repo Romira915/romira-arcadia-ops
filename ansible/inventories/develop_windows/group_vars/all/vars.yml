@@ -217,10 +217,6 @@ ai_skills:
     - C:\Users\{{ ansible_user }}\.gemini\skills
     - C:\Users\{{ ansible_user }}\.config\opencode\skills
     - C:\Users\{{ ansible_user }}\.hermes\skills
-ai_rules:
-  src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\rules
-  destinations:
-    - C:\Users\{{ ansible_user }}\.claude\rules
 opencode_env_files:
   - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\google-oauth-client-id
     content: "{{ vault_opencode_env.google_oauth_client_id }}"
