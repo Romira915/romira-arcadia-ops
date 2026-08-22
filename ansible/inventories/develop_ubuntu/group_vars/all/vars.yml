@@ -156,13 +156,6 @@ ai_skills:
     - ~/.gemini/skills
     - ~/.config/opencode/skills
     - ~/.hermes/skills
-ai_rules:
-  src: ~/.config/romira-s-config/ai-config/rules
-  destinations:
-    - ~/.claude/rules
-    - ~/.codex/rules
-    - ~/.gemini/rules
-    - ~/.config/opencode/rules
 opencode_env_files:
   - dest: ~/.config/opencode/env/google-oauth-client-id
     content: "{{ vault_opencode_env.google_oauth_client_id }}"
