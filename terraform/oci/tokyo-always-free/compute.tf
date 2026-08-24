@@ -50,8 +50,8 @@ resource "oci_core_instance" "ampere_instance" {
     skip_source_dest_check = false
   }
   shape_config {
-    ocpus         = 4
-    memory_in_gbs = 24
+    ocpus         = 2
+    memory_in_gbs = 12
   }
   source_details {
     source_id               = var.ubuntu_20_04_aarch64_2021_08_26_0
@@ -169,5 +169,4 @@ resource "oci_core_instance" "e2_1_micro_01_instance" {
     ]
   }
 }
-
 
