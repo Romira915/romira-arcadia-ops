@@ -74,6 +74,7 @@ brew:
     - gogcli
     - mkcert
     - herdr
+    - umputun/apps/revdiff
     - lazygit
     - agent-browser
     - anomalyco/tap/opencode
