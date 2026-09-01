@@ -1,0 +1,25 @@
+services:
+  jellyfin:
+    image: "{{ jellyfin.image }}"
+    container_name: jellyfin
+    init: true
+    user: "{{ jellyfin.uid }}:{{ jellyfin.gid }}"
+    ports:
+      - "{{ jellyfin.bind_address }}:{{ jellyfin.port }}:8096"
+    environment:
+      TZ: "{{ jellyfin.timezone }}"
+{% if jellyfin.published_server_url | length > 0 %}
+      JELLYFIN_PublishedServerUrl: "{{ jellyfin.published_server_url }}"
+{% endif %}
+    volumes:
+      - type: bind
+        source: "{{ jellyfin.project_dir }}/config"
+        target: /config
+      - type: bind
+        source: "{{ jellyfin.project_dir }}/cache"
+        target: /cache
+      - type: bind
+        source: "{{ jellyfin.media_path }}"
+        target: /media
+        read_only: true
+    restart: unless-stopped
