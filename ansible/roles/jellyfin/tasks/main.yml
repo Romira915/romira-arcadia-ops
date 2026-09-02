@@ -1,0 +1,74 @@
+---
+- name: Assert that Jellyfin media path is configured
+  ansible.builtin.assert:
+    that:
+      - jellyfin.media_path | length > 0
+    fail_msg: jellyfin.media_path must point to the media directory on the target host
+  tags:
+    - jellyfin
+
+- name: Check that Jellyfin media path exists
+  ansible.builtin.stat:
+    path: "{{ jellyfin.media_path }}"
+  become: true
+  register: jellyfin_media_path_stat
+  tags:
+    - jellyfin
+
+- name: Assert that Jellyfin media path is a directory
+  ansible.builtin.assert:
+    that:
+      - jellyfin_media_path_stat.stat.exists
+      - jellyfin_media_path_stat.stat.isdir
+    fail_msg: "Jellyfin media path is not an existing directory: {{ jellyfin.media_path }}"
+  tags:
+    - jellyfin
+
+- name: Ensure Jellyfin project directory exists
+  ansible.builtin.file:
+    path: "{{ jellyfin.project_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  tags:
+    - jellyfin
+
+- name: Ensure Jellyfin persistent directories exist
+  ansible.builtin.file:
+    path: "{{ jellyfin.project_dir }}/{{ item }}"
+    state: directory
+    owner: "{{ jellyfin.uid }}"
+    group: "{{ jellyfin.gid }}"
+    mode: "0750"
+  become: true
+  loop:
+    - config
+    - cache
+  tags:
+    - jellyfin
+
+- name: Deploy Jellyfin Compose file
+  ansible.builtin.template:
+    src: compose.yaml.j2
+    dest: "{{ jellyfin.project_dir }}/compose.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "docker compose -f %s config --quiet"
+  become: true
+  tags:
+    - jellyfin
+
+- name: Ensure Jellyfin Compose project is running
+  community.docker.docker_compose_v2:
+    project_src: "{{ jellyfin.project_dir }}"
+    project_name: jellyfin
+    state: present
+    pull: missing
+    recreate: auto
+  become: true
+  when: not ansible_check_mode
+  tags:
+    - jellyfin

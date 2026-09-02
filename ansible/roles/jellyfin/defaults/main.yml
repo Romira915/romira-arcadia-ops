@@ -1,0 +1,11 @@
+---
+jellyfin:
+  project_dir: /opt/jellyfin
+  image: jellyfin/jellyfin:10.11.11
+  uid: 1000
+  gid: 1000
+  bind_address: 127.0.0.1
+  port: 8096
+  media_path: ""
+  timezone: Asia/Tokyo
+  published_server_url: ""

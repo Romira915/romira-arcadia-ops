@@ -86,6 +86,9 @@ openlitespeed:
   admin:
     user: romira
     password: "{{ vault_openlitespeed.vault_admin.vault_password }}"
+  listener_ssl:
+    key_file: /etc/letsencrypt/live/wakaba.cloud.romira.dev/privkey.pem
+    cert_file: /etc/letsencrypt/live/wakaba.cloud.romira.dev/cert.pem
   vhosts:
     - name: wakaba.cloud.romira.dev
       root: /var/www/nextcloud/
@@ -97,20 +100,30 @@ openlitespeed:
       root: /var/www/html
       domains:
         - api.wakaba.game.romira.dev
+    - name: "{{ vault_jellyfin.vault_domain }}"
+      config: jellyfin
+      root: /var/www/jellyfin
+      domains:
+        - "{{ vault_jellyfin.vault_domain }}"
+      user: www-data
+      group: www-data
 lsphp:
-  - php: lsphp83
+  - php: lsphp84
     package:
-      - lsphp83-common
-      - lsphp83-curl
-      - lsphp83-mysql
-      - lsphp83-opcache
-      - lsphp83-imap
-      - lsphp83-apcu
-      - lsphp83-intl
-      - lsphp83-memcached
-      - lsphp83-redis
-      - lsphp83-pear
-      - lsphp83-imagick
+      - lsphp84-common
+      - lsphp84-curl
+      - lsphp84-dev
+      - lsphp84-igbinary
+      - lsphp84-imagick
+      - lsphp84-imap
+      - lsphp84-intl
+      - lsphp84-memcached
+      - lsphp84-msgpack
+      - lsphp84-mysql
+      - lsphp84-opcache
+      - lsphp84-apcu
+      - lsphp84-redis
+      - lsphp84-pear
     lib:
       - libsmbclient-dev
       - zlib1g-dev
@@ -119,10 +132,8 @@ lsphp:
     pecl:
       package:
         - smbclient
-        - memcache
       prompts:
         - null
-        - (.*)Enable memcache session handler support? \[yes\]: "yes"
 mysql:
   login_user: root
   login_unix_socket: /run/mysqld/mysqld.sock
@@ -134,7 +145,7 @@ mysql:
       password: "{{ vault_mysql.vault_users.vault_nextcloud.vault_password }}"
       priv: nextcloud.*:ALL
 nextcloud:
-  executable_php: /usr/local/lsws/lsphp82/bin/php
+  executable_php: /usr/local/lsws/lsphp84/bin/php
   trusted_domain: wakaba.cloud.romira.dev
   database: mysql
   database_name: nextcloud
@@ -153,3 +164,14 @@ scripts:
   backup:
   hdd_health_check:
   hdd_selftest_check:
+
+jellyfin:
+  project_dir: /opt/jellyfin
+  image: jellyfin/jellyfin:10.11.11
+  uid: 1000
+  gid: 1000
+  bind_address: 127.0.0.1
+  port: 8096
+  media_path: /mnt/d/romira
+  timezone: Asia/Tokyo
+  published_server_url: "{{ vault_jellyfin.vault_published_server_url }}"
