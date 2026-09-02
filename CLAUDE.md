@@ -1,17 +1,20 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides repository guidance for AI coding agents working in this repository.
 
 ## Repository Overview
 
 This is an Infrastructure as Code (IaC) repository for managing personal environments using Terraform and Ansible.
 
-## Critical Restrictions
+## Apply Restrictions
 
-**NEVER execute apply commands:**
-- `terraform apply` is forbidden
-- `ansible-playbook` without `--check` flag is forbidden
-- Any infrastructure changes must only be planned/checked, never applied
+Apply commands require explicit user authorization for the target and operation.
+Planning and check mode are the default when authorization has not been given.
+
+- Without explicit authorization, `terraform apply` is forbidden.
+- Without explicit authorization, `ansible-playbook` without `--check` is forbidden.
+- When the user explicitly authorizes a target and operation, execute the requested apply without an additional approval prompt.
+- Do not broaden the target or operation beyond the explicit authorization.
 
 ## Common Commands
 
@@ -25,8 +28,11 @@ terraform validate
 # Format check (prefer Claude Code hooks for auto-formatting)
 terraform fmt
 
-# Plan changes (apply is forbidden)
+# Plan changes (default; apply requires explicit authorization)
 terraform plan
+
+# Apply changes only after explicit user authorization for the target
+terraform apply
 
 # Create tfmigrate file for importing existing resources
 touch tfmigrate/$(date "+%Y%m%d%H%M%S")_{migrate_name}.hcl
@@ -37,8 +43,11 @@ touch tfmigrate/$(date "+%Y%m%d%H%M%S")_{migrate_name}.hcl
 # Lint all Ansible code (run from ansible/ directory)
 cd ansible && ansible-lint .
 
-# Check playbook execution (dry-run only)
+# Check playbook execution (default)
 ansible-playbook --check --diff -i inventories/[inventory_name]/hosts [playbook].yml
+
+# Full execution only after explicit user authorization for the target
+ansible-playbook -i inventories/[inventory_name]/hosts [playbook].yml
 
 # Examples:
 ansible-playbook --check --diff -i inventories/develop_ubuntu/hosts site.yml --limit 127.0.0.1 --connection local
@@ -96,8 +105,10 @@ When modifying Terraform:
 1. Run `terraform fmt` (or let Claude Code hooks handle it)
 2. Run `terraform validate`
 3. Run `terraform plan` to verify changes
+4. Run `terraform apply` only when the user has explicitly authorized the target and operation.
 
 When modifying Ansible:
 1. Run `ansible-lint .` from ansible/ directory
-2. Run playbook with `--check --diff` flags
-3. Verify no sensitive data is exposed in plain text
+2. Run the playbook with `--check --diff` flags by default.
+3. Run the full playbook only when the user has explicitly authorized the target and operation.
+4. Verify no sensitive data is exposed in plain text

@@ -1,0 +1,11 @@
+galaxy_info:
+  author: Romira915
+  description: Manage Jellyfin as a Docker Compose application
+  license: MIT
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - all
+
+dependencies: []
