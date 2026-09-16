@@ -1,0 +1,82 @@
+---
+- name: Assert that Navidrome music path is configured
+  ansible.builtin.assert:
+    that:
+      - navidrome_config.music_path | length > 0
+    fail_msg: navidrome_config.music_path must point to the music directory on the target host
+  tags:
+    - navidrome
+
+- name: Check that Navidrome music path exists
+  ansible.builtin.stat:
+    path: "{{ navidrome_config.music_path }}"
+  become: true
+  register: navidrome_music_path_stat
+  tags:
+    - navidrome
+
+- name: Assert that Navidrome music path is a directory
+  ansible.builtin.assert:
+    that:
+      - navidrome_music_path_stat.stat.exists
+      - navidrome_music_path_stat.stat.isdir
+    fail_msg: "Navidrome music path is not an existing directory: {{ navidrome_config.music_path }}"
+  tags:
+    - navidrome
+
+- name: Ensure Navidrome project directory exists
+  ansible.builtin.file:
+    path: "{{ navidrome_config.project_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  tags:
+    - navidrome
+
+- name: Ensure Navidrome data directory exists
+  ansible.builtin.file:
+    path: "{{ navidrome_config.project_dir }}/data"
+    state: directory
+    owner: "{{ navidrome_config.uid }}"
+    group: "{{ navidrome_config.gid }}"
+    mode: "0750"
+  become: true
+  tags:
+    - navidrome
+
+- name: Ensure Navidrome ACME webroot exists
+  ansible.builtin.file:
+    path: "{{ navidrome_config.webroot }}/.well-known/acme-challenge"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0755"
+  become: true
+  tags:
+    - navidrome
+
+- name: Deploy Navidrome Compose file
+  ansible.builtin.template:
+    src: compose.yaml.j2
+    dest: "{{ navidrome_config.project_dir }}/compose.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "docker compose -f %s config --quiet"
+  become: true
+  tags:
+    - navidrome
+
+- name: Ensure Navidrome Compose project is running
+  community.docker.docker_compose_v2:
+    project_src: "{{ navidrome_config.project_dir }}"
+    project_name: navidrome
+    state: present
+    pull: missing
+    recreate: auto
+  become: true
+  when: not ansible_check_mode
+  tags:
+    - navidrome

@@ -107,6 +107,13 @@ openlitespeed:
         - "{{ vault_jellyfin.vault_domain }}"
       user: www-data
       group: www-data
+    - name: "{{ vault_navidrome.vault_domain }}"
+      config: navidrome
+      root: /var/www/navidrome
+      domains:
+        - "{{ vault_navidrome.vault_domain }}"
+      user: www-data
+      group: www-data
 lsphp:
   - php: lsphp84
     package:
@@ -175,3 +182,22 @@ jellyfin:
   media_path: /mnt/d/romira
   timezone: Asia/Tokyo
   published_server_url: "{{ vault_jellyfin.vault_published_server_url }}"
+
+navidrome_config:
+  project_dir: /opt/navidrome
+  image: deluan/navidrome:0.64.0
+  uid: 1000
+  gid: 1000
+  bind_address: 127.0.0.1
+  port: 4533
+  webroot: /var/www/navidrome
+  music_path: /mnt/d/romira/Music
+  playlist_path: Playlists
+  base_url: "{{ vault_navidrome.vault_published_server_url }}"
+  timezone: Asia/Tokyo
+  scan_schedule: "@every 1h"
+  scan_on_startup: true
+  watcher_wait: 10s
+  purge_missing: never
+  pid_album: musicbrainz_albumid|albumartistid,album,albumversion,releasedate
+  pid_track: musicbrainz_trackid|albumid,discnumber,tracknumber,title
