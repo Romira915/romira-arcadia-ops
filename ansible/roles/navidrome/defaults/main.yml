@@ -1,0 +1,19 @@
+---
+navidrome_config:
+  project_dir: /opt/navidrome
+  image: deluan/navidrome:0.64.0
+  uid: 1000
+  gid: 1000
+  bind_address: 127.0.0.1
+  port: 4533
+  webroot: /var/www/navidrome
+  music_path: ""
+  playlist_path: Playlists
+  base_url: ""
+  timezone: Asia/Tokyo
+  scan_schedule: "@every 1h"
+  scan_on_startup: true
+  watcher_wait: 10s
+  purge_missing: never
+  pid_album: musicbrainz_albumid|albumartistid,album,albumversion,releasedate
+  pid_track: musicbrainz_trackid|albumid,discnumber,tracknumber,title
