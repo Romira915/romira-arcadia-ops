@@ -1,0 +1,32 @@
+services:
+  navidrome:
+    image: "{{ navidrome_config.image }}"
+    container_name: navidrome
+    init: true
+    user: "{{ navidrome_config.uid }}:{{ navidrome_config.gid }}"
+    ports:
+      - "{{ navidrome_config.bind_address }}:{{ navidrome_config.port }}:4533"
+    environment:
+      TZ: "{{ navidrome_config.timezone }}"
+      ND_MUSICFOLDER: /music
+      ND_DATAFOLDER: /data
+{% if navidrome_config.base_url | length > 0 %}
+      ND_BASEURL: "{{ navidrome_config.base_url }}"
+{% endif %}
+      ND_AUTOIMPORTPLAYLISTS: "true"
+      ND_PLAYLISTSPATH: "{{ navidrome_config.playlist_path }}"
+      ND_SCANNER_SCANONSTARTUP: "{{ navidrome_config.scan_on_startup | string | lower }}"
+      ND_SCANNER_SCHEDULE: "{{ navidrome_config.scan_schedule }}"
+      ND_SCANNER_WATCHERWAIT: "{{ navidrome_config.watcher_wait }}"
+      ND_SCANNER_PURGEMISSING: "{{ navidrome_config.purge_missing }}"
+      ND_PID_ALBUM: "{{ navidrome_config.pid_album }}"
+      ND_PID_TRACK: "{{ navidrome_config.pid_track }}"
+    volumes:
+      - type: bind
+        source: "{{ navidrome_config.project_dir }}/data"
+        target: /data
+      - type: bind
+        source: "{{ navidrome_config.music_path }}"
+        target: /music
+        read_only: true
+    restart: unless-stopped
