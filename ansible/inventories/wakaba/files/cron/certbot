@@ -14,5 +14,5 @@
 SHELL=/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-# 0 */12 * * * root test -x /usr/bin/certbot -a \! -d /run/systemd/system && perl -e 'sleep int(rand(43200))' && certbot renew --deploy-hook "systemctl reload lshttpd.service"
-0 */12 * * * root certbot renew --deploy-hook "systemctl reload lshttpd.service"
+# 0 */12 * * * root test -x /usr/bin/certbot -a \! -d /run/systemd/system && perl -e 'sleep int(rand(43200))' && certbot renew --deploy-hook "systemctl reload lsws"
+0 */12 * * * root certbot renew --deploy-hook "systemctl reload lsws"
