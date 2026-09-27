@@ -1,0 +1,57 @@
+---
+- name: Ensure filesystem mountpoint directories exist
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+  become: true
+  loop: "{{ storage.filesystems }}"
+
+- name: Ensure filesystems are mounted and configured in fstab
+  ansible.builtin.mount:
+    path: "{{ item.path }}"
+    src: "{{ item.src }}"
+    fstype: "{{ item.fstype }}"
+    opts: "{{ item.opts }}"
+    dump: "{{ item.dump | default('0') }}"
+    passno: "{{ item.passno | default('0') }}"
+    state: mounted
+  become: true
+  loop: "{{ storage.filesystems }}"
+  notify: Reload systemd mount units
+
+- name: Inspect bind mount source directories
+  ansible.builtin.stat:
+    path: "{{ item.0.src }}/{{ item.1 }}"
+  become: true
+  loop: "{{ query('ansible.builtin.subelements', storage.bind_mounts, 'directories') }}"
+  register: storage_bind_sources
+
+- name: Assert bind mount source directories exist
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists | default(false)
+      - item.stat.isdir | default(false)
+    fail_msg: "Bind mount source directory is missing: {{ item.item.0.src }}/{{ item.item.1 }}"
+  loop: "{{ storage_bind_sources.results }}"
+  loop_control:
+    label: "{{ item.item.1 }}"
+
+- name: Ensure bind mountpoint directories exist
+  ansible.builtin.file:
+    path: "{{ item.0.path }}/{{ item.1 }}"
+    state: directory
+  become: true
+  loop: "{{ query('ansible.builtin.subelements', storage.bind_mounts, 'directories') }}"
+
+- name: Ensure bind mounts are active and configured in fstab
+  ansible.builtin.mount:
+    path: "{{ item.0.path }}/{{ item.1 }}"
+    src: "{{ item.0.src }}/{{ item.1 }}"
+    fstype: "{{ item.0.fstype }}"
+    opts: "{{ item.0.opts }}"
+    dump: "{{ item.0.dump | default('0') }}"
+    passno: "{{ item.0.passno | default('0') }}"
+    state: mounted
+  become: true
+  loop: "{{ query('ansible.builtin.subelements', storage.bind_mounts, 'directories') }}"
+  notify: Reload systemd mount units
