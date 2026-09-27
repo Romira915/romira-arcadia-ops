@@ -28,6 +28,43 @@ samba:
   mount_dir: /mnt/d
   interfaces: 127.0.0.0/8 enxc436c0ea26ff wg0
   hosts_allow: 192.168.28.0/24 172.24.28.0/24 100.64.0.0/10
+vault_storage_media_root: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  31313234303064303335333231646134333032303964363166373530386365663034653134386433
+  3163616566626464313562303239393138306266386637340a613131373933626339613331313134
+  35333563373765663862383662306562653237306261346335626234643232313330613864623365
+  3732663638343639620a346266666161636531333464386562663736336531303362376162636632
+  34373737333736373161616134383331313866353333646661353462336538383434396166636637
+  31633732316639646562373832346634326232376137633666643435353361663162323866666431
+  66343064326134353964656464316635323961303139656531313533303736623136643733386166
+  31626137393765663230313466326130326264356538656564613465666535623337643830343530
+  3565
+
+storage:
+  media_mount: /mnt/e
+  filesystems:
+    - path: "{{ samba.mount_dir }}"
+      src: UUID=be21bf1f-cb19-4683-84ad-c28eae55f61f
+      fstype: ext4
+      opts: defaults,nofail
+      dump: "0"
+      passno: "2"
+    - path: "{{ storage.media_mount }}"
+      src: UUID=aa3e3b86-612d-4bab-8819-066cb83c8d16
+      fstype: ext4
+      opts: defaults,nofail
+      dump: "0"
+      passno: "2"
+  bind_mounts:
+    - src: "{{ storage.media_mount }}/{{ vault_storage_media_root }}"
+      path: "{{ samba.mount_dir }}/{{ vault_storage_media_root }}"
+      directories:
+        - MOVIE
+        - Music
+      fstype: none
+      opts: "bind,nofail,x-systemd.requires-mounts-for={{ storage.media_mount }},x-systemd.before=docker.service,x-systemd.before=smbd.service"
+      dump: "0"
+      passno: "0"
 wg:
   endpoint: wakaba.vpn.romira.dev:53857
   interface:

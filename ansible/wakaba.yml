@@ -5,6 +5,7 @@
     - apt
     - iptables
     - user
+    - storage
     - samba
     - wireguard
     - MySQL
