@@ -114,6 +114,8 @@ winget:
     - 9PLM9XGG6VKS
     - DevToys-app.DevToys
     - OpenAI.Codex
+    - id: 9NFPR3BGDR5
+      source: msstore
     # Raycast
     - 9PFXXSHC64H3
     - ZedIndustries.Zed
