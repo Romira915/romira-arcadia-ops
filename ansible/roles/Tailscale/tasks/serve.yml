@@ -1,0 +1,35 @@
+---
+- name: Inspect existing Tailscale Serve configuration
+  ansible.builtin.command: tailscale serve status --json
+  register: tailscale_serve_status  # noqa: var-naming[no-role-prefix]
+  changed_when: false
+
+- name: Identify the existing route for this port  # noqa: var-naming[no-role-prefix]
+  ansible.builtin.set_fact:
+    tailscale_existing_serve_target: >-
+      {{ ((tailscale_serve_status.stdout | from_json) or {}).get('Web', {}).get(
+      (tailscale_connected_status.stdout | from_json).Self.DNSName.rstrip('.') ~ ':' ~ (tailscale_serve_route.port | string),
+      {}).get('Handlers', {}).get('/', {}).get('Proxy', '') }}
+
+- name: Refuse to replace an existing Serve endpoint
+  ansible.builtin.assert:
+    that:
+      - tailscale_existing_serve_target in ['', tailscale_serve_route.target]
+      - >-
+        tailscale_existing_serve_target != '' or
+        (tailscale_serve_route.port | string) not in (((tailscale_serve_status.stdout | from_json) or {}).get('TCP', {}))
+    fail_msg: The requested Tailscale Serve port is already configured for another endpoint.
+
+- name: Configure the Tailscale HTTPS proxy
+  ansible.builtin.command:
+    argv:
+      - timeout
+      - 30s
+      - tailscale
+      - serve
+      - --bg
+      - "--https={{ tailscale_serve_route.port }}"
+      - "{{ tailscale_serve_route.target }}"
+  become: true
+  when: not tailscale_existing_serve_target
+  changed_when: true

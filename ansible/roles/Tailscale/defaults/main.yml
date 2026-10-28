@@ -1,2 +1,5 @@
 ---
 # defaults file for Tailscale
+tailscale_configure_router: true  # noqa: var-naming[no-role-prefix]
+tailscale_connect: false  # noqa: var-naming[no-role-prefix]
+tailscale_serve_routes: []  # noqa: var-naming[no-role-prefix]

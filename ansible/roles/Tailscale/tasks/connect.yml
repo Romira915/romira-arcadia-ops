@@ -1,0 +1,45 @@
+---
+- name: Inspect Tailscale connection state
+  ansible.builtin.command: tailscale status --json
+  register: tailscale_connection_status  # noqa: var-naming[no-role-prefix]
+  changed_when: false
+
+- name: Connect Tailscale using its default settings
+  ansible.builtin.command: tailscale up --timeout=15s
+  become: true
+  register: tailscale_login_result  # noqa: var-naming[no-role-prefix]
+  changed_when: tailscale_login_result.rc == 0
+  failed_when: >-
+    tailscale_login_result.rc != 0 and
+    'https://login.tailscale.com/' not in (tailscale_login_result.stdout ~ tailscale_login_result.stderr)
+  no_log: true
+  when: (tailscale_connection_status.stdout | from_json).BackendState != 'Running'
+
+- name: Require interactive Tailscale authentication when needed
+  ansible.builtin.fail:
+    msg: >-
+      Complete Tailscale authentication at
+      {{ ((tailscale_login_result.stdout | default('')) ~ (tailscale_login_result.stderr | default('')))
+      | regex_search('https://login[.]tailscale[.]com/[a-zA-Z0-9./_-]+') }}
+      and run the playbook again.
+  when:
+    - tailscale_login_result is not skipped
+    - tailscale_login_result.rc != 0
+
+- name: Refresh Tailscale connection state
+  ansible.builtin.command: tailscale status --json
+  register: tailscale_connected_status  # noqa: var-naming[no-role-prefix]
+  changed_when: false
+
+- name: Require a running Tailscale connection before configuring Serve
+  ansible.builtin.assert:
+    that:
+      - (tailscale_connected_status.stdout | from_json).BackendState == 'Running'
+  when: tailscale_serve_routes | length > 0
+
+- name: Configure Tailscale Serve routes
+  ansible.builtin.include_tasks: serve.yml
+  loop: "{{ tailscale_serve_routes }}"
+  loop_control:
+    loop_var: tailscale_serve_route
+    label: "{{ tailscale_serve_route.port }}"

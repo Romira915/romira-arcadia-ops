@@ -1,0 +1,23 @@
+services:
+  livesync-cli:
+    build: !reset null
+    image: "{{ openclaw_livesync_image }}"
+    entrypoint: [/bin/sh, -c]
+    command:
+      - |
+        if [ -z "$(find /vault -type f -name '*.md' -print -quit)" ]; then
+          echo 'Vault is missing or empty; refusing to start LiveSync.' >&2
+          exit 1
+        fi
+        exec livesync-cli --vault /vault daemon
+    environment:
+      LIVESYNC_DB_PATH: /data
+    volumes:
+      - type: bind
+        source: "{{ openclaw_vault_path }}"
+        target: /vault
+        bind:
+          create_host_path: false
+      - type: bind
+        source: "{{ openclaw_livesync_data }}"
+        target: /data
