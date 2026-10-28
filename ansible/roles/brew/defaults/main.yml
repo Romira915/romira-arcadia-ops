@@ -116,6 +116,7 @@ brew:
     - bitwarden
     - discord
     - iterm2
+    - ghostty
     - microsoft-edge
     - skim
     # vmware-fusion: disabled in homebrew cask since 2025-06-23, install manually from Broadcom
