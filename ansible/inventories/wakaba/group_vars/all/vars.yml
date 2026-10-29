@@ -17,6 +17,7 @@ user:
     - name: romira
       groups:
         - sudo
+        - docker
       password: "{{ vault_user.vault_romira.vault_password }}"
       password_salt: "{{ vault_user.vault_romira.vault_password_salt }}"
       authorized_keys: https://github.com/Romira915.keys

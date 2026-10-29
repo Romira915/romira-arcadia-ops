@@ -6,7 +6,7 @@
   become: true
   when: user.groups is defined
   loop: "{{ user.groups }}"
-  tags: 
+  tags:
     - user
 
 - name: Ensure group don't exists
@@ -16,18 +16,23 @@
   become: true
   when: user.absent_groups is defined
   loop: "{{ user.absent_groups }}"
-  tags: 
+  tags:
     - user
 
 - name: Ensure user exists
   ansible.builtin.user:
     name: "{{ item.name }}"
     state: present
-    groups: "{{ item.groups }}"
+    groups: "{{ item.groups | default(omit, true) }}"
+    append: >-
+      {{ item.append_groups | default(true)
+         if item.groups is defined and item.groups is not none
+         else omit }}
     password: "{{ item.password | password_hash('sha512', item.password_salt) }}"
   become: true
   when: user.users is defined
   loop: "{{ user.users }}"
+  no_log: true
   tags: user
 
 - name: Ensure user don't exists
@@ -48,4 +53,5 @@
   become: true
   when: item.authorized_keys is defined
   loop: "{{ user.users }}"
+  no_log: true
   tags: user
