@@ -1,0 +1,66 @@
+---
+- name: Deploy the LiveSync service override
+  ansible.builtin.template:
+    src: livesync-override.yml.j2
+    dest: "{{ openclaw_project_dir }}/livesync-override.yml"
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+  become: true
+
+- name: Check the shared Vault before starting synchronization
+  when: not ansible_check_mode
+  block:
+    - name: Inspect the shared Vault
+      ansible.builtin.stat:
+        path: "{{ openclaw_vault_path }}"
+      become: true
+      register: openclaw_vault_status
+
+    - name: Inspect Markdown notes in the fetched Vault
+      ansible.builtin.find:
+        paths: "{{ openclaw_vault_path }}"
+        patterns: '*.md'
+        recurse: true
+        file_type: file
+      become: true
+      register: openclaw_initialized_notes
+      no_log: true
+      when: openclaw_vault_status.stat.isdir | default(false)
+
+    - name: Refuse to synchronize a missing or empty Vault
+      ansible.builtin.assert:
+        that:
+          - openclaw_vault_status.stat.isdir | default(false)
+          - openclaw_initialized_notes.matched | default(0) | int > 0
+        fail_msg: The shared Vault is missing or contains no Markdown notes; LiveSync must not start.
+
+- name: Ensure OpenChamber and LiveSync remain running
+  community.docker.docker_compose_v2:
+    project_src: "{{ openclaw_chamber_dir }}"
+    services: [openchamber, livesync-cli]
+    state: present
+    pull: missing
+    recreate: auto
+  become: true
+  when: not ansible_check_mode
+
+- name: Read LiveSync's current startup time
+  ansible.builtin.command:
+    argv: [docker, inspect, --format, "{{ '{{' }}.State.StartedAt{{ '}}' }}", livesync-cli]
+  become: true
+  changed_when: false
+  register: openclaw_running_sync_started
+  when: not ansible_check_mode
+
+- name: Confirm LiveSync completed initial replication
+  ansible.builtin.command:
+    argv: [docker, logs, --since, "{{ openclaw_running_sync_started.stdout }}", livesync-cli]
+  become: true
+  changed_when: false
+  register: openclaw_running_sync_log
+  retries: 60
+  delay: 5
+  until: "'Initial replication complete' in (openclaw_running_sync_log.stdout ~ openclaw_running_sync_log.stderr)"
+  no_log: true
+  when: not ansible_check_mode

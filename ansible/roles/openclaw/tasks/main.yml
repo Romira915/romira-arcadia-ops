@@ -1,0 +1,152 @@
+---
+- name: Inspect OpenChamber environment
+  ansible.builtin.slurp:
+    src: "{{ openclaw_chamber_dir }}/.env"
+  become: true
+  register: openclaw_chamber_env
+  no_log: true
+
+- name: Identify the currently configured Vault
+  ansible.builtin.set_fact:
+    openclaw_chamber_vault: "{{ ((openclaw_chamber_env.content | b64decode) | regex_findall('(?m)^VAULT_PATH=(.*)$') | first) | default('') }}"
+  no_log: true
+
+- name: Validate the current Vault configuration
+  ansible.builtin.assert:
+    that:
+      - openclaw_chamber_vault == openclaw_vault_path
+    fail_msg: OpenChamber is not configured to use the managed Vault path.
+
+- name: Ensure OpenClaw directories exist
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  become: true
+  loop:
+    - {path: "{{ openclaw_project_dir }}", owner: ubuntu, group: ubuntu, mode: '0700'}
+    - {path: "{{ openclaw_data_root }}/state", owner: '1000', group: '1000', mode: '0700'}
+    - {path: "{{ openclaw_data_root }}/auth", owner: '1000', group: '1000', mode: '0700'}
+    - {path: "{{ openclaw_data_root }}/personal", owner: '1000', group: '1000', mode: '0700'}
+
+- name: Create the private personal file if absent
+  ansible.builtin.copy:
+    content: ''
+    dest: "{{ openclaw_data_root }}/personal/personal.md"
+    owner: '1000'
+    group: '1000'
+    mode: '0600'
+    force: false
+  become: true
+  no_log: true
+
+- name: Clone or update the personal configuration repository
+  ansible.builtin.git:
+    repo: "{{ openclaw_config_repo }}"
+    dest: "{{ openclaw_config_dir }}"
+    version: "{{ openclaw_config_version }}"
+    force: false
+  become: true
+  become_user: "{{ openclaw_config_owner }}"
+
+- name: Inspect the OpenClaw environment file
+  ansible.builtin.stat:
+    path: "{{ openclaw_project_dir }}/.env"
+  become: true
+  register: openclaw_env_files
+  no_log: true
+
+- name: Create a Gateway token for a fresh installation
+  ansible.builtin.copy:
+    content: "OPENCLAW_GATEWAY_TOKEN={{ lookup('ansible.builtin.password', '/dev/null length=64 chars=ascii_letters,digits') }}\n"
+    dest: "{{ openclaw_project_dir }}/.env"
+    owner: ubuntu
+    group: ubuntu
+    mode: '0600'
+    force: false
+  become: true
+  no_log: true
+  when:
+    - not openclaw_env_files.stat.exists
+
+- name: Configure OpenClaw host paths and image
+  ansible.builtin.lineinfile:
+    path: "{{ openclaw_project_dir }}/.env"
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+    mode: '0600'
+  become: true
+  no_log: true
+  loop:
+    - {key: OPENCLAW_IMAGE, value: "{{ openclaw_image }}"}
+    - {key: OPENCLAW_DATA_ROOT, value: "{{ openclaw_data_root }}"}
+    - {key: ROMIRA_AI_CONFIG_SOURCE, value: "{{ openclaw_config_dir }}/ai-config"}
+    - {key: OBSIDIAN_VAULT_SOURCE, value: "{{ openclaw_vault_path }}"}
+  when: not ansible_check_mode or openclaw_env_files.stat.exists
+
+- name: Deploy OpenClaw Compose
+  ansible.builtin.copy:
+    src: compose.yaml
+    dest: "{{ openclaw_project_dir }}/compose.yaml"
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+  become: true
+
+- name: Configure the shared Vault and LiveSync service
+  ansible.builtin.include_tasks: vault.yml
+
+- name: Configure the shared skill directory
+  ansible.builtin.include_tasks: skills.yml
+
+- name: Start and verify the Gateway using the new configuration
+  when: not ansible_check_mode
+  block:
+    - name: Start the OpenClaw Gateway
+      community.docker.docker_compose_v2:
+        project_src: "{{ openclaw_project_dir }}"
+        project_name: openclaw
+        env_files:
+          - .env
+        services:
+          - openclaw-gateway
+        state: present
+        pull: missing
+        recreate: auto
+      become: true
+
+    - name: Wait for the Gateway to become healthy
+      ansible.builtin.command:
+        argv: [docker, inspect, --format, "{{ '{{' }}.State.Health.Status{{ '}}' }}", openclaw-openclaw-gateway-1]
+      become: true
+      register: openclaw_gateway_health
+      changed_when: false
+      retries: 60
+      delay: 5
+      until: openclaw_gateway_health.stdout == 'healthy'
+
+    - name: Inspect the active Gateway mounts
+      ansible.builtin.command:
+        argv: [docker, inspect, --format, "{{ '{{' }}json .Mounts{{ '}}' }}", openclaw-openclaw-gateway-1]
+      become: true
+      changed_when: false
+      register: openclaw_gateway_mounts
+
+    - name: Confirm the Gateway uses the intended sources
+      ansible.builtin.assert:
+        that:
+          - >-
+            ((openclaw_gateway_mounts.stdout | from_json)
+            | selectattr('Destination', 'equalto', '/home/node/.openclaw/workspace/AGENTS.md')
+            | map(attribute='Source') | list) == [openclaw_config_dir ~ '/ai-config/CLAUDE.md']
+          - >-
+            ((openclaw_gateway_mounts.stdout | from_json)
+            | selectattr('Destination', 'equalto', '/home/node/.openclaw/workspace/obsidian-vault')
+            | map(attribute='Source') | list) == [openclaw_vault_path]
+        fail_msg: Gateway mounts differ from the intended configuration; retain the old deployment.
+
+- name: Configure OpenClaw reverse proxy access
+  ansible.builtin.include_tasks: proxy.yml
+  when: openclaw_proxy_enabled and not ansible_check_mode

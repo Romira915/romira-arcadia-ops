@@ -1,13 +1,15 @@
 ---
 # tasks file for roles/winget
-- block:
+- name: Manage winget packages
+  tags:
+    - winget
+  block:
     - name: Disable UAC popup for Administrators
-      win_regedit:
+      ansible.windows.win_regedit:
         key: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
         value: ConsentPromptBehaviorAdmin
-        data: 00000000
+        data: "00000000"
         datatype: dword
-
     - name: Ensure winget require override package is installed
       ansible.windows.win_command:
         argv:
@@ -21,34 +23,26 @@
           - --override
           - "{{ item.override }}"
       loop: "{{ winget.override_package }}"
-      register: install_result
+      register: winget_override_install_result
       failed_when:
-        - install_result.rc != 0
-        - "'No available upgrade found' not in install_result.stdout"
+        - winget_override_install_result.rc != 0
+        - "'No available upgrade found' not in winget_override_install_result.stdout"
 
     - name: Ensure winget package is installed
       ansible.windows.win_command:
-        argv:
-          - winget
-          - install
-          - --accept-package-agreements
-          - --accept-source-agreements
-          - -e
-          - --id
-          - "{{ item }}"
+        argv: >-
+          {{ ['winget', 'install', '--accept-package-agreements', '--accept-source-agreements', '-e', '--id', item.id | default(item)]
+             + (['--source', item.source] if item is mapping and item.source is defined else []) }}
       loop: "{{ winget.package }}"
-      register: install_result
+      register: winget_install_result
       failed_when:
-        - install_result.rc != 0
-        - "'No available upgrade found' not in install_result.stdout"
+        - winget_install_result.rc != 0
+        - "'No available upgrade found' not in winget_install_result.stdout"
 
   always:
     - name: Enable UAC popup for Administrators
-      win_regedit:
+      ansible.windows.win_regedit:
         key: HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System
         value: ConsentPromptBehaviorAdmin
-        data: 00000005
+        data: "00000005"
         datatype: dword
-
-  tags:
-    - winget

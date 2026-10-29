@@ -1,0 +1,14 @@
+---
+openclaw_project_dir: /opt/openclaw
+openclaw_proxy_enabled: false
+openclaw_proxy_origins: []
+openclaw_data_root: /mnt/d/openclaw/data
+openclaw_config_repo: https://github.com/Romira915/romira-s-config.git
+openclaw_config_dir: /opt/romira-s-config
+openclaw_config_version: master
+openclaw_config_owner: ubuntu
+openclaw_vault_path: /mnt/d/obsidian/vault
+openclaw_chamber_dir: /opt/opencode-obsidian-stack
+openclaw_livesync_data: /mnt/d/obsidian/livesync
+openclaw_livesync_image: ghcr.io/vrtmrz/livesync-cli:1.0.42-cli@sha256:0044b787488a3479fa23a22e27e203f7f689ee6b0d7025a9169c7e3de87d0620
+openclaw_image: ghcr.io/openclaw/openclaw:2026.10.8-browser@sha256:94f66b4db86cc4727bdead4c831227a455522e03e297ccdd61619571baf135ca
