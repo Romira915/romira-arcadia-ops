@@ -22,6 +22,8 @@ create:
     incus exec {{ container_name }} -- apt-get update
     incus exec {{ container_name }} -- apt-get install -y python3 sudo
     incus exec {{ container_name }} -- useradd -m -s /bin/bash romira
+    incus exec {{ container_name }} -- groupadd preexisting-access
+    incus exec {{ container_name }} -- usermod -aG preexisting-access romira
     incus exec {{ container_name }} -- bash -c "echo 'romira ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/romira"
     incus exec {{ container_name }} -- chmod 0440 /etc/sudoers.d/romira
 
