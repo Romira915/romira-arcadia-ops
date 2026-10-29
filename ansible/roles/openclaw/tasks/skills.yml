@@ -1,0 +1,60 @@
+---
+- name: Inspect the existing OpenClaw configuration
+  ansible.builtin.stat:
+    path: "{{ openclaw_data_root }}/state/openclaw.json"
+  become: true
+  register: openclaw_config_file
+
+- name: Read the existing OpenClaw configuration
+  ansible.builtin.slurp:
+    src: "{{ openclaw_data_root }}/state/openclaw.json"
+  become: true
+  register: openclaw_existing_config
+  no_log: true
+  when: openclaw_config_file.stat.exists
+
+- name: Identify the existing extra skill directories
+  ansible.builtin.set_fact:
+    openclaw_existing_skill_dirs: "{{ ((openclaw_existing_config.content | b64decode | from_json).skills | default({})).get('load', {}).get('extraDirs', []) }}"
+  no_log: true
+  when: openclaw_config_file.stat.exists
+
+- name: Stop the Gateway before changing its skill configuration
+  community.docker.docker_compose_v2:
+    project_src: "{{ openclaw_project_dir }}"
+    project_name: openclaw
+    env_files: [.env]
+    services: [openclaw-gateway]
+    state: stopped
+    timeout: 360
+  become: true
+  when:
+    - not ansible_check_mode
+    - openclaw_existing_skill_dirs | default([]) != ['/personal-skills']
+
+- name: Configure the shared skill directory
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - --env-file
+      - "{{ openclaw_project_dir }}/.env"
+      - -f
+      - "{{ openclaw_project_dir }}/compose.yaml"
+      - run
+      - --rm
+      - --no-deps
+      - --entrypoint
+      - node
+      - openclaw-gateway
+      - dist/index.js
+      - config
+      - set
+      - --batch-json
+      - '[{"path":"skills.load.extraDirs","value":["/personal-skills"]}]'
+  become: true
+  no_log: true
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - openclaw_existing_skill_dirs | default([]) != ['/personal-skills']

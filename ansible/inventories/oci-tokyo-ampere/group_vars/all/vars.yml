@@ -3,6 +3,16 @@
 
 target_inventory: oci-tokyo-ampere
 
+tailscale_configure_router: false
+tailscale_connect: true
+openclaw_tailscale_port: 8443
+tailscale_serve_routes:
+  - port: "{{ openclaw_tailscale_port }}"
+    target: http://127.0.0.1:18789
+openclaw_proxy_enabled: true
+openclaw_proxy_origins:
+  - "https://ampere-instance.tail340994.ts.net:{{ openclaw_tailscale_port }}"
+
 apt:
   package:
     - certbot

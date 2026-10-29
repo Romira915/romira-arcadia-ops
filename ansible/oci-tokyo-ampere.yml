@@ -11,6 +11,10 @@
     - app_layout
     - newrelic
     - systemd_units
+    - role: Tailscale
+      tags: tailscale
+    - role: openclaw
+      tags: openclaw
   tags: oci-tokyo-ampere
 
 - name: Provisioning from tasks

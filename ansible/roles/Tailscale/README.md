@@ -1,38 +1,15 @@
-Role Name
-=========
+# Tailscale
 
-A brief description of the role goes here.
+This role installs Tailscale on Ubuntu Noble. Existing router-oriented forwarding and NIC settings are controlled by `tailscale_configure_router`, which defaults to `true` to preserve existing hosts' behavior.
 
-Requirements
-------------
+Set `tailscale_connect: true` to run `tailscale up` with default client settings. If interactive authentication is required, the playbook reports the login URL and stops; complete authentication and rerun it.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+With `tailscale_connect: true`, configure tailnet-only HTTPS proxies with `tailscale_serve_routes`, for example:
 
-Role Variables
---------------
+```yaml
+tailscale_serve_routes:
+  - port: 8443
+    target: http://127.0.0.1:18789
+```
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
-
-Dependencies
-------------
-
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
-
-Example Playbook
-----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+The role leaves unrelated Serve endpoints intact and refuses to replace a conflicting port. Tailscale HTTPS/Serve may require tailnet administration approval. Application-specific proxy trust and authentication remain the application's responsibility.

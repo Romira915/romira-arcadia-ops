@@ -1,0 +1,42 @@
+---
+- name: Inspect the Gateway container network
+  ansible.builtin.command:
+    argv: [docker, inspect, --format, '{{ "{{" }}json .NetworkSettings.Networks{{ "}}" }}', openclaw-openclaw-gateway-1]
+  become: true
+  register: openclaw_proxy_networks
+  changed_when: false
+
+- name: Identify the Docker bridge proxy address
+  ansible.builtin.set_fact:
+    openclaw_proxy_address: "{{ (openclaw_proxy_networks.stdout | from_json).openclaw_default.Gateway }}"
+
+- name: Inspect the current OpenClaw configuration for proxy access
+  ansible.builtin.slurp:
+    src: "{{ openclaw_data_root }}/state/openclaw.json"
+  become: true
+  register: openclaw_proxy_config
+  no_log: true
+
+- name: Identify existing proxy and origin settings
+  ansible.builtin.set_fact:
+    openclaw_trusted_proxies: "{{ (openclaw_proxy_config.content | b64decode | from_json).get('gateway', {}).get('trustedProxies', []) }}"
+    openclaw_existing_origins: "{{ (openclaw_proxy_config.content | b64decode | from_json).get('gateway', {}).get('controlUi', {}).get('allowedOrigins', []) }}"
+  no_log: true
+
+- name: Configure proxy attribution and Control UI origins
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - openclaw-openclaw-gateway-1
+      - node
+      - dist/index.js
+      - config
+      - set
+      - --batch-json
+      - >-
+        {{ [ {'path': 'gateway.trustedProxies', 'value': (openclaw_trusted_proxies + [openclaw_proxy_address]) | unique | list},
+             {'path': 'gateway.controlUi.allowedOrigins', 'value': (openclaw_existing_origins + openclaw_proxy_origins) | unique | list} ] | to_json }}
+  become: true
+  changed_when: true
+  when: openclaw_proxy_address not in openclaw_trusted_proxies or (openclaw_proxy_origins | difference(openclaw_existing_origins) | length > 0)

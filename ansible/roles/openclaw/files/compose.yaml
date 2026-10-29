@@ -1,0 +1,128 @@
+name: openclaw
+
+services:
+  openclaw-gateway:
+    image: ${OPENCLAW_IMAGE:?set OPENCLAW_IMAGE in .env}
+    env_file:
+      - ./.env
+    environment:
+      HOME: /home/node
+      OPENCLAW_HOME: /home/node
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
+      OPENCLAW_AUTH_PROFILE_SECRET_DIR: /home/node/.config/openclaw
+      OPENCLAW_GATEWAY_PORT: "18789"
+      OPENCLAW_DISABLE_BONJOUR: "1"
+      TZ: Asia/Tokyo
+    volumes:
+      - ${OPENCLAW_DATA_ROOT:?set OPENCLAW_DATA_ROOT in .env}/state:/home/node/.openclaw
+      - ${OPENCLAW_DATA_ROOT:?set OPENCLAW_DATA_ROOT in .env}/auth:/home/node/.config/openclaw
+      - type: bind
+        source: ${OPENCLAW_DATA_ROOT:?set OPENCLAW_DATA_ROOT in .env}/personal/personal.md
+        target: /home/node/.claude/personal.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${ROMIRA_AI_CONFIG_SOURCE:?set ROMIRA_AI_CONFIG_SOURCE in .env}/CLAUDE.md
+        target: /home/node/.openclaw/workspace/AGENTS.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${ROMIRA_AI_CONFIG_SOURCE:?set ROMIRA_AI_CONFIG_SOURCE in .env}/skills
+        target: /personal-skills
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${OBSIDIAN_VAULT_SOURCE:?set OBSIDIAN_VAULT_SOURCE in .env}
+        target: /home/node/.openclaw/workspace/obsidian-vault
+        read_only: true
+        bind:
+          create_host_path: false
+    ports:
+      - "127.0.0.1:18789:18789"
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 6m
+    command:
+      - node
+      - dist/index.js
+      - gateway
+      - --bind
+      - lan
+      - --port
+      - "18789"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - dist/docker-healthcheck.js
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 5m
+
+  openclaw-cli:
+    image: ${OPENCLAW_IMAGE:?set OPENCLAW_IMAGE in .env}
+    network_mode: service:openclaw-gateway
+    env_file:
+      - ./.env
+    environment:
+      HOME: /home/node
+      OPENCLAW_HOME: /home/node
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
+      OPENCLAW_AUTH_PROFILE_SECRET_DIR: /home/node/.config/openclaw
+      OPENCLAW_GATEWAY_PORT: "18789"
+      TZ: Asia/Tokyo
+    volumes:
+      - ${OPENCLAW_DATA_ROOT:?set OPENCLAW_DATA_ROOT in .env}/state:/home/node/.openclaw
+      - ${OPENCLAW_DATA_ROOT:?set OPENCLAW_DATA_ROOT in .env}/auth:/home/node/.config/openclaw
+      - type: bind
+        source: ${OPENCLAW_DATA_ROOT:?set OPENCLAW_DATA_ROOT in .env}/personal/personal.md
+        target: /home/node/.claude/personal.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${ROMIRA_AI_CONFIG_SOURCE:?set ROMIRA_AI_CONFIG_SOURCE in .env}/CLAUDE.md
+        target: /home/node/.openclaw/workspace/AGENTS.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${ROMIRA_AI_CONFIG_SOURCE:?set ROMIRA_AI_CONFIG_SOURCE in .env}/skills
+        target: /personal-skills
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${OBSIDIAN_VAULT_SOURCE:?set OBSIDIAN_VAULT_SOURCE in .env}
+        target: /home/node/.openclaw/workspace/obsidian-vault
+        read_only: true
+        bind:
+          create_host_path: false
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    stdin_open: true
+    tty: true
+    init: true
+    entrypoint:
+      - node
+      - dist/index.js
+    depends_on:
+      - openclaw-gateway
