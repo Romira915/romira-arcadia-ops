@@ -29,6 +29,12 @@
           - "'sudo' in groups_check.stdout"
         fail_msg: "User romira is not in sudo group"
 
+    - name: Assert pre-existing supplementary group is preserved
+      ansible.builtin.assert:
+        that:
+          - "'preexisting-access' in groups_check.stdout"
+        fail_msg: "User romira lost a pre-existing supplementary group"
+
     # === apt role ===
     - name: Check apt packages are installed
       ansible.builtin.command: "dpkg -s {{ item }}"
