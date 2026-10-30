@@ -99,6 +99,7 @@ brew_extra_packages:
   - sshpass
   - wakeonlan
   - mas
+  - penso/tap/herdr-gpui
 
 
 bitwarden:
