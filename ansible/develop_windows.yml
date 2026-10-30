@@ -55,6 +55,11 @@
         - develop_configuration
         - msys2
 
+    - import_tasks: tasks/develop_windows/herdr.yml
+      tags:
+        - develop_configuration
+        - herdr
+
     - import_tasks: tasks/develop_windows/fish.yml
       tags:
         - develop_configuration
