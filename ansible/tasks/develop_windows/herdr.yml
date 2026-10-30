@@ -1,0 +1,10 @@
+---
+- name: Check Herdr UI is installed
+  ansible.windows.win_stat:
+    path: "%LOCALAPPDATA%\\Programs\\Herdr UI\\herdr-gpui.exe"
+  register: herdr_gpui_exe
+
+# 導入済みの環境では実行しない。公式スクリプトは起動中のアプリを上書きできず失敗するため。更新はアプリ内の Check for Updates で行う。
+- name: Install Herdr UI
+  ansible.windows.win_shell: irm https://herdrui.dev/install.ps1 | iex
+  when: not herdr_gpui_exe.stat.exists
