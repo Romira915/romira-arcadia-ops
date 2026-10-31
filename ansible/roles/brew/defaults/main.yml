@@ -78,71 +78,71 @@ brew:
     - lazygit
     - agent-browser
     - anomalyco/tap/opencode
-  cask:
-    # Fonts
-    - font-hackgen
-    - font-hackgen-nerd
-    - font-plemol-jp
-    - font-plemol-jp-nf
+# Casks whose Homebrew definitions only provide macOS artifacts.
+brew_macos_only_casks:
+  - visual-studio-code
+  - google-chrome
+  - firefox
+  - slack
+  - vlc
+  - deepl
+  - wireshark
+  - google-japanese-ime
+  - vivaldi
 
-    - font-plemol-jp-hs
-    - font-myrica
-    - font-myricam
-    - font-hack-nerd-font
-    - font-noto-sans-jp
-    - font-noto-serif-jp
-    # GUI Apps
-    - visual-studio-code
-    - zed
-    - google-chrome
-    - firefox
-    - slack
-    - jetbrains-toolbox
-    - vlc
-    - deepl
-    - wireshark
-    - google-japanese-ime
-    - vivaldi
+  - teamviewer
+  - google-drive
+  - parsec
+  - zoom
+  - notion
+  - nextcloud
+  - adobe-creative-cloud
+  - postman
+  - figma
+  - discord
+  - iterm2
+  - ghostty
+  - microsoft-edge
+  - skim
+  # vmware-fusion: disabled in homebrew cask since 2025-06-23, install manually from Broadcom
+  # - vmware-fusion
+  - openmtp
+  - mathpix-snipping-tool
+  - dbeaver-community
+  - obs
+  - orbstack
+  - tailscale
+  - rectangle
+  - jordanbaird-ice
+  - claude
+  - codex-app
+  - chatgpt
+  - 1password
+  - bettercmdtab
+  - dimentium/autoraise/autoraiseapp
+  - scroll-reverser
 
-    - teamviewer
-    - google-drive
-    - parsec
-    - zoom
-    - notion
-    - nextcloud
-    - adobe-creative-cloud
-    - postman
-    - figma
-    - bitwarden
-    - discord
-    - iterm2
-    - ghostty
-    - microsoft-edge
-    - skim
-    # vmware-fusion: disabled in homebrew cask since 2025-06-23, install manually from Broadcom
-    # - vmware-fusion
-    - openmtp
-    - mathpix-snipping-tool
-    - dbeaver-community
-    - obs
-    - orbstack
-    - zulip
-    - tailscale
-    - rectangle
-    - jordanbaird-ice
-    - claude
-    - codex-app
-    - chatgpt
-    - obsidian
-    - 1password
-    - 1password-cli
-    - bettercmdtab
-    - dimentium/autoraise/autoraiseapp
-    - scroll-reverser
-
-    - shottr
-    - ollama-app
-    - raycast
-    - azookey
+  - shottr
+  - ollama-app
+  - raycast
+  - azookey
 
 brew_extra_packages: []
+# Casks with Homebrew artifacts for both macOS and Linux.
+brew_shared_casks:
+  - font-hackgen
+  - font-hackgen-nerd
+  - font-plemol-jp
+  - font-plemol-jp-nf
+  - font-plemol-jp-hs
+  - font-myrica
+  - font-myricam
+  - font-hack-nerd-font
+  - font-noto-sans-jp
+  - font-noto-serif-jp
+  - zed
+  - jetbrains-toolbox
+  - bitwarden
+  - zulip
+  - obsidian
+  - 1password-cli
