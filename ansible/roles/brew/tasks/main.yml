@@ -44,12 +44,12 @@
 
 - name: Install shared homebrew cask packages
   community.general.homebrew_cask:
-    name: "{{ item }}"
+    name: "{{ item.name }}"
     state: present
     update_homebrew: false
     path: "{{ additional_path }}"
   loop: "{{ brew_shared_casks }}"
-  when: brew_shared_casks | length > 0
+  when: group_names | intersect(item.targets) | length > 0
   tags:
     - brew
     - brew_shared_casks

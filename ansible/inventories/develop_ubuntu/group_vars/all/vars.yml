@@ -167,5 +167,3 @@ opencode_env_files:
     content: "{{ vault_opencode_env.google_maps_api_key }}"
 brew_extra_packages:
   - xsel
-brew_shared_casks:
-  - 1password-cli

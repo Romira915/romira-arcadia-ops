@@ -130,19 +130,35 @@ brew_macos_only_casks:
 brew_extra_packages: []
 # Casks with Homebrew artifacts for both macOS and Linux.
 brew_shared_casks:
-  - font-hackgen
-  - font-hackgen-nerd
-  - font-plemol-jp
-  - font-plemol-jp-nf
-  - font-plemol-jp-hs
-  - font-myrica
-  - font-myricam
-  - font-hack-nerd-font
-  - font-noto-sans-jp
-  - font-noto-serif-jp
-  - zed
-  - jetbrains-toolbox
-  - bitwarden
-  - zulip
-  - obsidian
-  - 1password-cli
+  - name: font-hackgen
+    targets: [develop_macOS]
+  - name: font-hackgen-nerd
+    targets: [develop_macOS]
+  - name: font-plemol-jp
+    targets: [develop_macOS]
+  - name: font-plemol-jp-nf
+    targets: [develop_macOS]
+  - name: font-plemol-jp-hs
+    targets: [develop_macOS]
+  - name: font-myrica
+    targets: [develop_macOS]
+  - name: font-myricam
+    targets: [develop_macOS]
+  - name: font-hack-nerd-font
+    targets: [develop_macOS]
+  - name: font-noto-sans-jp
+    targets: [develop_macOS]
+  - name: font-noto-serif-jp
+    targets: [develop_macOS]
+  - name: zed
+    targets: [develop_macOS]
+  - name: jetbrains-toolbox
+    targets: [develop_macOS]
+  - name: bitwarden
+    targets: [develop_macOS]
+  - name: zulip
+    targets: [develop_macOS]
+  - name: obsidian
+    targets: [develop_macOS]
+  - name: 1password-cli
+    targets: [develop_macOS, develop_ubuntu]
