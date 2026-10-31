@@ -1,17 +1,16 @@
 ---
-# tasks file for roles/brew
-- name: Install homebrew package
+- name: Install shared homebrew packages
   community.general.homebrew:
     name: "{{ item }}"
     state: present
     update_homebrew: true
     path: "{{ additional_path }}"
   loop: "{{ brew.package }}"
-  when: brew.package is iterable
+  when: brew.package | length > 0
   tags:
     - brew
 
-- name: Install extra homebrew packages
+- name: Install environment-specific homebrew packages
   community.general.homebrew:
     name: "{{ item }}"
     state: present
@@ -22,25 +21,26 @@
   tags:
     - brew
 
-- name: Gather platform facts for Homebrew cask selection
-  ansible.builtin.setup:
-    gather_subset:
-      - min
+- name: Install shared homebrew cask packages
+  community.general.homebrew_cask:
+    name: "{{ item }}"
+    state: present
+    update_homebrew: false
+    path: "{{ additional_path }}"
+  loop: "{{ brew_shared_casks }}"
+  when: brew_shared_casks | length > 0
   tags:
     - brew
     - brew_shared_casks
 
-- name: Install macOS-only homebrew cask packages
+- name: Install environment-specific homebrew cask packages
   community.general.homebrew_cask:
     name: "{{ item }}"
     state: present
-    update_homebrew: true
+    update_homebrew: false
     path: "{{ additional_path }}"
-  loop: "{{ brew_macos_only_casks }}"
-  when:
-    - ansible_os_family == 'Darwin'
-    - brew_macos_only_casks is defined
-    - brew_macos_only_casks is iterable
+  loop: "{{ brew_casks }}"
+  when: brew_casks | length > 0
   register: brew_cask_result
   failed_when:
     - brew_cask_result is failed
@@ -49,15 +49,3 @@
     - "'a password is required' not in (brew_cask_result.msg | default(''))"
   tags:
     - brew
-
-- name: Install shared homebrew cask packages
-  community.general.homebrew_cask:
-    name: "{{ item.name }}"
-    state: present
-    update_homebrew: false
-    path: "{{ additional_path }}"
-  loop: "{{ brew_shared_casks }}"
-  when: ansible_system in item.install_on
-  tags:
-    - brew
-    - brew_shared_casks

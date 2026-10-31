@@ -2,6 +2,8 @@
 # Play 1: User tools provisioning
 - name: User tools provisioning
   hosts: develop_macOS
+  vars_files:
+    - vars/develop-brew-common.yml
   roles:
     - role: brew
       tags: brew

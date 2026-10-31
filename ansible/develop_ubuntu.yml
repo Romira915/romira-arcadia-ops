@@ -24,6 +24,8 @@
   hosts: develop_ubuntu
   become: true
   become_user: "{{ setup_user }}"
+  vars_files:
+    - vars/develop-brew-common.yml
   roles:
     - role: brew
       tags: brew

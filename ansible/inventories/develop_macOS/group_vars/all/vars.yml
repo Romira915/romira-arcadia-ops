@@ -101,6 +101,66 @@ brew_extra_packages:
   - mas
   - penso/tap/herdr-gpui
 
+brew_casks:
+  # Fonts and apps selected for the macOS development environment.
+  - font-hackgen
+  - font-hackgen-nerd
+  - font-plemol-jp
+  - font-plemol-jp-nf
+  - font-plemol-jp-hs
+  - font-myrica
+  - font-myricam
+  - font-hack-nerd-font
+  - font-noto-sans-jp
+  - font-noto-serif-jp
+  - visual-studio-code
+  - zed
+  - google-chrome
+  - firefox
+  - slack
+  - jetbrains-toolbox
+  - vlc
+  - deepl
+  - wireshark
+  - google-japanese-ime
+  - vivaldi
+  - teamviewer
+  - google-drive
+  - parsec
+  - zoom
+  - notion
+  - nextcloud
+  - adobe-creative-cloud
+  - postman
+  - figma
+  - bitwarden
+  - discord
+  - iterm2
+  - ghostty
+  - microsoft-edge
+  - skim
+  - openmtp
+  - mathpix-snipping-tool
+  - dbeaver-community
+  - obs
+  - orbstack
+  - zulip
+  - tailscale
+  - rectangle
+  - jordanbaird-ice
+  - claude
+  - codex-app
+  - chatgpt
+  - obsidian
+  - 1password
+  - bettercmdtab
+  - dimentium/autoraise/autoraiseapp
+  - scroll-reverser
+  - shottr
+  - ollama-app
+  - raycast
+  - azookey
+
 
 bitwarden:
   server: https://vaultwarden.romira.dev
