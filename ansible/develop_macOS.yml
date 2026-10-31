@@ -2,8 +2,15 @@
 # Play 1: User tools provisioning
 - name: User tools provisioning
   hosts: develop_macOS
+  pre_tasks:
+    - name: Load common Homebrew selections
+      ansible.builtin.include_vars:
+        file: vars/develop-brew-common.yml
+        name: brew_common
+      tags: [brew, brew_shared_casks]
   roles:
     - role: brew
+      brew: "{{ brew_common.brew | combine(hostvars[inventory_hostname].get('brew', {}), recursive=True) }}"
       tags: brew
     - role: bitwarden
       tags: bitwarden

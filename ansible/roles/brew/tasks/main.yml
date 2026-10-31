@@ -1,41 +1,46 @@
 ---
-# tasks file for roles/brew
-- name: Install homebrew package
+- name: Install shared homebrew packages
   community.general.homebrew:
     name: "{{ item }}"
     state: present
     update_homebrew: true
-  environment:
-    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+    path: "{{ additional_path }}"
   loop: "{{ brew.package }}"
-  when: brew.package is iterable
+  when: brew.package | length > 0
   tags:
     - brew
 
-- name: Install extra homebrew packages
+- name: Install environment-specific homebrew packages
   community.general.homebrew:
     name: "{{ item }}"
     state: present
     update_homebrew: false
-  environment:
-    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
-  loop: "{{ brew_extra_packages }}"
-  when: brew_extra_packages | length > 0
+    path: "{{ additional_path }}"
+  loop: "{{ brew.extra_packages }}"
+  when: brew.extra_packages | length > 0
   tags:
     - brew
 
-- name: Install homebrew cask package
+- name: Install shared homebrew cask packages
+  community.general.homebrew_cask:
+    name: "{{ item }}"
+    state: present
+    update_homebrew: false
+    path: "{{ additional_path }}"
+  loop: "{{ brew.shared_casks }}"
+  when: brew.shared_casks | length > 0
+  tags:
+    - brew
+    - brew_shared_casks
+
+- name: Install environment-specific homebrew cask packages
   community.general.homebrew_cask:
     name: "{{ item }}"
     state: present
     update_homebrew: true
-  environment:
-    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
-  loop: "{{ brew.cask }}"
-  when:
-    - ansible_os_family == 'Darwin'
-    - brew.cask is defined
-    - brew.cask is iterable
+    path: "{{ additional_path }}"
+  loop: "{{ brew.casks }}"
+  when: brew.casks | length > 0
   register: brew_cask_result
   failed_when:
     - brew_cask_result is failed
