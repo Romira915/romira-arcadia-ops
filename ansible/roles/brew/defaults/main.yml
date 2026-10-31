@@ -131,34 +131,34 @@ brew_extra_packages: []
 # Casks with Homebrew artifacts for both macOS and Linux.
 brew_shared_casks:
   - name: font-hackgen
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: font-hackgen-nerd
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: font-plemol-jp
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: font-plemol-jp-nf
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: font-plemol-jp-hs
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: font-myrica
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: font-myricam
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: font-hack-nerd-font
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: font-noto-sans-jp
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: font-noto-serif-jp
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: zed
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: jetbrains-toolbox
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: bitwarden
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: zulip
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: obsidian
-    targets: [develop_macOS]
+    install_on: [Darwin]
   - name: 1password-cli
-    targets: [develop_macOS, develop_ubuntu]
+    install_on: [Darwin, Linux]

@@ -22,6 +22,14 @@
   tags:
     - brew
 
+- name: Gather platform facts for Homebrew cask selection
+  ansible.builtin.setup:
+    gather_subset:
+      - min
+  tags:
+    - brew
+    - brew_shared_casks
+
 - name: Install macOS-only homebrew cask packages
   community.general.homebrew_cask:
     name: "{{ item }}"
@@ -49,7 +57,7 @@
     update_homebrew: false
     path: "{{ additional_path }}"
   loop: "{{ brew_shared_casks }}"
-  when: group_names | intersect(item.targets) | length > 0
+  when: ansible_system in item.install_on
   tags:
     - brew
     - brew_shared_casks
