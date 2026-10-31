@@ -75,5 +75,5 @@ brew:
     - lazygit
     - agent-browser
     - anomalyco/tap/opencode
-brew_shared_casks:
-  - 1password-cli
+  shared_casks:
+    - 1password-cli

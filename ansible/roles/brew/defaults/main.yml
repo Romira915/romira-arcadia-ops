@@ -4,6 +4,6 @@ additional_path: ""
 
 brew:
   package: []
-brew_extra_packages: []
-brew_shared_casks: []
-brew_casks: []
+  extra_packages: []
+  shared_casks: []
+  casks: []

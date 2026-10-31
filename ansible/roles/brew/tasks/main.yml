@@ -16,8 +16,8 @@
     state: present
     update_homebrew: false
     path: "{{ additional_path }}"
-  loop: "{{ brew_extra_packages }}"
-  when: brew_extra_packages | length > 0
+  loop: "{{ brew.extra_packages }}"
+  when: brew.extra_packages | length > 0
   tags:
     - brew
 
@@ -27,8 +27,8 @@
     state: present
     update_homebrew: false
     path: "{{ additional_path }}"
-  loop: "{{ brew_shared_casks }}"
-  when: brew_shared_casks | length > 0
+  loop: "{{ brew.shared_casks }}"
+  when: brew.shared_casks | length > 0
   tags:
     - brew
     - brew_shared_casks
@@ -37,10 +37,10 @@
   community.general.homebrew_cask:
     name: "{{ item }}"
     state: present
-    update_homebrew: false
+    update_homebrew: true
     path: "{{ additional_path }}"
-  loop: "{{ brew_casks }}"
-  when: brew_casks | length > 0
+  loop: "{{ brew.casks }}"
+  when: brew.casks | length > 0
   register: brew_cask_result
   failed_when:
     - brew_cask_result is failed
