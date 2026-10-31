@@ -165,5 +165,6 @@ opencode_env_files:
     content: "{{ vault_opencode_env.user_google_email }}"
   - dest: ~/.config/opencode/env/google-maps-api-key
     content: "{{ vault_opencode_env.google_maps_api_key }}"
-brew_extra_packages:
-  - xsel
+brew:
+  extra_packages:
+    - xsel

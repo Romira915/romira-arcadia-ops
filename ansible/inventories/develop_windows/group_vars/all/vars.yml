@@ -106,6 +106,8 @@ scoop:
     - lazygit
 winget:
   package:
+    - AgileBits.1Password
+    - AgileBits.1Password.CLI
     - BlueStack.BlueStacks
     - Microsoft.VisualStudio.Community
     - DMM.GamePlayer
