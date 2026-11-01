@@ -2,6 +2,8 @@
 
 The `openclaw` role manages OpenClaw on `oci-tokyo-ampere`. It deploys Compose and the environment file into `/opt/openclaw`, clones or updates `romira-s-config` in `/opt/romira-s-config`, and stores OpenClaw state under `/mnt/d/openclaw/data`.
 
+Before starting the Gateway, the role builds the pinned OpenClaw image with the tracked Codex app authority patch in `files/codex-apps-patch/`. The patch carries the authenticated app-tool surface into cron creator authority while each automation remains restricted by its own finite `toolsAllow` list.
+
 OpenClaw uses the existing `ai-config/CLAUDE.md` as its workspace `AGENTS.md`. Shared skills and the shared Vault at `/mnt/d/obsidian/vault` are mounted read-only. The current repository has no tracked `ai-config/rules` directory.
 
 The private file `/mnt/d/openclaw/data/personal/personal.md` is created empty only if absent and mounted read-only as `/home/node/.claude/personal.md` in the containers. Its contents are not managed in Git or overwritten by Ansible.

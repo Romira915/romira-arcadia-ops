@@ -51,6 +51,41 @@
   become: true
   become_user: "{{ openclaw_config_owner }}"
 
+- name: Deploy the Codex app authority image build context
+  ansible.builtin.copy:
+    src: codex-apps-patch/
+    dest: "{{ openclaw_project_dir }}/codex-apps-patch/"
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+    directory_mode: '0755'
+  become: true
+  register: openclaw_codex_patch_context
+
+- name: Check whether the Codex app authority image exists
+  ansible.builtin.command:
+    argv: [docker, image, inspect, "{{ openclaw_image }}"]
+  become: true
+  register: openclaw_codex_patch_image
+  changed_when: false
+  failed_when: false
+
+- name: Build the OpenClaw image with generic Codex app authority
+  ansible.builtin.command:
+    argv:
+      - docker
+      - build
+      - --pull
+      - --tag
+      - "{{ openclaw_image }}"
+      - "{{ openclaw_project_dir }}/codex-apps-patch"
+  become: true
+  when:
+    - not ansible_check_mode
+    - openclaw_codex_patch_context.changed or openclaw_codex_patch_image.rc != 0
+  register: openclaw_codex_patch_build
+  changed_when: true
+
 - name: Inspect the OpenClaw environment file
   ansible.builtin.stat:
     path: "{{ openclaw_project_dir }}/.env"
