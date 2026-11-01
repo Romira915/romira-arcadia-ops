@@ -17,3 +17,5 @@ The pinned OpenClaw cron tool uses a JSON-compatible patch object; its structure
 The gateway loads the compiled Codex extension from `/app/dist`, not only the TypeScript files in `/app/extensions/codex/src`. The Docker build therefore overlays the compiled cron, run-attempt, and thread-lifecycle bundles. Scheduled app tool policy intersects each action with the job's finite `toolsAllow` list, and that list participates in the thread-config fingerprint.
 
 When an authenticated owner turn has no intersecting installed, enabled, callable app, policy entry, and app-server tool inventory, authority capture fails closed with counts and connector IDs for those sources. Neither diagnostic records credentials or event/message data.
+
+The Codex automations tool also exposes the Gateway's per-job private scratch API as scratch_get and scratch_set. Scheduled runs resolve an omitted job ID to the currently running job and reject an explicit ID for another job. Writes require the revision returned by scratch_get and accept string content only, preserving compare-and-swap protection and preventing scratch deletion through this tool.

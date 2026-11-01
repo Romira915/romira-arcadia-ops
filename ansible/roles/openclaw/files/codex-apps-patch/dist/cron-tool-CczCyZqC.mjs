@@ -375,6 +375,8 @@ const CRON_ACTIONS = [
 	"remove",
 	"run",
 	"runs",
+	"scratch_get",
+	"scratch_set",
 	"next_check",
 	"wake"
 ];
@@ -384,6 +386,8 @@ const CRON_SELF_ACTIONS = [
 	"get",
 	"remove",
 	"runs",
+	"scratch_get",
+	"scratch_set",
 	"next_check"
 ];
 const CRON_SCHEDULE_KINDS = [
@@ -589,6 +593,8 @@ function createCronToolSchema(options) {
 		job: managementOnly ? Type.Optional(Type.Omit(job, ["declarationKey", "owner"])) : job,
 		jobId: Type.Optional(Type.String()),
 		id: Type.Optional(Type.String()),
+		content: Type.Optional(Type.String({ maxLength: 262144, description: "Replacement contents for action=\"scratch_set\"; null is not accepted, so this tool cannot clear scratch." })),
+		expectedRevision: optionalNonNegativeIntegerSchema({ description: "Required compare-and-swap revision for action=\"scratch_set\"; use currentRevision from scratch_get." }),
 		in: Type.Optional(Type.String({ description: "Relative duration for action=\"next_check\" (for example, \"15m\")" })),
 		text: Type.Optional(Type.String({ description: "systemEvent text for action=\"wake\"" })),
 		mode: optionalStringEnum(CRON_WAKE_MODES, { description: "Wake mode for action=\"wake\" (default next-heartbeat)" }),
@@ -609,6 +615,8 @@ function createCronToolSchema(options) {
 		"includeDisabled",
 		"jobId",
 		"id",
+		"content",
+		"expectedRevision",
 		...managementOnly ? [] : ["in", "runId"]
 	]);
 	return managementOnly ? Type.Omit(schema, [
@@ -1039,6 +1047,26 @@ const CronRunOutputSchema = Type.Union([
 		processInstanceId
 	})
 ]);
+const CronScratchOutputSchema = closedObject({
+	scratch: Type.Union([closedObject({
+		content: Type.String({ maxLength: 262144 }),
+		revision: Type.Integer({ minimum: 1 }),
+		updatedAtMs: Type.Integer({ minimum: 0 })
+	}), Type.Null()]),
+	currentRevision: Type.Integer({ minimum: 0 }),
+	maxBytes: Type.Integer({ minimum: 1 })
+});
+const CronScratchSetOutputSchema = Type.Union([
+	closedObject({
+		ok: Type.Literal(true),
+		...CronScratchOutputSchema.properties
+	}),
+	closedObject({
+		ok: Type.Literal(false),
+		reason: Type.Literal("revision-conflict"),
+		currentRevision: Type.Integer({ minimum: 0 })
+	})
+]);
 /** Every non-throwing automations result, reusing the canonical job/history contracts. */
 const CronToolOutputSchema = defineToolOutputSchema({
 	inputProperty: "action",
@@ -1062,6 +1090,8 @@ const CronToolOutputSchema = defineToolOutputSchema({
 			entries: Type.Array(CronRunLogEntrySchema),
 			...page
 		}),
+		scratch_get: CronScratchOutputSchema,
+		scratch_set: CronScratchSetOutputSchema,
 		next_check: closedObject({
 			ok: Type.Literal(true),
 			delayMs: Type.Number({ exclusiveMinimum: 0 })
@@ -1271,11 +1301,14 @@ function readCronSelfRemoveOnlyJobId(opts) {
 function assertCronSelfRemoveScope(opts, action, params) {
 	const selfRemoveOnlyJobId = readCronSelfRemoveOnlyJobId(opts);
 	if (!selfRemoveOnlyJobId || action === "status" || action === "list") return;
+	if (["scratch_get", "scratch_set"].includes(action) && !readCronJobIdParam(params)) return;
 	if ([
 		"next_check",
 		"get",
 		"remove",
-		"runs"
+		"runs",
+		"scratch_get",
+		"scratch_set"
 	].includes(action)) {
 		const id = readCronJobIdParam(params);
 		if (id === selfRemoveOnlyJobId || action === "next_check" && !id) return;
@@ -1464,6 +1497,21 @@ function createCronTool(opts, deps) {
 							...runId ? { runId } : {}
 						}));
 					}
+					case "scratch_get": {
+						const id = readCronSelfRemoveOnlyJobId(opts) ?? requireCronJobIdParam(params);
+						return jsonResult(await callGateway("cron.scratch.get", gatewayOpts, { id }));
+					}
+					case "scratch_set": {
+						const id = readCronSelfRemoveOnlyJobId(opts) ?? requireCronJobIdParam(params);
+						const content = readToolStringParam(params, "content", { required: true });
+						const expectedRevision = readNonNegativeIntegerParam(params, "expectedRevision");
+						if (expectedRevision === void 0) throw new Error("expectedRevision required; read scratch_get first");
+						return jsonResult(await callGateway("cron.scratch.set", gatewayOpts, {
+							id,
+							content,
+							expectedRevision
+						}));
+					}
 					case "add": {
 						const canonicalJob = stripCronCreateNullClears(readCronToolJob(params, "add").job);
 						assertNoCronShellExecution(canonicalJob);
@@ -1630,6 +1678,7 @@ function createCronTool(opts, deps) {
 			});
 		}
 	};
+	if (!managementAuthority?.managementOnly) tool.description += "\n\nJOB SCRATCH: action=scratch_get reads private state for one job. action=scratch_set replaces it using expectedRevision returned by scratch_get. In a restricted scheduled run, omit jobId to use the current job; explicit IDs are limited to that same job. content must be a string, so this tool cannot clear scratch.";
 	return setToolTerminalPresentation(tool, formatCronTerminalPresentation);
 }
 //#endregion
