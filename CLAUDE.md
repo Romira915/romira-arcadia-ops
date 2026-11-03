@@ -113,3 +113,4 @@ When modifying Ansible:
 2. Run the playbook with `--check --diff` flags by default.
 3. Run the full playbook only when the user has explicitly authorized the target and operation.
 4. Verify no sensitive data is exposed in plain text
+5. Confirm runtime variables are in the selected inventory's `group_vars/all/vars.yml`; any Playbook `vars:` must be test-only.
