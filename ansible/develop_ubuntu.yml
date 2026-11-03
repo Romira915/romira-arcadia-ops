@@ -14,9 +14,6 @@
   hosts: develop_ubuntu
   roles:
     - markosamuli.linuxbrew
-  vars:
-    linuxbrew_use_installer: true
-    linuxbrew_init_shell: false
   tags: develop_ubuntu
 
 # Play 3: User tools provisioning (setup_user)

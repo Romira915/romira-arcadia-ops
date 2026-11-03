@@ -73,6 +73,7 @@ All Terraform projects use tfmigrate for import history management (see `tfmigra
 - **ansible/inventories/**: Host-specific configurations
   - Each inventory has `group_vars/all/vars.yml` and `vault.yml`
   - Vault password is auto-loaded via ansible.cfg
+- Runtime settings belong in the selected inventory's `group_vars/all/vars.yml`; secrets belong in its `vault.yml`. Do not define deployment settings in role `defaults/main.yml`, role `vars/main.yml`, or play-level `vars:`. Test-only fixture values may stay in test playbooks.
 - **Playbooks**: `site.yml` (main), `develop_*.yml` (dev environments), server-specific (homeserver.yml, wakaba.yml, hinokuni.yml, oci-tokyo-ampere.yml)
 
 ### Security Considerations

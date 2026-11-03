@@ -255,3 +255,6 @@ package:
   - iVCam_x64_v7.0.4.exe
   - GeForce_Experience_v3.25.1.27.exe
   - wansview
+
+# Inventory-owned role settings.
+additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin
