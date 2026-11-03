@@ -1,0 +1,582 @@
+---
+- name: Require encrypted Hermes service credentials
+  ansible.builtin.assert:
+    that:
+      - vault_hermes_api_server_key is defined
+      - vault_hermes_api_server_key | length >= 32
+      - vault_hermes_dashboard_password is defined
+      - vault_hermes_dashboard_password | length >= 32
+      - vault_hermes_dashboard_secret is defined
+      - vault_hermes_dashboard_secret | length >= 32
+      - vault_hermes_openclaw_mcp_token is defined
+      - vault_hermes_openclaw_mcp_token | length >= 32
+      - vault_hermes_gog_keyring_password is defined
+      - vault_hermes_gog_keyring_password | length >= 32
+    fail_msg: Encrypted Hermes credentials are missing or too short.
+  no_log: true
+
+- name: Require the shared Hermes configuration and Obsidian files
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  loop:
+    - {path: "{{ hermes_config_source }}/CLAUDE.md"}
+    - {path: "{{ hermes_config_source }}/skills"}
+    - {path: "{{ hermes_personal_file_source }}"}
+    - {path: "{{ hermes_vault_path }}"}
+  register: hermes_required_sources
+  become: true
+
+- name: Validate shared Hermes configuration and Obsidian sources
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists
+      - item.stat.isdir or item.stat.isreg
+    fail_msg: Required Hermes source {{ item.item.path }} is missing or has the wrong type.
+  loop: "{{ hermes_required_sources.results }}"
+  loop_control:
+    label: "{{ item.item.path }}"
+
+- name: Require the OCI Ampere host architecture
+  ansible.builtin.command:
+    argv: [uname, -m]
+  become: true
+  check_mode: false
+  register: hermes_host_architecture
+  changed_when: false
+
+- name: Validate the OCI Ampere host architecture
+  ansible.builtin.assert:
+    that:
+      - hermes_host_architecture.stdout == 'aarch64'
+    fail_msg: The Hermes image is pinned for the OCI Ampere ARM64 host.
+
+- name: Ensure Hermes project and persistent state directories exist
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  become: true
+  loop:
+    - {path: "{{ hermes_project_dir }}", owner: root, group: root, mode: '0750'}
+    - {path: "{{ hermes_project_dir }}/image", owner: root, group: root, mode: '0750'}
+    - {path: "{{ hermes_data_root }}", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
+    - {path: "{{ hermes_data_root }}/workspace", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
+    - {path: "{{ hermes_data_root }}/workspace/obsidian-vault", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
+    - {path: "{{ hermes_data_root }}/.claude", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
+    - {path: "{{ hermes_data_root }}/shared-skills", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
+    - {path: "{{ hermes_data_root }}/mcp", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
+    - {path: "{{ hermes_data_root }}/secure", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
+
+- name: Install Google OAuth client credentials for Gog without exposing their contents
+  ansible.builtin.copy:
+    src: "{{ hermes_data_root }}/google_client_secret.json"
+    dest: "{{ hermes_data_root }}/secure/google_client_secret.json"
+    remote_src: true
+    owner: "{{ hermes_user_uid }}"
+    group: "{{ hermes_user_uid }}"
+    mode: '0600'
+  become: true
+  no_log: true
+
+- name: Ensure read-only shared context mount target exists
+  ansible.builtin.copy:
+    content: ''
+    dest: "{{ hermes_data_root }}/workspace/AGENTS.md"
+    owner: "{{ hermes_user_uid }}"
+    group: "{{ hermes_user_uid }}"
+    mode: '0400'
+    force: false
+  become: true
+
+- name: Ensure read-only personal file mount target exists
+  ansible.builtin.copy:
+    content: ''
+    dest: "{{ hermes_data_root }}/.claude/personal.md"
+    owner: "{{ hermes_user_uid }}"
+    group: "{{ hermes_user_uid }}"
+    mode: '0400'
+    force: false
+  become: true
+  no_log: true
+
+- name: Deploy the Hermes environment and authentication secrets
+  ansible.builtin.copy:
+    content: |
+      HERMES_IMAGE={{ hermes_image }}
+      HERMES_DATA_ROOT={{ hermes_data_root }}
+      ROMIRA_AI_CONFIG_SOURCE={{ hermes_config_source }}
+      PERSONAL_FILE_SOURCE={{ hermes_personal_file_source }}
+      OBSIDIAN_VAULT_SOURCE={{ hermes_vault_path }}
+      API_SERVER_KEY={{ vault_hermes_api_server_key }}
+      HERMES_DASHBOARD_BASIC_AUTH_USERNAME={{ hermes_dashboard_username }}
+      HERMES_DASHBOARD_BASIC_AUTH_PASSWORD={{ vault_hermes_dashboard_password }}
+      HERMES_DASHBOARD_BASIC_AUTH_SECRET={{ vault_hermes_dashboard_secret }}
+      HERMES_DASHBOARD_PUBLIC_URL={{ hermes_dashboard_public_url }}
+      HERMES_OPENCLAW_MCP_TOKEN={{ vault_hermes_openclaw_mcp_token }}
+      GOG_HOME={{ hermes_gog_home }}
+      GOG_KEYRING_BACKEND=file
+      GOG_KEYRING_PASSWORD={{ vault_hermes_gog_keyring_password }}
+    dest: "{{ hermes_project_dir }}/.env"
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+  no_log: true
+
+- name: Deploy the Hermes Compose configuration
+  ansible.builtin.copy:
+    src: compose.yaml
+    dest: "{{ hermes_project_dir }}/compose.yaml"
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Deploy the sudo-enabled Hermes image definition
+  ansible.builtin.copy:
+    src: image/Dockerfile
+    dest: "{{ hermes_project_dir }}/image/Dockerfile"
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Start the Hermes gateway and dashboard
+  community.docker.docker_compose_v2:
+    project_src: "{{ hermes_project_dir }}"
+    project_name: hermes
+    env_files:
+      - .env
+    services:
+      - hermes
+    state: present
+    pull: never
+    build: always
+    recreate: auto
+  become: true
+  when: not ansible_check_mode
+
+- name: Wait for the Hermes API health endpoint
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ hermes_api_host_port }}/health"
+    method: GET
+    status_code: 200
+    return_content: true
+  become: true
+  register: hermes_api_health
+  retries: 36
+  delay: 5
+  until:
+    - hermes_api_health.status == 200
+    - (hermes_api_health.json | default({})).status == 'ok'
+  when: not ansible_check_mode
+
+- name: Read Hermes shared-skill configuration
+  ansible.builtin.stat:
+    path: "{{ hermes_data_root }}/config.yaml"
+  become: true
+  register: hermes_config_file
+  when: not ansible_check_mode
+
+- name: Read existing Hermes configuration without exposing it
+  ansible.builtin.slurp:
+    src: "{{ hermes_data_root }}/config.yaml"
+  become: true
+  register: hermes_existing_config
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - hermes_config_file.stat.exists
+
+- name: Keep any existing Hermes external skill directories
+  ansible.builtin.set_fact:
+    hermes_existing_external_dirs_raw: >-
+      {{ ((hermes_existing_config.content | b64decode | from_yaml).get('skills', {})).get('external_dirs', []) }}
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - hermes_config_file.stat.exists
+
+- name: Normalize existing Hermes external skill directories
+  ansible.builtin.set_fact:
+    hermes_existing_external_dirs: >-
+      {{ (hermes_existing_external_dirs_raw | from_json)
+         if hermes_existing_external_dirs_raw is string and
+            (hermes_existing_external_dirs_raw | trim | regex_search('^\\['))
+         else ([hermes_existing_external_dirs_raw]
+               if hermes_existing_external_dirs_raw is string and hermes_existing_external_dirs_raw | trim
+               else (hermes_existing_external_dirs_raw | default([], true))) }}
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - hermes_config_file.stat.exists
+
+- name: Keep any existing Hermes trusted proxy addresses
+  ansible.builtin.set_fact:
+    hermes_existing_trusted_proxies_raw: >-
+      {{ ((hermes_existing_config.content | b64decode | from_yaml).get('dashboard', {})).get('trusted_proxies', []) }}
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - hermes_config_file.stat.exists
+
+- name: Normalize existing Hermes trusted proxy addresses
+  ansible.builtin.set_fact:
+    hermes_existing_trusted_proxies: >-
+      {{ (hermes_existing_trusted_proxies_raw | from_json)
+         if hermes_existing_trusted_proxies_raw is string and
+            (hermes_existing_trusted_proxies_raw | trim | regex_search('^\\['))
+         else ([hermes_existing_trusted_proxies_raw]
+               if hermes_existing_trusted_proxies_raw is string and hermes_existing_trusted_proxies_raw | trim
+               else (hermes_existing_trusted_proxies_raw | default([], true))) }}
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - hermes_config_file.stat.exists
+
+- name: Keep any existing Hermes terminal environment passthrough entries
+  ansible.builtin.set_fact:
+    hermes_existing_terminal_env_passthrough_raw: >-
+      {{ ((hermes_existing_config.content | b64decode | from_yaml).get('terminal', {})).get('env_passthrough', []) }}
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - hermes_config_file.stat.exists
+
+- name: Normalize existing Hermes terminal environment passthrough entries
+  ansible.builtin.set_fact:
+    hermes_existing_terminal_env_passthrough: >-
+      {{ (hermes_existing_terminal_env_passthrough_raw | from_json)
+         if hermes_existing_terminal_env_passthrough_raw is string and
+            (hermes_existing_terminal_env_passthrough_raw | trim | regex_search('^\\['))
+         else ([hermes_existing_terminal_env_passthrough_raw]
+               if hermes_existing_terminal_env_passthrough_raw is string and hermes_existing_terminal_env_passthrough_raw | trim
+               else (hermes_existing_terminal_env_passthrough_raw | default([], true))) }}
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - hermes_config_file.stat.exists
+
+- name: Inspect the Hermes bridge gateway for dashboard proxy trust
+  ansible.builtin.command:
+    argv:
+      - docker
+      - inspect
+      - --format
+      - "{{ '{{' }}range .NetworkSettings.Networks{{ '}}' }}{{ '{{' }}.Gateway{{ '}}' }}{{ '{{' }}end{{ '}}' }}"
+      - hermes-agent
+  become: true
+  register: hermes_bridge_gateway
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Configure Hermes to load shared Romira skills
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - hermes-agent
+      - hermes
+      - config
+      - set
+      - skills.external_dirs
+      - "{{ ((hermes_existing_external_dirs | default([])) + [hermes_skills_mount_path]) | unique | list | to_json }}"
+  become: true
+  register: hermes_shared_skills_set
+  changed_when: true
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - >-
+      not hermes_config_file.stat.exists or
+      hermes_skills_mount_path not in (hermes_existing_external_dirs | default([]))
+
+- name: Configure Hermes to trust only its Docker bridge gateway for forwarded headers
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - hermes-agent
+      - hermes
+      - config
+      - set
+      - dashboard.trusted_proxies
+      - "{{ ((hermes_existing_trusted_proxies | default([])) + [hermes_bridge_gateway.stdout | trim]) | unique | list | to_json }}"
+  become: true
+  register: hermes_trusted_proxy_set
+  changed_when: true
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - hermes_bridge_gateway.stdout | trim | length > 0
+    - >-
+      not hermes_config_file.stat.exists or
+      hermes_bridge_gateway.stdout | trim not in (hermes_existing_trusted_proxies | default([]))
+
+- name: Configure Gog environment for Hermes terminal sessions
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - hermes-agent
+      - hermes
+      - config
+      - set
+      - terminal.env_passthrough
+      - "{{ ((hermes_existing_terminal_env_passthrough | default([])) + ['GOG_HOME', 'GOG_KEYRING_BACKEND', 'GOG_KEYRING_PASSWORD']) | unique | list | to_json }}"
+  become: true
+  register: hermes_gog_terminal_env_set
+  changed_when: true
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - >-
+      not hermes_config_file.stat.exists or
+      (['GOG_HOME', 'GOG_KEYRING_BACKEND', 'GOG_KEYRING_PASSWORD'] |
+       difference(hermes_existing_terminal_env_passthrough | default([])) | length > 0)
+
+- name: Read configured Hermes MCP servers before reconciling Google access
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes_user_uid }}:{{ hermes_user_uid }}"
+      - hermes-agent
+      - /opt/hermes/bin/hermes
+      - mcp
+      - list
+  become: true
+  register: hermes_mcp_server_list
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Read configured Gog MCP settings
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes_user_uid }}:{{ hermes_user_uid }}"
+      - hermes-agent
+      - /opt/hermes/bin/hermes
+      - config
+      - get
+      - --json
+      - mcp_servers.gog
+  become: true
+  register: hermes_gog_mcp_config
+  changed_when: false
+  failed_when: false
+  when:
+    - not ansible_check_mode
+    - hermes_mcp_server_list.stdout | regex_search('(?m)^\\s*gog\\s') is not none
+
+- name: Add Gog's native read/write tools as the Google MCP
+  ansible.builtin.shell:
+    cmd: >-
+      printf 'y\n' |
+      docker exec -i --user {{ hermes_user_uid }}:{{ hermes_user_uid }} hermes-agent
+      /opt/hermes/bin/hermes mcp add gog --command {{ hermes_gog_binary }}
+      --args {{ hermes_gog_mcp_args | join(' ') }}
+  become: true
+  register: hermes_gog_mcp_add
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - hermes_mcp_server_list.stdout | regex_search('(?m)^\\s*gog\\s') is none
+
+- name: Enable Gog's native read/write tools
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes_user_uid }}:{{ hermes_user_uid }}"
+      - hermes-agent
+      - /opt/hermes/bin/hermes
+      - config
+      - set
+      - mcp_servers.gog.args
+      - "{{ hermes_gog_mcp_args | to_json }}"
+  become: true
+  register: hermes_gog_mcp_update
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - hermes_mcp_server_list.stdout | regex_search('(?m)^\\s*gog\\s') is not none
+    - hermes_gog_mcp_config.rc == 0
+    - (hermes_gog_mcp_config.stdout | from_json).get('args', []) != hermes_gog_mcp_args
+
+- name: Check that no Cron job still references the legacy Google MCP
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes_user_uid }}:{{ hermes_user_uid }}"
+      - hermes-agent
+      - python3
+      - -c
+      - >-
+        import json,sys; d=json.load(open('/opt/data/cron/jobs.json')); jobs=d.get('jobs',[]) if isinstance(d,dict) else d; refs=[j for j in jobs if 'google-readonly' in (j.get('enabled_toolsets') or []) or 'mcp__google_readonly__' in (j.get('prompt') or '')]; print(len(refs)); sys.exit(1 if refs else 0)
+  become: true
+  register: hermes_legacy_google_cron_refs
+  changed_when: false
+  failed_when: false
+  when: not ansible_check_mode
+
+- name: Remove the legacy Google MCP after its Cron consumers have moved to Gog
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes_user_uid }}:{{ hermes_user_uid }}"
+      - hermes-agent
+      - /opt/hermes/bin/hermes
+      - mcp
+      - remove
+      - google-readonly
+  become: true
+  register: hermes_legacy_google_mcp_remove
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - hermes_legacy_google_cron_refs.rc == 0
+    - hermes_mcp_server_list.stdout | regex_search('(?m)^\\s*google-readonly\\s') is not none
+
+- name: Remove retired Google read-only implementation and token after consumer migration
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  become: true
+  loop:
+    - "{{ hermes_data_root }}/mcp/google_readonly.py"
+    - "{{ hermes_data_root }}/google_token.json"
+  register: hermes_legacy_google_files_remove
+  when:
+    - not ansible_check_mode
+    - hermes_legacy_google_cron_refs.rc == 0
+
+- name: Restart Hermes after changing its shared skill configuration
+  community.docker.docker_compose_v2:
+    project_src: "{{ hermes_project_dir }}"
+    project_name: hermes
+    env_files:
+      - .env
+    services:
+      - hermes
+    state: restarted
+  become: true
+  when:
+    - not ansible_check_mode
+    - >-
+      hermes_shared_skills_set is changed or
+      hermes_trusted_proxy_set is changed or
+      hermes_gog_terminal_env_set is changed or
+      (hermes_gog_mcp_add is defined and hermes_gog_mcp_add is changed) or
+      (hermes_gog_mcp_update is defined and hermes_gog_mcp_update is changed) or
+      (hermes_legacy_google_mcp_remove is defined and hermes_legacy_google_mcp_remove is changed)
+
+- name: Wait for the Hermes API health endpoint after configuration
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ hermes_api_host_port }}/health"
+    method: GET
+    status_code: 200
+    return_content: true
+  become: true
+  register: hermes_api_health_after_config
+  retries: 36
+  delay: 5
+  until:
+    - hermes_api_health_after_config.status == 200
+    - (hermes_api_health_after_config.json | default({})).status == 'ok'
+  when: not ansible_check_mode
+
+- name: Confirm Hermes can write to the shared Vault
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes_user_uid }}:{{ hermes_user_uid }}"
+      - hermes-agent
+      - /bin/sh
+      - -c
+      - test -w /opt/data/workspace/obsidian-vault
+  become: true
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Inspect Hermes container mounts
+  ansible.builtin.command:
+    argv: [docker, inspect, --format, "{{ '{{' }}json .Mounts{{ '}}' }}", hermes-agent]
+  become: true
+  register: hermes_container_mounts
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Confirm Hermes has the intended isolated state, shared skills, and writable Vault mounts
+  ansible.builtin.assert:
+    that:
+      - >-
+        ((hermes_container_mounts.stdout | from_json)
+        | selectattr('Destination', 'equalto', '/opt/data')
+        | map(attribute='Source') | list) == [hermes_data_root]
+      - >-
+        ((hermes_container_mounts.stdout | from_json)
+        | selectattr('Destination', 'equalto', hermes_skills_mount_path)
+        | selectattr('RW', 'equalto', false)
+        | map(attribute='Source') | list) == [hermes_config_source ~ '/skills']
+      - >-
+        ((hermes_container_mounts.stdout | from_json)
+        | selectattr('Destination', 'equalto', '/opt/data/workspace/AGENTS.md')
+        | selectattr('RW', 'equalto', false)
+        | map(attribute='Source') | list) == [hermes_config_source ~ '/CLAUDE.md']
+      - >-
+        ((hermes_container_mounts.stdout | from_json)
+        | selectattr('Destination', 'equalto', '/opt/data/.claude/personal.md')
+        | selectattr('RW', 'equalto', false)
+        | map(attribute='Source') | list) == [hermes_personal_file_source]
+      - >-
+        ((hermes_container_mounts.stdout | from_json)
+        | selectattr('Destination', 'equalto', '/opt/data/workspace/obsidian-vault')
+        | selectattr('RW', 'equalto', true)
+        | map(attribute='Source') | list) == [hermes_vault_path]
+    fail_msg: Hermes container mounts differ from the intended configuration.
+  when: not ansible_check_mode
+
+- name: Verify shared skills are visible to Hermes
+  ansible.builtin.command:
+    argv: [docker, exec, hermes-agent, hermes, skills, list]
+  become: true
+  register: hermes_skills_list
+  changed_when: false
+  retries: 6
+  delay: 5
+  until: "'obsidian' in hermes_skills_list.stdout"
+  when: not ansible_check_mode
+
+- name: Read Hermes dashboard authentication status
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ hermes_dashboard_host_port }}/api/status"
+    method: GET
+    status_code: 200
+    return_content: true
+  become: true
+  register: hermes_dashboard_status
+  retries: 12
+  delay: 5
+  until: hermes_dashboard_status.status == 200
+  when: not ansible_check_mode
+
+- name: Confirm the tailnet dashboard enforces password authentication
+  ansible.builtin.assert:
+    that:
+      - hermes_dashboard_status.json.auth_required | bool
+      - "'basic' in hermes_dashboard_status.json.auth_providers"
+    fail_msg: Hermes dashboard password authentication is not active.
+  when: not ansible_check_mode

@@ -4,7 +4,13 @@ The `openclaw` role manages OpenClaw on `oci-tokyo-ampere`. It deploys Compose a
 
 Before starting the Gateway, the role builds the pinned OpenClaw image with the tracked Codex app authority patch in `files/codex-apps-patch/`. The patch carries the authenticated app-tool surface into cron creator authority while each automation remains restricted by its own finite `toolsAllow` list.
 
-OpenClaw uses the existing `ai-config/CLAUDE.md` as its workspace `AGENTS.md`. Shared skills and the shared Vault at `/mnt/d/obsidian/vault` are mounted read-only. The current repository has no tracked `ai-config/rules` directory.
+Cron jobs that need durable shared memory use the standard MCP server in `files/shared-state-mcp/server.mjs`. Ansible installs the script and its SQLite database under the existing persistent OpenClaw state mount, then registers it as `mcp.servers.cron_shared_state`; it does not patch an OpenClaw compiled bundle for shared-state behavior. A job opts in by listing `cron_shared_state__shared_state_get` and `cron_shared_state__shared_state_set` in its finite `toolsAllow`. Related jobs use the same exact group name. The owner agent can use `groups_list` to choose an existing group when creating a job. New groups need no Gateway restart or per-job ID registration.
+
+Hermes accesses Android notifications and the same Cron-state database through the internal `hermes-mcp-bridge` sidecar. The sidecar invokes only `notifications.list` on the paired Android node and exposes the two shared-state operations; it does not expose the OpenClaw Gateway token or arbitrary node commands to Hermes. Its HTTP MCP port is reachable only on `openclaw_default`, and requests require a separate encrypted-inventory bearer token.
+
+Any job granted the shared-state tools can read and write any group, so grant them only to jobs that need cross-job memory. Writes use revision compare-and-swap, group names are validated, content is capped at 256 KiB, and credentials or other secrets must not be stored there. OpenClaw image upgrades preserve both the server script and database through the existing state mount and retain the MCP server registration in `openclaw.json`.
+
+OpenClaw uses the existing `ai-config/CLAUDE.md` as its workspace `AGENTS.md`. Shared skills are mounted read-only. The shared Vault at `/mnt/d/obsidian/vault` is mounted read-write in both Gateway and CLI containers; POSIX ACLs grant the OpenClaw and Hermes runtime UIDs write access to existing entries and future files without changing the LiveSync owner. The current repository has no tracked `ai-config/rules` directory.
 
 The private file `/mnt/d/openclaw/data/personal/personal.md` is created empty only if absent and mounted read-only as `/home/node/.claude/personal.md` in the containers. Its contents are not managed in Git or overwritten by Ansible.
 
