@@ -370,6 +370,7 @@
   register: hermes_gog_mcp_config
   changed_when: false
   failed_when: false
+  no_log: true
   when:
     - not ansible_check_mode
     - hermes_mcp_server_list.stdout | regex_search('(?m)^\\s*gog\\s') is not none
@@ -409,6 +410,65 @@
     - hermes_mcp_server_list.stdout | regex_search('(?m)^\\s*gog\\s') is not none
     - hermes_gog_mcp_config.rc == 0
     - (hermes_gog_mcp_config.stdout | from_json).get('args', []) != hermes_gog_mcp_args
+
+- name: Read Gog MCP configuration after adding or updating it
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes_user_uid }}:{{ hermes_user_uid }}"
+      - hermes-agent
+      - /opt/hermes/bin/hermes
+      - config
+      - get
+      - --json
+      - mcp_servers.gog
+  become: true
+  register: hermes_gog_mcp_config_for_env
+  changed_when: false
+  no_log: true
+  when: not ansible_check_mode
+
+- name: Preserve existing Gog MCP environment entries
+  ansible.builtin.set_fact:
+    hermes_gog_mcp_env_raw: "{{ (hermes_gog_mcp_config_for_env.stdout | from_json).get('env', {}) }}"
+  no_log: true
+  when: not ansible_check_mode
+
+- name: Normalize and extend Gog MCP environment entries
+  ansible.builtin.set_fact:
+    hermes_gog_mcp_env_existing: >-
+      {{ hermes_gog_mcp_env_raw if hermes_gog_mcp_env_raw is mapping else {} }}
+    hermes_gog_mcp_env_desired: >-
+      {{ (hermes_gog_mcp_env_raw if hermes_gog_mcp_env_raw is mapping else {}) | combine({
+        'GOG_HOME': '${GOG_HOME}',
+        'GOG_KEYRING_BACKEND': '${GOG_KEYRING_BACKEND}',
+        'GOG_KEYRING_PASSWORD': '${GOG_KEYRING_PASSWORD}'
+      }) }}
+  no_log: true
+  when: not ansible_check_mode
+
+- name: Pass Gog credentials from Hermes environment to the Google MCP process
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes_user_uid }}:{{ hermes_user_uid }}"
+      - hermes-agent
+      - /opt/hermes/bin/hermes
+      - config
+      - set
+      - mcp_servers.gog.env
+      - "{{ hermes_gog_mcp_env_desired | to_json }}"
+  become: true
+  register: hermes_gog_mcp_env_set
+  changed_when: true
+  no_log: true
+  when:
+    - not ansible_check_mode
+    - hermes_gog_mcp_env_existing != hermes_gog_mcp_env_desired
 
 - name: Check that no Cron job still references the legacy Google MCP
   ansible.builtin.command:
@@ -477,6 +537,7 @@
       hermes_shared_skills_set is changed or
       hermes_trusted_proxy_set is changed or
       hermes_gog_terminal_env_set is changed or
+      (hermes_gog_mcp_env_set is defined and hermes_gog_mcp_env_set is changed) or
       (hermes_gog_mcp_add is defined and hermes_gog_mcp_add is changed) or
       (hermes_gog_mcp_update is defined and hermes_gog_mcp_update is changed) or
       (hermes_legacy_google_mcp_remove is defined and hermes_legacy_google_mcp_remove is changed)
