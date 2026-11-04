@@ -96,6 +96,18 @@
     owner: "{{ hermes_user_uid }}"
     group: "{{ hermes_user_uid }}"
     mode: '0644'
+  register: hermes_calendar_skill_routing_set
+  become: true
+
+- name: Remove stale helper OAuth files from Google Workspace skill requirements
+  ansible.builtin.replace:
+    path: "{{ hermes_data_root }}/skills/productivity/google-workspace/SKILL.md"
+    regexp: '(?m)^required_credential_files:\n(?:^[ \t]+.*\n)*'
+    replace: ''
+    owner: "{{ hermes_user_uid }}"
+    group: "{{ hermes_user_uid }}"
+    mode: '0644'
+  register: hermes_calendar_skill_metadata_set
   become: true
 
 - name: Deploy accurate Gog Calendar write instructions to the active Hermes skill
@@ -105,6 +117,7 @@
     owner: "{{ hermes_user_uid }}"
     group: "{{ hermes_user_uid }}"
     mode: '0640'
+  register: hermes_calendar_skill_reference_set
   become: true
 
 - name: Install Google OAuth client credentials for Gog without exposing their contents
@@ -572,6 +585,9 @@
   when:
     - not ansible_check_mode
     - >-
+      hermes_calendar_skill_routing_set is changed or
+      hermes_calendar_skill_metadata_set is changed or
+      hermes_calendar_skill_reference_set is changed or
       hermes_shared_skills_set is changed or
       hermes_trusted_proxy_set is changed or
       hermes_gog_terminal_env_set is changed or
