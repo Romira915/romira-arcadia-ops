@@ -66,70 +66,44 @@
     - {path: "{{ hermes_data_root }}/workspace/obsidian-vault", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
     - {path: "{{ hermes_data_root }}/.claude", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
     - {path: "{{ hermes_data_root }}/shared-skills", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
-    - {path: "{{ hermes_data_root }}/mcp", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
-    - {path: "{{ hermes_data_root }}/secure", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
 
-- name: Ensure the Google Workspace skill reference directory exists
+- name: Ensure the Google Workspace skill directory exists
   ansible.builtin.file:
-    path: "{{ hermes_data_root }}/skills/productivity/google-workspace/references"
+    path: "{{ hermes_data_root }}/skills/productivity/google-workspace"
     state: directory
     owner: "{{ hermes_user_uid }}"
     group: "{{ hermes_user_uid }}"
     mode: '0750'
   become: true
 
-- name: Prefer the authenticated Gog CLI for Calendar event writes
-  ansible.builtin.blockinfile:
-    path: "{{ hermes_data_root }}/skills/productivity/google-workspace/SKILL.md"
-    insertafter: '^# Google Workspace$'
-    marker: '<!-- {mark} ANSIBLE MANAGED CALENDAR WRITE ROUTING -->'
-    block: |
-      ## Calendar writes in this Hermes runtime
-
-      For Calendar event create, update, or delete requests, this section overrides the generic instruction below to route all commands through `google_api.py`. The Calendar MCP tool `mcp__gog__calendar_events` is read-only; that limit does not indicate missing Google authorization or Calendar ACL.
-
-      Use Terminal with the authenticated Gog CLI for Calendar writes. In this container `gog` is on `PATH` at `/opt/data/bin/gog`; use `gog --account auto calendar ...`. If `command -v gog` ever fails, check `${HERMES_HOME}/bin/gog` and `/opt/data/bin/gog` before reporting it missing.
-
-      Do not run `scripts/setup.py --check` or `scripts/google_api.py` to determine whether Gog can write. They use a separate helper credential (`google_token.json`), not Gog's login. Do not report that helper's `NOT_AUTHENTICATED` status as a Gog or Calendar failure. Check Gog with `gog auth list`; only an actual Gog authorization/API error is evidence that Gog needs auth changes.
-
-      Resolve the exact destination calendar and access role with Gog, perform only the requested event operation, read it back, and report success only after verification. Never print token or authorization-code contents.
+- name: Install the Gog-first Google Workspace skill
+  ansible.builtin.copy:
+    src: skills/productivity/google-workspace/SKILL.md
+    dest: "{{ hermes_data_root }}/skills/productivity/google-workspace/SKILL.md"
     owner: "{{ hermes_user_uid }}"
     group: "{{ hermes_user_uid }}"
     mode: '0644'
-  register: hermes_calendar_skill_routing_set
+  register: hermes_google_workspace_skill_set
   become: true
 
-- name: Remove stale helper OAuth files from Google Workspace skill requirements
-  ansible.builtin.replace:
-    path: "{{ hermes_data_root }}/skills/productivity/google-workspace/SKILL.md"
-    regexp: '(?m)^required_credential_files:\n(?:^[ \t]+.*\n)*'
-    replace: ''
-    owner: "{{ hermes_user_uid }}"
-    group: "{{ hermes_user_uid }}"
-    mode: '0644'
-  register: hermes_calendar_skill_metadata_set
+- name: Remove retired Google Workspace helper files
+  ansible.builtin.file:
+    path: "{{ hermes_data_root }}/skills/productivity/google-workspace/{{ item }}"
+    state: absent
+  loop:
+    - scripts/setup.py
+    - scripts/google_api.py
+    - scripts/gws_bridge.py
+    - scripts/_hermes_home.py
+    - references/calendar-write-auth.md
+  register: hermes_retired_google_workspace_files_removed
   become: true
 
-- name: Deploy accurate Gog Calendar write instructions to the active Hermes skill
-  ansible.builtin.copy:
-    src: skills/productivity/google-workspace/references/calendar-write-auth.md
-    dest: "{{ hermes_data_root }}/skills/productivity/google-workspace/references/calendar-write-auth.md"
-    owner: "{{ hermes_user_uid }}"
-    group: "{{ hermes_user_uid }}"
-    mode: '0640'
-  register: hermes_calendar_skill_reference_set
+- name: Remove the unused duplicate Gog OAuth client file
+  ansible.builtin.file:
+    path: "{{ hermes_data_root }}/secure/google_client_secret.json"
+    state: absent
   become: true
-
-- name: Install Google OAuth client credentials for Gog without exposing their contents
-  ansible.builtin.copy:
-    src: "{{ hermes_data_root }}/google_client_secret.json"
-    dest: "{{ hermes_data_root }}/secure/google_client_secret.json"
-    remote_src: true
-    owner: "{{ hermes_user_uid }}"
-    group: "{{ hermes_user_uid }}"
-    mode: '0600'
-  become: true
-  no_log: true
 
 - name: Ensure read-only shared context mount target exists
   ansible.builtin.copy:
@@ -572,6 +546,32 @@
     - not ansible_check_mode
     - hermes_legacy_google_cron_refs.rc == 0
 
+- name: Inspect retired Google support directories before removing empty ones
+  ansible.builtin.find:
+    paths: "{{ item }}"
+    recurse: false
+    hidden: true
+    file_type: any
+  loop:
+    - "{{ hermes_data_root }}/mcp"
+    - "{{ hermes_data_root }}/secure"
+    - "{{ hermes_data_root }}/skills/productivity/google-workspace/scripts"
+    - "{{ hermes_data_root }}/skills/productivity/google-workspace/references"
+  register: hermes_retired_google_directories
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Remove empty retired Google support directories
+  ansible.builtin.file:
+    path: "{{ item.item }}"
+    state: absent
+  loop: "{{ hermes_retired_google_directories.results }}"
+  when:
+    - not ansible_check_mode
+    - (item.matched | default(0) | int) == 0
+  become: true
+
 - name: Restart Hermes after changing its shared skill configuration
   community.docker.docker_compose_v2:
     project_src: "{{ hermes_project_dir }}"
@@ -585,9 +585,9 @@
   when:
     - not ansible_check_mode
     - >-
-      hermes_calendar_skill_routing_set is changed or
-      hermes_calendar_skill_metadata_set is changed or
-      hermes_calendar_skill_reference_set is changed or
+      hermes_google_workspace_skill_set is changed or
+      (hermes_retired_google_workspace_files_removed is defined and
+       hermes_retired_google_workspace_files_removed is changed) or
       hermes_shared_skills_set is changed or
       hermes_trusted_proxy_set is changed or
       hermes_gog_terminal_env_set is changed or
