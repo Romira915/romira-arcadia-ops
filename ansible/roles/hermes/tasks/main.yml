@@ -78,6 +78,26 @@
     mode: '0750'
   become: true
 
+- name: Prefer the authenticated Gog CLI for Calendar event writes
+  ansible.builtin.blockinfile:
+    path: "{{ hermes_data_root }}/skills/productivity/google-workspace/SKILL.md"
+    insertafter: '^# Google Workspace$'
+    marker: '<!-- {mark} ANSIBLE MANAGED CALENDAR WRITE ROUTING -->'
+    block: |
+      ## Calendar writes in this Hermes runtime
+
+      For Calendar event create, update, or delete requests, this section overrides the generic instruction below to route all commands through `google_api.py`. The Calendar MCP tool `mcp__gog__calendar_events` is read-only; that limit does not indicate missing Google authorization or Calendar ACL.
+
+      Use Terminal with the authenticated Gog CLI for Calendar writes. In this container `gog` is on `PATH` at `/opt/data/bin/gog`; use `gog --account auto calendar ...`. If `command -v gog` ever fails, check `${HERMES_HOME}/bin/gog` and `/opt/data/bin/gog` before reporting it missing.
+
+      Do not run `scripts/setup.py --check` or `scripts/google_api.py` to determine whether Gog can write. They use a separate helper credential (`google_token.json`), not Gog's login. Do not report that helper's `NOT_AUTHENTICATED` status as a Gog or Calendar failure. Check Gog with `gog auth list`; only an actual Gog authorization/API error is evidence that Gog needs auth changes.
+
+      Resolve the exact destination calendar and access role with Gog, perform only the requested event operation, read it back, and report success only after verification. Never print token or authorization-code contents.
+    owner: "{{ hermes_user_uid }}"
+    group: "{{ hermes_user_uid }}"
+    mode: '0644'
+  become: true
+
 - name: Deploy accurate Gog Calendar write instructions to the active Hermes skill
   ansible.builtin.copy:
     src: skills/productivity/google-workspace/references/calendar-write-auth.md
