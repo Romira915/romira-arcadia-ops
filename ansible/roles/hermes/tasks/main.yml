@@ -69,6 +69,24 @@
     - {path: "{{ hermes_data_root }}/mcp", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
     - {path: "{{ hermes_data_root }}/secure", owner: "{{ hermes_user_uid }}", group: "{{ hermes_user_uid }}", mode: '0700'}
 
+- name: Ensure the Google Workspace skill reference directory exists
+  ansible.builtin.file:
+    path: "{{ hermes_data_root }}/skills/productivity/google-workspace/references"
+    state: directory
+    owner: "{{ hermes_user_uid }}"
+    group: "{{ hermes_user_uid }}"
+    mode: '0750'
+  become: true
+
+- name: Deploy accurate Gog Calendar write instructions to the active Hermes skill
+  ansible.builtin.copy:
+    src: skills/productivity/google-workspace/references/calendar-write-auth.md
+    dest: "{{ hermes_data_root }}/skills/productivity/google-workspace/references/calendar-write-auth.md"
+    owner: "{{ hermes_user_uid }}"
+    group: "{{ hermes_user_uid }}"
+    mode: '0640'
+  become: true
+
 - name: Install Google OAuth client credentials for Gog without exposing their contents
   ansible.builtin.copy:
     src: "{{ hermes_data_root }}/google_client_secret.json"
