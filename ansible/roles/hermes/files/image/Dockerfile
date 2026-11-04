@@ -1,6 +1,12 @@
 ARG HERMES_BASE_IMAGE
 FROM ${HERMES_BASE_IMAGE}
 
+ENV PATH="/opt/data/bin:${PATH}"
+
+RUN install -d /etc/profile.d \
+    && printf '%s\n' 'export PATH="/opt/data/bin:$PATH"' > /etc/profile.d/hermes-data-bin.sh \
+    && chmod 0644 /etc/profile.d/hermes-data-bin.sh
+
 USER root
 
 RUN set -eux; \
