@@ -1,5 +1,3 @@
----
-target_inventory: hinokuni
 apt:
   package:
     - unzip
@@ -45,32 +43,32 @@ openlitespeed:
       root: /var/www/nextcloud/
       user: www-data
       group: www-data
-lsphp:
-  - php: lsphp83
-    package:
-      - lsphp83-common
-      - lsphp83-curl
-      - lsphp83-mysql
-      - lsphp83-opcache
-      - lsphp83-imap
-      - lsphp83-apcu
-      - lsphp83-intl
-      - lsphp83-memcached
-      - lsphp83-redis
-      - lsphp83-pear
-      - lsphp83-imagick
-    lib:
-      - libsmbclient-dev
-      - zlib1g-dev
-      - pkg-config
-      - libmagickwand-dev
-    pecl:
+  php_versions:
+    - php: lsphp83
       package:
-        - smbclient
-        - memcache
-      prompts:
-        - null
-        - (.*)Enable memcache session handler support? \[yes\]: "yes"
+        - lsphp83-common
+        - lsphp83-curl
+        - lsphp83-mysql
+        - lsphp83-opcache
+        - lsphp83-imap
+        - lsphp83-apcu
+        - lsphp83-intl
+        - lsphp83-memcached
+        - lsphp83-redis
+        - lsphp83-pear
+        - lsphp83-imagick
+      lib:
+        - libsmbclient-dev
+        - zlib1g-dev
+        - pkg-config
+        - libmagickwand-dev
+      pecl:
+        package:
+          - smbclient
+          - memcache
+        prompts:
+          -
+          - (.*)Enable memcache session handler support? \[yes\]: "yes"
 mysql:
   login_user: root
   login_unix_socket: /var/run/mysqld/mysqld.sock
@@ -96,3 +94,5 @@ nextcloud:
   apps:
     - files_external
   maintenance_window_start: 14
+deployment:
+  inventory: hinokuni

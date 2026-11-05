@@ -6,4 +6,5 @@
   roles:
     - ../../
   vars:
-    apt_upgrade: false
+    apt:
+      upgrade: false

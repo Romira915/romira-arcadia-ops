@@ -1,3 +1,2 @@
----
-# vars file for roles/OpenLiteSpeed
-openlitespeed_dir: /usr/local/lsws
+openlitespeed_runtime:  # noqa: var-naming[no-role-prefix]
+  config: '{{ openlitespeed_defaults | combine(openlitespeed, recursive=True) }}'

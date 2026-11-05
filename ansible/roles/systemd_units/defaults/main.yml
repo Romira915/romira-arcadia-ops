@@ -1,3 +1,4 @@
----
-systemd_units_src_dir: "{{ playbook_dir }}/inventories/{{ target_inventory }}/files/systemd"
-systemd_units: []
+systemd_units_defaults:
+  units: []
+  src_dir: "{{ playbook_dir }}/inventories/{{ deployment.inventory }}/files/systemd"
+systemd_units: {}  # noqa: var-naming[no-role-prefix]

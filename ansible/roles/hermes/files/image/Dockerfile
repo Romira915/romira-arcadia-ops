@@ -1,0 +1,24 @@
+ARG HERMES_BASE_IMAGE
+FROM ${HERMES_BASE_IMAGE}
+
+ENV PATH="/opt/data/bin:${PATH}"
+
+RUN install -d /etc/profile.d \
+    && printf '%s\n' 'export PATH="/opt/data/bin:$PATH"' > /etc/profile.d/hermes-data-bin.sh \
+    && chmod 0644 /etc/profile.d/hermes-data-bin.sh
+
+USER root
+
+ARG CLAUDE_CODE_VERSION=2.1.318
+RUN npm install --global --prefix /usr/local --allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
+    && npm cache clean --force \
+    && claude --version
+
+RUN set -eux; \
+    test "$(id -u hermes)" = "10000"; \
+    apt-get update; \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends sudo; \
+    rm -rf /var/lib/apt/lists/*; \
+    printf '%s\n' 'hermes ALL=(ALL:ALL) NOPASSWD: ALL' > /etc/sudoers.d/hermes; \
+    chmod 0440 /etc/sudoers.d/hermes; \
+    visudo -cf /etc/sudoers.d/hermes

@@ -1,0 +1,2 @@
+nginx_runtime:
+  config: '{{ nginx_defaults | combine(nginx, recursive=True) }}'

@@ -1,0 +1,23 @@
+---
+# Default Hermes configuration; inventory overrides stay under the hermes dictionary.
+hermes:  # noqa: var-naming[no-role-prefix]
+  tailscale_port: 8444
+  dashboard_public_url: "https://ampere-instance.tail340994.ts.net:{{ hermes.tailscale_port }}"
+  project_dir: /opt/hermes
+  data_root: /mnt/d/hermes/data
+  config_source: /opt/romira-s-config/ai-config
+  skills_mount_path: /opt/data/shared-skills
+  workspace_path: /opt/data/workspace
+  gog_home: /opt/data/home/.config/gogcli
+  gog_binary: /opt/data/bin/gog
+  gog_mcp_args:
+    - mcp
+    - --allow-write
+    - --allow-gmail-send
+  vault_path: /mnt/d/obsidian/vault
+  personal_file_source: /mnt/d/openclaw/data/personal/personal.md
+  user_uid: 10000
+  dashboard_username: romira
+  dashboard_host_port: 19119
+  api_host_port: 18642
+  image: docker.io/nousresearch/hermes-agent:latest@sha256:9c5561579f3ffdf333401797094ac3a743738d6c25d40f4331c7bf77b694238d

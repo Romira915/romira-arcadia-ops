@@ -40,7 +40,7 @@ services:
       - type: bind
         source: ${OBSIDIAN_VAULT_SOURCE:?set OBSIDIAN_VAULT_SOURCE in .env}
         target: /home/node/.openclaw/workspace/obsidian-vault
-        read_only: true
+        read_only: false
         bind:
           create_host_path: false
     ports:
@@ -110,7 +110,7 @@ services:
       - type: bind
         source: ${OBSIDIAN_VAULT_SOURCE:?set OBSIDIAN_VAULT_SOURCE in .env}
         target: /home/node/.openclaw/workspace/obsidian-vault
-        read_only: true
+        read_only: false
         bind:
           create_host_path: false
     cap_drop:
@@ -126,3 +126,51 @@ services:
       - dist/index.js
     depends_on:
       - openclaw-gateway
+
+  hermes-mcp-bridge:
+    image: ${OPENCLAW_IMAGE:?set OPENCLAW_IMAGE in .env}
+    network_mode: service:openclaw-gateway
+    user: "1000:1000"
+    working_dir: /app
+    restart: unless-stopped
+    stop_grace_period: 30s
+    init: true
+    env_file:
+      - ./.env
+      - ./hermes-bridge.env
+    environment:
+      HOME: /home/node
+      OPENCLAW_HOME: /home/node
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
+      OPENCLAW_CONFIG_DIR: /home/node/.openclaw
+      OPENCLAW_WORKSPACE_DIR: /home/node/.openclaw/workspace
+      OPENCLAW_AUTH_PROFILE_SECRET_DIR: /home/node/.config/openclaw
+      OPENCLAW_GATEWAY_PORT: "18789"
+      HERMES_OPENCLAW_MCP_PORT: "18790"
+      TZ: Asia/Tokyo
+    volumes:
+      - ${OPENCLAW_DATA_ROOT:?set OPENCLAW_DATA_ROOT in .env}/state:/home/node/.openclaw:ro
+      - ${OPENCLAW_DATA_ROOT:?set OPENCLAW_DATA_ROOT in .env}/state/shared-state:/home/node/.openclaw/shared-state
+      - ${OPENCLAW_DATA_ROOT:?set OPENCLAW_DATA_ROOT in .env}/auth:/home/node/.config/openclaw:ro
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - node
+      - /home/node/.openclaw/hermes-mcp-bridge/server.mjs
+    depends_on:
+      openclaw-gateway:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:18790/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

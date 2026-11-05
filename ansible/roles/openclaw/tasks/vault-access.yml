@@ -1,0 +1,65 @@
+---
+- name: Inspect the shared Vault directory
+  ansible.builtin.stat:
+    path: "{{ openclaw_runtime.config.vault_path }}"
+  become: true
+  register: openclaw_shared_vault_status
+
+- name: Require the shared Vault directory before changing permissions
+  ansible.builtin.assert:
+    that:
+      - openclaw_shared_vault_status.stat.isdir | default(false)
+    fail_msg: The shared Vault is missing; refusing to change permissions.
+
+- name: Grant Hermes read-only access to the private personal file
+  ansible.posix.acl:
+    path: "{{ openclaw_runtime.config.data_root }}/personal/personal.md"
+    entity: '10000'
+    etype: user
+    permissions: r
+    state: present
+  become: true
+
+- name: Install POSIX ACL support for the shared Vault
+  ansible.builtin.package:
+    name: acl
+    state: present
+  become: true
+
+- name: Grant both agents write access to existing Vault files and directories
+  ansible.posix.acl:
+    path: "{{ openclaw_runtime.config.vault_path }}"
+    entity: "{{ item }}"
+    etype: user
+    permissions: rwX
+    recursive: true
+    state: present
+  become: true
+  loop: "{{ openclaw_runtime.config.vault_access_uids }}"
+  loop_control:
+    label: "UID {{ item }}"
+
+- name: Find Vault directories for inherited agent write access
+  ansible.builtin.find:
+    paths: "{{ openclaw_runtime.config.vault_path }}"
+    recurse: true
+    hidden: true
+    file_type: directory
+  become: true
+  register: openclaw_shared_vault_directories
+
+- name: Set inherited OpenClaw and Hermes ACLs on Vault directories
+  ansible.posix.acl:
+    path: "{{ item.0 }}"
+    entity: "{{ item.1 }}"
+    etype: user
+    permissions: rwX
+    default: true
+    state: present
+  become: true
+  loop: >-
+    {{ ([openclaw_runtime.config.vault_path] +
+        (openclaw_shared_vault_directories.files | map(attribute='path') | list))
+       | product(openclaw_runtime.config.vault_access_uids) | list }}
+  loop_control:
+    label: "{{ item.0 }} for UID {{ item.1 }}"
