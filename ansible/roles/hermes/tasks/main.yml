@@ -77,13 +77,15 @@
     mode: '0750'
   become: true
 
-- name: Install the Gog-first Google Workspace skill
+- name: Seed the Gog-first Google Workspace skill when it is absent
+  # Why force false: Hermes updates its own skills daily, so an existing file is never overwritten.
   ansible.builtin.copy:
     src: skills/productivity/google-workspace/SKILL.md
     dest: "{{ hermes.data_root }}/skills/productivity/google-workspace/SKILL.md"
     owner: "{{ hermes.user_uid }}"
     group: "{{ hermes.user_uid }}"
     mode: '0644'
+    force: false
   register: hermes_google_workspace_skill_set
   become: true
 
