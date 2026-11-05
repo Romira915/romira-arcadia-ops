@@ -59,8 +59,8 @@
     mode: "{{ item.mode }}"
   become: true
   loop:
-    - {path: "{{ hermes.project_dir }}", owner: root, group: root, mode: '0750'}
-    - {path: "{{ hermes.project_dir }}/image", owner: root, group: root, mode: '0750'}
+    - {path: "{{ hermes.project_dir }}", owner: root, group: root, mode: '0755'}
+    - {path: "{{ hermes.project_dir }}/image", owner: root, group: root, mode: '0755'}
     - {path: "{{ hermes.data_root }}", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/workspace", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/workspace/obsidian-vault", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
