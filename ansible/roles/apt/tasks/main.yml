@@ -16,7 +16,7 @@
     mode: "0644"
   become: true
   register: apt_config_updated
-  when: apt_manage_sources_list | bool
+  when: apt_runtime.config.manage_sources_list | bool
   tags:
     - configuration
     - apt
@@ -24,8 +24,8 @@
 
 - name: Update configuration file - /etc/apt/apt.conf
   ansible.builtin.template:
-    src: "{{ apt_apt_conf_file.lstrip('/') }}.j2"
-    dest: "{{ apt_apt_conf_file }}"
+    src: "{{ apt_runtime.config.apt_conf_file.lstrip('/') }}.j2"
+    dest: "{{ apt_runtime.config.apt_conf_file }}"
     owner: root
     group: root
     mode: "0644"
@@ -40,7 +40,7 @@
     path: "/etc/apt/apt.conf.d/{{ item }}"
     state: absent
   become: true
-  with_items: "{{ apt_etc_apt_apt_conf_d_files_absent }}"
+  with_items: "{{ apt_runtime.config.etc_apt_apt_conf_d_files_absent }}"
   tags:
     - configuration
     - apt
@@ -62,9 +62,9 @@
 - name: Update
   ansible.builtin.apt:
     update_cache: true
-    cache_valid_time: "{{ 0 if apt_config_updated is defined and apt_config_updated.changed else apt_update_cache_valid_time }}"
+    cache_valid_time: "{{ 0 if apt_config_updated is defined and apt_config_updated.changed else apt_runtime.config.update_cache_valid_time }}"
   become: true
-  when: apt_update | bool
+  when: apt_runtime.config.update_enabled | bool
   tags:
     - configuration
     - apt
@@ -76,7 +76,7 @@
   become: true
   changed_when: _dpkg_configure.stdout_lines | length > 0
   register: _dpkg_configure
-  when: apt_dpkg_configure | bool
+  when: apt_runtime.config.dpkg_configure | bool
   tags:
     - configuration
     - apt
@@ -84,10 +84,10 @@
 
 - name: Install dependencies # noqa args[module]
   ansible.builtin.apt:
-    name: "{{ apt.dependencies }}"
-    state: "{{ apt.install_state }}"
+    name: "{{ apt_runtime.config.dependencies }}"
+    state: "{{ apt_runtime.config.install_state }}"
   become: true
-  when: apt.dependencies is defined
+  when: apt.dependencies is defined or apt.package is not defined
   tags:
     - configuration
     - apt
@@ -97,9 +97,9 @@
   apt_repository:
     repo: "{{ item }}"
     state: present
-  loop: "{{ apt.repositories }}"
+  loop: "{{ apt_runtime.config.repositories }}"
   become: true
-  when: apt.repositories is defined
+  when: apt_runtime.config.repositories is defined
   tags:
     - configuration
     - apt
@@ -107,11 +107,11 @@
 
 - name: Upgrade # noqa args[module]
   ansible.builtin.apt:
-    upgrade: "{{ apt_upgrade_type }}"
+    upgrade: "{{ apt_runtime.config.upgrade_type }}"
     update_cache: true
-    dpkg_options: "{{ apt_upgrade_dpkg_options | join(',') }}"
+    dpkg_options: "{{ apt_runtime.config.upgrade_dpkg_options | join(',') }}"
   become: true
-  when: apt_upgrade | bool
+  when: apt_runtime.config.upgrade | bool
   tags:
     - configuration
     - apt
@@ -122,7 +122,7 @@
     apt-get -y clean
   become: true
   changed_when: false
-  when: apt_clean | bool
+  when: apt_runtime.config.clean | bool
   tags:
     - configuration
     - apt
@@ -130,8 +130,8 @@
 
 - name: Install # noqa args[module]
   ansible.builtin.apt:
-    name: "{{ apt.package }}"
-    state: "{{ apt.install_state }}"
+    name: "{{ apt_runtime.config.package }}"
+    state: "{{ apt_runtime.config.install_state }}"
   become: true
   tags:
     - configuration
@@ -140,9 +140,9 @@
 
 - name: Remove # noqa args[module]
   ansible.builtin.apt:
-    name: "{{ apt_remove }}"
+    name: "{{ apt_runtime.config.remove }}"
     state: absent
-    purge: "{{ apt_remove_purge }}"
+    purge: "{{ apt_runtime.config.remove_purge }}"
   become: true
   tags:
     - configuration
@@ -152,9 +152,9 @@
 - name: Autoremove # noqa args[module]
   ansible.builtin.apt:
     autoremove: true
-    dpkg_options: "{{ apt_upgrade_dpkg_options | join(',') }}"
+    dpkg_options: "{{ apt_runtime.config.upgrade_dpkg_options | join(',') }}"
   become: true
-  when: apt_autoremove | bool
+  when: apt_runtime.config.autoremove | bool
   tags:
     - configuration
     - apt

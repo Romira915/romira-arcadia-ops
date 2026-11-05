@@ -12,7 +12,7 @@
 
 - name: Inspect the current OpenClaw configuration for proxy access
   ansible.builtin.slurp:
-    src: "{{ openclaw_data_root }}/state/openclaw.json"
+    src: "{{ openclaw_runtime.config.data_root }}/state/openclaw.json"
   become: true
   register: openclaw_proxy_config
   no_log: true
@@ -36,7 +36,8 @@
       - --batch-json
       - >-
         {{ [ {'path': 'gateway.trustedProxies', 'value': (openclaw_trusted_proxies + [openclaw_proxy_address]) | unique | list},
-             {'path': 'gateway.controlUi.allowedOrigins', 'value': (openclaw_existing_origins + openclaw_proxy_origins) | unique | list} ] | to_json }}
+             {'path': 'gateway.controlUi.allowedOrigins',
+              'value': (openclaw_existing_origins + openclaw_runtime.config.proxy_origins) | unique | list} ] | to_json }}
   become: true
   changed_when: true
-  when: openclaw_proxy_address not in openclaw_trusted_proxies or (openclaw_proxy_origins | difference(openclaw_existing_origins) | length > 0)
+  when: openclaw_proxy_address not in openclaw_trusted_proxies or (openclaw_runtime.config.proxy_origins | difference(openclaw_existing_origins) | length > 0)

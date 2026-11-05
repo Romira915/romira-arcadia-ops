@@ -1,0 +1,31 @@
+---
+- name: Install Hermes Desktop if no desktop build exists
+  ansible.windows.win_powershell:
+    script: |
+      $releaseDir = Join-Path $env:LOCALAPPDATA 'hermes\hermes-agent\apps\desktop\release'
+      $desktopExecutables = @(
+        'win-unpacked\Hermes.exe',
+        'win-arm64-unpacked\Hermes.exe',
+        'win-ia32-unpacked\Hermes.exe'
+      ) | ForEach-Object { Join-Path $releaseDir $_ }
+
+      $desktopExe = $desktopExecutables |
+        Where-Object { Test-Path $_ } |
+        Select-Object -First 1
+
+      if ($desktopExe) {
+        $Ansible.Changed = $false
+        return
+      }
+
+      $installer = Invoke-RestMethod 'https://hermes-agent.nousresearch.com/install.ps1'
+      & ([scriptblock]::Create($installer)) -Channel stable -NonInteractive -IncludeDesktop
+
+      $desktopExe = $desktopExecutables |
+        Where-Object { Test-Path $_ } |
+        Select-Object -First 1
+
+      if (-not $desktopExe) {
+        throw "Hermes Desktop build was not found under $releaseDir."
+      }
+      $Ansible.Changed = $true

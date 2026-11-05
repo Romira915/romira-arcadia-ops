@@ -2,7 +2,7 @@
 - name: Deploy the LiveSync service override
   ansible.builtin.template:
     src: livesync-override.yml.j2
-    dest: "{{ openclaw_project_dir }}/livesync-override.yml"
+    dest: "{{ openclaw_runtime.config.project_dir }}/livesync-override.yml"
     owner: ubuntu
     group: ubuntu
     mode: '0644'
@@ -13,13 +13,13 @@
   block:
     - name: Inspect the shared Vault
       ansible.builtin.stat:
-        path: "{{ openclaw_vault_path }}"
+        path: "{{ openclaw_runtime.config.vault_path }}"
       become: true
       register: openclaw_vault_status
 
     - name: Inspect Markdown notes in the fetched Vault
       ansible.builtin.find:
-        paths: "{{ openclaw_vault_path }}"
+        paths: "{{ openclaw_runtime.config.vault_path }}"
         patterns: '*.md'
         recurse: true
         file_type: file
@@ -37,7 +37,7 @@
 
 - name: Ensure OpenChamber and LiveSync remain running
   community.docker.docker_compose_v2:
-    project_src: "{{ openclaw_chamber_dir }}"
+    project_src: "{{ openclaw_runtime.config.chamber_dir }}"
     services: [openchamber, livesync-cli]
     state: present
     pull: missing

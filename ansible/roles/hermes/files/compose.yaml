@@ -1,0 +1,85 @@
+name: hermes
+
+services:
+  hermes:
+    image: hermes-agent-sudo:arm64
+    build:
+      context: ./image
+      dockerfile: Dockerfile
+      args:
+        HERMES_BASE_IMAGE: ${HERMES_IMAGE:?set HERMES_IMAGE in .env}
+    platform: linux/arm64
+    container_name: hermes-agent
+    networks:
+      - default
+      - openclaw
+    restart: unless-stopped
+    working_dir: /opt/data/workspace
+    command: [gateway, run]
+    env_file:
+      - ./.env
+    environment:
+      PATH: /opt/data/bin:/opt/hermes/bin:/opt/hermes/.venv/bin:/opt/data/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      API_SERVER_ENABLED: "true"
+      API_SERVER_HOST: 0.0.0.0
+      HERMES_DASHBOARD: "1"
+      HERMES_DASHBOARD_HOST: 0.0.0.0
+      TZ: Asia/Tokyo
+    ports:
+      - "127.0.0.1:18642:8642"
+      - "127.0.0.1:19119:9119"
+    volumes:
+      - type: bind
+        source: ${HERMES_DATA_ROOT:?set HERMES_DATA_ROOT in .env}
+        target: /opt/data
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${ROMIRA_AI_CONFIG_SOURCE:?set ROMIRA_AI_CONFIG_SOURCE in .env}/skills
+        target: /opt/data/shared-skills
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${ROMIRA_AI_CONFIG_SOURCE:?set ROMIRA_AI_CONFIG_SOURCE in .env}/CLAUDE.md
+        target: /opt/data/workspace/AGENTS.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${PERSONAL_FILE_SOURCE:?set PERSONAL_FILE_SOURCE in .env}
+        target: /opt/data/.claude/personal.md
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${OBSIDIAN_VAULT_SOURCE:?set OBSIDIAN_VAULT_SOURCE in .env}
+        target: /opt/data/workspace/obsidian-vault
+        read_only: false
+        bind:
+          create_host_path: false
+    cap_drop:
+      - NET_RAW
+      - NET_ADMIN
+    shm_size: 1gb
+    stop_grace_period: 90s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "5"
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8642/health', timeout=5)
+      interval: 30s
+      timeout: 8s
+      retries: 5
+      start_period: 2m
+
+networks:
+  openclaw:
+    external: true
+    name: openclaw_default

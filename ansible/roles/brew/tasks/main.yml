@@ -4,7 +4,7 @@
     name: "{{ item }}"
     state: present
     update_homebrew: true
-    path: "{{ additional_path }}"
+    path: "{{ shell.additional_path }}"
   loop: "{{ brew.package }}"
   when: brew.package | length > 0
   tags:
@@ -15,7 +15,7 @@
     name: "{{ item }}"
     state: present
     update_homebrew: false
-    path: "{{ additional_path }}"
+    path: "{{ shell.additional_path }}"
   loop: "{{ brew.extra_packages }}"
   when: brew.extra_packages | length > 0
   tags:
@@ -26,7 +26,7 @@
     name: "{{ item }}"
     state: present
     update_homebrew: false
-    path: "{{ additional_path }}"
+    path: "{{ shell.additional_path }}"
   loop: "{{ brew.shared_casks }}"
   when: brew.shared_casks | length > 0
   tags:
@@ -38,7 +38,7 @@
     name: "{{ item }}"
     state: present
     update_homebrew: true
-    path: "{{ additional_path }}"
+    path: "{{ shell.additional_path }}"
   loop: "{{ brew.casks }}"
   when: brew.casks | length > 0
   register: brew_cask_result

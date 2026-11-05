@@ -1,7 +1,7 @@
----
 # defaults file for roles/bitwarden
-bitwarden:
+bitwarden:  # noqa: var-naming[no-role-prefix]
   server:
   email_address:
   password:
-additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin
+shell:  # noqa: var-naming[no-role-prefix]
+  additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin

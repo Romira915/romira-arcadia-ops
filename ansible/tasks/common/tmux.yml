@@ -10,5 +10,5 @@
   args:
     chdir: ~/.tmux/plugins/tmux-thumbs
   environment:
-    PATH: "{{ ansible_facts.env.PATH }}:{{ additional_path }}"
+    PATH: "{{ ansible_facts.env.PATH }}:{{ shell.additional_path }}"
   changed_when: false

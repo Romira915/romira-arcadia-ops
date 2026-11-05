@@ -1,9 +1,9 @@
 # Default inputs for the brew role. Package selections live in playbook vars
 # or inventories; this role only installs the lists it receives.
-additional_path: ""
-
-brew:
+brew:  # noqa: var-naming[no-role-prefix]
   package: []
   extra_packages: []
   shared_casks: []
   casks: []
+shell:  # noqa: var-naming[no-role-prefix]
+  additional_path: ""

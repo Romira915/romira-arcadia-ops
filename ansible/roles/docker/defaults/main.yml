@@ -1,8 +1,7 @@
----
 # defaults file for docker
 
 # Docker data-root migration settings
-docker:
+docker_defaults:
   # Enable data-root migration (must be explicitly set to true)
   migrate_data_root: false
 
@@ -20,10 +19,12 @@ docker:
 
 # Additional daemon.json configuration (optional)
 # Example:
-#   docker_daemon_config:
+#   docker:
+#     daemon_config:
 #     storage-driver: "overlay2"
 #     log-driver: "json-file"
 #     log-opts:
 #       max-size: "10m"
 #       max-file: "3"
-docker_daemon_config: {}
+  daemon_config: {}
+docker: {}  # noqa: var-naming[no-role-prefix]

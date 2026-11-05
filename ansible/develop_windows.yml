@@ -60,6 +60,11 @@
         - develop_configuration
         - herdr
 
+    - import_tasks: tasks/develop_windows/hermes_desktop.yml
+      tags:
+        - develop_configuration
+        - hermes_desktop
+
     - import_tasks: tasks/develop_windows/fish.yml
       tags:
         - develop_configuration

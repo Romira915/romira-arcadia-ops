@@ -1,2 +1,2 @@
----
-# vars file for Tailscale
+tailscale_runtime:  # noqa: var-naming[no-role-prefix]
+  config: '{{ tailscale_defaults | combine(tailscale, recursive=True) }}'

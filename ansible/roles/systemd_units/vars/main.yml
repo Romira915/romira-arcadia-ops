@@ -1,0 +1,2 @@
+systemd_units_runtime:
+  config: '{{ systemd_units_defaults | combine(systemd_units, recursive=True) }}'

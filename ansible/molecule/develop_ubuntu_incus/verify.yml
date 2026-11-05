@@ -4,7 +4,8 @@
   gather_facts: false
   become: false
   vars:
-    romira_home: /home/romira
+    test:
+      home: /home/romira
   tasks:
     # === user role ===
     - name: Check user romira exists
@@ -75,7 +76,7 @@
 
     # === bitwarden role ===
     - name: Check bitwarden-cli is installed
-      ansible.builtin.command: "{{ romira_home }}/.linuxbrew/bin/bw --version"
+      ansible.builtin.command: "{{ test.home }}/.linuxbrew/bin/bw --version"
       become: true
       become_user: romira
       register: bw_check
@@ -112,9 +113,9 @@
         path: "{{ item }}"
       register: repo_check
       loop:
-        - "{{ romira_home }}/.tmp/.ssh"
-        - "{{ romira_home }}/workspace/repositories/github.com/joaojacome/bitwarden-ssh-agent"
-        - "{{ romira_home }}/.config/romira-s-config"
+        - "{{ test.home }}/.tmp/.ssh"
+        - "{{ test.home }}/workspace/repositories/github.com/joaojacome/bitwarden-ssh-agent"
+        - "{{ test.home }}/.config/romira-s-config"
 
     - name: Assert gh cloned repositories exist
       ansible.builtin.assert:
@@ -130,7 +131,7 @@
     - name: Check romira-s-config remote URL
       ansible.builtin.command:
         cmd: git remote get-url origin
-        chdir: "{{ romira_home }}/.config/romira-s-config"
+        chdir: "{{ test.home }}/.config/romira-s-config"
       become: true
       become_user: romira
       register: remote_url_check
@@ -150,9 +151,9 @@
       become_user: romira
       register: dir_check
       loop:
-        - "{{ romira_home }}/.config/fish"
-        - "{{ romira_home }}/.local/bin"
-        - "{{ romira_home }}/workspace/repositories"
+        - "{{ test.home }}/.config/fish"
+        - "{{ test.home }}/.local/bin"
+        - "{{ test.home }}/workspace/repositories"
 
     - name: Assert directories exist
       ansible.builtin.assert:
@@ -167,7 +168,7 @@
     # === SSH config ===
     - name: Check SSH config directory exists
       ansible.builtin.stat:
-        path: "{{ romira_home }}/.ssh"
+        path: "{{ test.home }}/.ssh"
       become: true
       become_user: romira
       register: ssh_dir_check
@@ -186,12 +187,12 @@
       become_user: romira
       register: symlink_check
       loop:
-        - "{{ romira_home }}/.gitconfig"
-        - "{{ romira_home }}/.profile"
-        - "{{ romira_home }}/.config/fish/config.fish"
-        - "{{ romira_home }}/.zshrc"
-        - "{{ romira_home }}/.vimrc"
-        - "{{ romira_home }}/.tmux.conf"
+        - "{{ test.home }}/.gitconfig"
+        - "{{ test.home }}/.profile"
+        - "{{ test.home }}/.config/fish/config.fish"
+        - "{{ test.home }}/.zshrc"
+        - "{{ test.home }}/.vimrc"
+        - "{{ test.home }}/.tmux.conf"
 
     - name: Assert symbolic links exist
       ansible.builtin.assert:
@@ -206,7 +207,7 @@
     # === zprezto ===
     - name: Check zprezto is cloned
       ansible.builtin.stat:
-        path: "{{ romira_home }}/.zprezto"
+        path: "{{ test.home }}/.zprezto"
       become: true
       become_user: romira
       register: zprezto_check
@@ -220,7 +221,7 @@
 
     - name: Check zprezto symlinks exist
       ansible.builtin.stat:
-        path: "{{ romira_home }}/.{{ item }}"
+        path: "{{ test.home }}/.{{ item }}"
       become: true
       become_user: romira
       register: zprezto_symlink_check
@@ -255,7 +256,7 @@
     # === fisher ===
     - name: Check fisher is installed
       ansible.builtin.stat:
-        path: "{{ romira_home }}/.config/fish/functions/fisher.fish"
+        path: "{{ test.home }}/.config/fish/functions/fisher.fish"
       become: true
       become_user: romira
       register: fisher_check
@@ -286,7 +287,7 @@
     # === tmux-thumbs ===
     - name: Check tmux-thumbs is cloned
       ansible.builtin.stat:
-        path: "{{ romira_home }}/.tmux/plugins/tmux-thumbs"
+        path: "{{ test.home }}/.tmux/plugins/tmux-thumbs"
       become: true
       become_user: romira
       register: tmux_thumbs_check
@@ -299,7 +300,7 @@
 
     - name: Check tmux-thumbs binary exists
       ansible.builtin.stat:
-        path: "{{ romira_home }}/.tmux/plugins/tmux-thumbs/target/release/thumbs"
+        path: "{{ test.home }}/.tmux/plugins/tmux-thumbs/target/release/thumbs"
       become: true
       become_user: romira
       register: tmux_thumbs_bin_check

@@ -35,11 +35,11 @@
   ansible.builtin.assert:
     that:
       - (tailscale_connected_status.stdout | from_json).BackendState == 'Running'
-  when: tailscale_serve_routes | length > 0
+  when: tailscale_runtime.config.serve_routes | length > 0
 
 - name: Configure Tailscale Serve routes
   ansible.builtin.include_tasks: serve.yml
-  loop: "{{ tailscale_serve_routes }}"
+  loop: "{{ tailscale_runtime.config.serve_routes }}"
   loop_control:
     loop_var: tailscale_serve_route
     label: "{{ tailscale_serve_route.port }}"

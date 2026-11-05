@@ -61,8 +61,8 @@
 
 - name: Ensure admin user registered
   ansible.builtin.shell:
-    cmd: "{{ openlitespeed_dir }}/admin/misc/admpass.sh"
-    stdin: "{{ openlitespeed.admin.user }}\n{{ openlitespeed.admin.password }}\n{{ openlitespeed.admin.password }}"
+    cmd: "{{ openlitespeed_runtime.config.dir }}/admin/misc/admpass.sh"
+    stdin: "{{ openlitespeed_runtime.config.admin.user }}\n{{ openlitespeed_runtime.config.admin.password }}\n{{ openlitespeed_runtime.config.admin.password }}"
   become: true
   # TODO: changedを検知できるならfalseはやめる
   changed_when: false
@@ -75,7 +75,7 @@
     name: "{{ [ item.php ] + item.package }}"
     state: present
   become: true
-  loop: "{{ lsphp }}"
+  loop: "{{ openlitespeed_runtime.config.php_versions }}"
   notify: Restart lsphp (Detached mode)
   tags:
     - openlitespeed
@@ -86,15 +86,15 @@
     name: "{{ item.lib }}"
     state: present
   become: true
-  loop: "{{ lsphp }}"
+  loop: "{{ openlitespeed_runtime.config.php_versions }}"
   tags:
     - openlitespeed
     - apt
 
 - name: Update pecl channel
-  ansible.builtin.command: "{{ openlitespeed_dir }}/{{ item.php }}/bin/pecl channel-update pecl.php.net"
+  ansible.builtin.command: "{{ openlitespeed_runtime.config.dir }}/{{ item.php }}/bin/pecl channel-update pecl.php.net"
   become: true
-  loop: "{{ lsphp }}"
+  loop: "{{ openlitespeed_runtime.config.php_versions }}"
   register: command_result
   changed_when: command_result.rc != 0
   tags:
@@ -103,12 +103,12 @@
 
 - name: Ensure that the pecl package is installed
   community.general.pear:
-    executable: "{{ openlitespeed_dir }}/{{ item.php }}/bin/pecl"
+    executable: "{{ openlitespeed_runtime.config.dir }}/{{ item.php }}/bin/pecl"
     name: "{{ item.pecl.package | join(',') }}"
     state: present
     prompts: "{{ item.pecl.prompts }}"
   become: true
-  loop: "{{ lsphp }}"
+  loop: "{{ openlitespeed_runtime.config.php_versions }}"
   notify: Restart lsphp (Detached mode)
   tags:
     - openlitespeed
@@ -117,10 +117,12 @@
 - name: Copy lsphp php.ini file
   ansible.builtin.copy:
     src: "{{ item.php }}/php.ini"
-    dest: "{{ openlitespeed_dir }}/{{ item.php }}/etc/php/{{ item.php | regex_replace('^lsphp', '') | regex_replace('([0-9])([0-9])$', '\\1.\\2') }}/litespeed/php.ini"
+    dest: >-
+      {{ openlitespeed_runtime.config.dir }}/{{ item.php }}/etc/php/{{
+      item.php | regex_replace('^openlitespeed_runtime.config.php_versions', '') | regex_replace('([0-9])([0-9])$', '\1.\2') }}/litespeed/php.ini
     mode: "0644"
   become: true
-  loop: "{{ lsphp }}"
+  loop: "{{ openlitespeed_runtime.config.php_versions }}"
   notify: Restart lsphp (Detached mode)
   tags:
     - openlitespeed
@@ -128,10 +130,12 @@
 - name: Copy lsphp mods ini file
   ansible.builtin.copy:
     src: "{{ item.php }}/mods-available/"
-    dest: "{{ openlitespeed_dir }}/{{ item.php }}/etc/php/{{ item.php | regex_replace('^lsphp', '') | regex_replace('([0-9])([0-9])$', '\\1.\\2') }}/mods-available/"
+    dest: >-
+      {{ openlitespeed_runtime.config.dir }}/{{ item.php }}/etc/php/{{
+      item.php | regex_replace('^openlitespeed_runtime.config.php_versions', '') | regex_replace('([0-9])([0-9])$', '\1.\2') }}/mods-available/
     mode: "0644"
   become: true
-  loop: "{{ lsphp }}"
+  loop: "{{ openlitespeed_runtime.config.php_versions }}"
   notify: Restart lsphp (Detached mode)
   tags:
     - openlitespeed
@@ -144,33 +148,33 @@
     group: www-data
     mode: "0755"
   become: true
-  loop: "{{ openlitespeed.vhosts }}"
+  loop: "{{ openlitespeed_runtime.config.vhosts }}"
   tags:
     - openlitespeed
     - file
 
 - name: Ensure that vhost config directory is exists
   ansible.builtin.file:
-    path: "{{ openlitespeed_dir }}/conf/vhosts/{{ item.name }}"
+    path: "{{ openlitespeed_runtime.config.dir }}/conf/vhosts/{{ item.name }}"
     state: directory
     owner: lsadm
     group: nogroup
     mode: "0750"
   become: true
-  loop: "{{ openlitespeed.vhosts }}"
+  loop: "{{ openlitespeed_runtime.config.vhosts }}"
   tags:
     - openlitespeed
     - file
 
 - name: Ensure that vhosts config file exists
   ansible.builtin.template:
-    src: "inventories/{{ target_inventory }}/templates/openlitespeed/conf/vhosts/{{ item.config | default(item.name) }}/vhconf.conf"
-    dest: "{{ openlitespeed_dir }}/conf/vhosts/{{ item.name }}/vhconf.conf"
+    src: "inventories/{{ deployment.inventory }}/templates/openlitespeed/conf/vhosts/{{ item.config | default(item.name) }}/vhconf.conf"
+    dest: "{{ openlitespeed_runtime.config.dir }}/conf/vhosts/{{ item.name }}/vhconf.conf"
     owner: lsadm
     group: nogroup
     mode: "0750"
   become: true
-  loop: "{{ openlitespeed.vhosts }}"
+  loop: "{{ openlitespeed_runtime.config.vhosts }}"
   notify: Reload openlitespeed
   tags:
     - openlitespeed
@@ -179,11 +183,11 @@
 - name: Ensure that openlitespeed config file exists
   ansible.builtin.template:
     src: conf/httpd_config.conf
-    dest: "{{ openlitespeed_dir }}/conf/httpd_config.conf"
+    dest: "{{ openlitespeed_runtime.config.dir }}/conf/httpd_config.conf"
     owner: lsadm
     group: nogroup
     mode: "0750"
-    # validate: "{{ openlitespeed_dir }}/bin/lshttpd -t"
+    # validate: "{{ openlitespeed_runtime.config.dir }}/bin/lshttpd -t"
   become: true
   notify: Reload openlitespeed
   tags:
@@ -193,7 +197,7 @@
 - name: Ensure that mime.properties file exists
   ansible.builtin.copy:
     src: conf/mime.properties
-    dest: "{{ openlitespeed_dir }}/conf/mime.properties"
+    dest: "{{ openlitespeed_runtime.config.dir }}/conf/mime.properties"
     owner: lsadm
     group: nogroup
     mode: "0750"

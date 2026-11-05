@@ -1,14 +1,14 @@
 ---
 - name: Create a symbolic link for wsl.conf
   ansible.builtin.file:
-    src: "/home/{{ setup_user }}/.config/romira-s-config/Ubuntu/wsl.conf"
+    src: "/home/{{ development.setup_user }}/.config/romira-s-config/Ubuntu/wsl.conf"
     dest: /etc/wsl.conf
     state: link
     owner: root
     force: true
   become: true
   become_user: root
-  when: is_wsl
+  when: development.is_wsl
 
 - name: Create symbolic links for windows binaries
   ansible.builtin.file:
@@ -17,4 +17,4 @@
     state: link
     force: true
   loop: "{{ develop_configuration.wsl_symbolic_links }}"
-  when: is_wsl
+  when: development.is_wsl

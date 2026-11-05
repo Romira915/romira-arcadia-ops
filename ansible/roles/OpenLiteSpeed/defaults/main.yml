@@ -1,14 +1,15 @@
----
 # defaults file for roles/OpenLiteSpeed
-openlitespeed:
+openlitespeed_defaults:  # noqa: var-naming[no-role-prefix]
   admin:
     user:
     password:
   vhosts: []
-lsphp:
-  - php:
-    package: []
-    lib:
-    pecl:
-      package:
-      prompts:
+  php_versions:
+    - php:
+      package: []
+      lib:
+      pecl:
+        package:
+        prompts:
+  dir: /usr/local/lsws
+openlitespeed: {}  # noqa: var-naming[no-role-prefix]

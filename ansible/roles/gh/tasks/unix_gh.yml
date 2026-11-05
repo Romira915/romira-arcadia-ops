@@ -6,7 +6,7 @@
     state: present
     update_homebrew: true
   environment:
-    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+    PATH: "{{ shell.additional_path }}:{{ ansible_facts.env.PATH }}"
   tags:
     - gh
     - configuration
@@ -15,7 +15,7 @@
   ansible.builtin.command: gh config set git_protocol https
   environment:
     GH_TOKEN: "{{ gh.github_fine_grained_token }}"
-    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+    PATH: "{{ shell.additional_path }}:{{ ansible_facts.env.PATH }}"
   changed_when: false
   tags:
     - gh
@@ -25,7 +25,7 @@
   ansible.builtin.shell: gh repo clone {{ item.repo }} {{ item.dest }}
   environment:
     GH_TOKEN: "{{ gh.github_fine_grained_token }}"
-    PATH: "{{ additional_path }}:{{ ansible_facts.env.PATH }}"
+    PATH: "{{ shell.additional_path }}:{{ ansible_facts.env.PATH }}"
   failed_when: "'already exists' not in gh_repo_clone.stderr and gh_repo_clone.rc != 0"
   changed_when: gh_repo_clone.rc == 0
   register: gh_repo_clone

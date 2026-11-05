@@ -3,8 +3,8 @@
   ansible.windows.win_file:
     path: "{{ item }}"
     state: directory
-  loop: "{{ ai_config_dirs }}"
-  when: ai_config_dirs is defined
+  loop: "{{ develop_configuration.ai_config_dirs }}"
+  when: develop_configuration.ai_config_dirs is defined
 
 - name: Inspect symbolic link destinations
   ansible.windows.win_stat:

@@ -54,7 +54,7 @@
 
 - name: Connect Tailscale and configure Serve routes
   ansible.builtin.import_tasks: connect.yml
-  when: tailscale_connect and not ansible_check_mode
+  when: tailscale_runtime.config.connect and not ansible_check_mode
   tags:
     - tailscale
 
@@ -66,7 +66,7 @@
     state: present
     reload: true
   become: true
-  when: tailscale_configure_router
+  when: tailscale_runtime.config.configure_router
   tags:
     - tailscale
     - sysctl
@@ -79,7 +79,7 @@
     state: present
     reload: true
   become: true
-  when: tailscale_configure_router
+  when: tailscale_runtime.config.configure_router
   tags:
     - tailscale
     - sysctl
@@ -87,21 +87,21 @@
 - name: Detect active network device for internet access
   command: ip -o route get 8.8.8.8
   register: route_info
-  when: tailscale_configure_router and not ansible_check_mode
+  when: tailscale_runtime.config.configure_router and not ansible_check_mode
   tags:
     - tailscale
 
 - name: Extract network device name
   set_fact:
     netdev: "{{ route_info.stdout.split()[4] }}"
-  when: tailscale_configure_router and not ansible_check_mode
+  when: tailscale_runtime.config.configure_router and not ansible_check_mode
   tags:
     - tailscale
 
 - name: Apply ethtool settings for the detected device
   command: ethtool -K {{ netdev }} rx-udp-gro-forwarding on rx-gro-list off
   become: true
-  when: tailscale_configure_router and not ansible_check_mode
+  when: tailscale_runtime.config.configure_router and not ansible_check_mode
   tags:
     - tailscale
 
@@ -115,6 +115,6 @@
     group: root
     mode: "0755"
   become: true
-  when: tailscale_configure_router and not ansible_check_mode
+  when: tailscale_runtime.config.configure_router and not ansible_check_mode
   tags:
     - tailscale

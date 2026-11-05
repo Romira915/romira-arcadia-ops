@@ -182,6 +182,15 @@ develop_configuration:
   hard_links:
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\WindowsTerminal\settings.json
       dest: C:\Users\{{ ansible_user }}\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
+  ai_config_dirs:
+    - C:\Users\{{ ansible_user }}\.claude
+    - C:\Users\{{ ansible_user }}\.codex
+    - C:\Users\{{ ansible_user }}\.gemini
+    - C:\Users\{{ ansible_user }}\.config\opencode
+    - C:\Users\{{ ansible_user }}\.config\herdr
+    - C:\Users\{{ ansible_user }}\.config\mise
+    - C:\Users\{{ ansible_user }}\.hermes
+    - C:\Users\{{ ansible_user }}\.local\bin
 gh:
   github_fine_grained_token: "{{ vault_gh.vault_github_fine_grained_token }}"
   repository:
@@ -204,15 +213,6 @@ fonts:
       dest: C:\Users\{{ ansible_user }}\.tmp\fonts\Myrica.zip
     - url: https://github.com/tomokuni/Myrica/raw/master/product/MyricaM.zip
       dest: C:\Users\{{ ansible_user }}\.tmp\fonts\MyricaM.zip
-ai_config_dirs:
-  - C:\Users\{{ ansible_user }}\.claude
-  - C:\Users\{{ ansible_user }}\.codex
-  - C:\Users\{{ ansible_user }}\.gemini
-  - C:\Users\{{ ansible_user }}\.config\opencode
-  - C:\Users\{{ ansible_user }}\.config\herdr
-  - C:\Users\{{ ansible_user }}\.config\mise
-  - C:\Users\{{ ansible_user }}\.hermes
-  - C:\Users\{{ ansible_user }}\.local\bin
 ai_skills:
   src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\skills
   destinations:
@@ -221,15 +221,6 @@ ai_skills:
     - C:\Users\{{ ansible_user }}\.gemini\skills
     - C:\Users\{{ ansible_user }}\.config\opencode\skills
     - C:\Users\{{ ansible_user }}\.hermes\skills
-opencode_env_files:
-  - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\google-oauth-client-id
-    content: "{{ vault_opencode_env.google_oauth_client_id }}"
-  - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\google-oauth-client-secret
-    content: "{{ vault_opencode_env.google_oauth_client_secret }}"
-  - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\user-google-email
-    content: "{{ vault_opencode_env.user_google_email }}"
-  - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\google-maps-api-key
-    content: "{{ vault_opencode_env.google_maps_api_key }}"
 cargo:
   packages:
     - mcfly
@@ -247,11 +238,22 @@ optional_feature:
     - Microsoft-Windows-Subsystem-Linux
     - Containers-DisposableClientVM
 # TODO: get_url installer
-package:
-  - REALFORCE CONNECT Software Setup_3-2-0.exe
-  - BandaiNamcoLauncherNetworkInstaller.exe
-  - iFi (by AMR) HD USB Audio Driver 3.20.exe
-  - NVIDIA_Broadcast_v1.4.0.28.exe
-  - iVCam_x64_v7.0.4.exe
-  - GeForce_Experience_v3.25.1.27.exe
-  - wansview
+opencode:
+  env_files:
+    - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\google-oauth-client-id
+      content: "{{ vault_opencode_env.google_oauth_client_id }}"
+    - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\google-oauth-client-secret
+      content: "{{ vault_opencode_env.google_oauth_client_secret }}"
+    - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\user-google-email
+      content: "{{ vault_opencode_env.user_google_email }}"
+    - dest: C:\Users\{{ ansible_user }}\.config\opencode\env\google-maps-api-key
+      content: "{{ vault_opencode_env.google_maps_api_key }}"
+installers:
+  packages:
+    - REALFORCE CONNECT Software Setup_3-2-0.exe
+    - BandaiNamcoLauncherNetworkInstaller.exe
+    - iFi (by AMR) HD USB Audio Driver 3.20.exe
+    - NVIDIA_Broadcast_v1.4.0.28.exe
+    - iVCam_x64_v7.0.4.exe
+    - GeForce_Experience_v3.25.1.27.exe
+    - wansview

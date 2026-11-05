@@ -1,13 +1,13 @@
 ---
 - name: Inspect the existing OpenClaw configuration
   ansible.builtin.stat:
-    path: "{{ openclaw_data_root }}/state/openclaw.json"
+    path: "{{ openclaw_runtime.config.data_root }}/state/openclaw.json"
   become: true
   register: openclaw_config_file
 
 - name: Read the existing OpenClaw configuration
   ansible.builtin.slurp:
-    src: "{{ openclaw_data_root }}/state/openclaw.json"
+    src: "{{ openclaw_runtime.config.data_root }}/state/openclaw.json"
   become: true
   register: openclaw_existing_config
   no_log: true
@@ -21,7 +21,7 @@
 
 - name: Stop the Gateway before changing its skill configuration
   community.docker.docker_compose_v2:
-    project_src: "{{ openclaw_project_dir }}"
+    project_src: "{{ openclaw_runtime.config.project_dir }}"
     project_name: openclaw
     env_files: [.env]
     services: [openclaw-gateway]
@@ -38,9 +38,9 @@
       - docker
       - compose
       - --env-file
-      - "{{ openclaw_project_dir }}/.env"
+      - "{{ openclaw_runtime.config.project_dir }}/.env"
       - -f
-      - "{{ openclaw_project_dir }}/compose.yaml"
+      - "{{ openclaw_runtime.config.project_dir }}/compose.yaml"
       - run
       - --rm
       - --no-deps
