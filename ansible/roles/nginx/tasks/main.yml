@@ -1,7 +1,7 @@
 ---
 - name: Install nginx
   ansible.builtin.apt:
-    name: "{{ nginx_package }}"
+    name: "{{ nginx_runtime.config.package }}"
     state: present
   become: true
   tags:
@@ -26,7 +26,7 @@
 
 - name: Copy nginx main configuration
   ansible.builtin.copy:
-    src: "{{ nginx_src_dir }}/{{ nginx.config_file | default('nginx.conf') }}"
+    src: "{{ nginx_runtime.config.src_dir }}/{{ nginx_runtime.config.config_file | default('nginx.conf') }}"
     dest: /etc/nginx/nginx.conf
     owner: root
     group: root
@@ -39,13 +39,13 @@
 
 - name: Copy nginx conf.d files
   ansible.builtin.copy:
-    src: "{{ nginx_src_dir }}/conf.d/{{ item }}"
+    src: "{{ nginx_runtime.config.src_dir }}/conf.d/{{ item }}"
     dest: "/etc/nginx/conf.d/{{ item }}"
     owner: root
     group: root
     mode: "0644"
   become: true
-  loop: "{{ nginx.conf_d_files | default([]) }}"
+  loop: "{{ nginx_runtime.config.conf_d_files | default([]) }}"
   notify: Reload nginx
   tags:
     - nginx
@@ -53,13 +53,13 @@
 
 - name: Copy nginx site files
   ansible.builtin.copy:
-    src: "{{ nginx_src_dir }}/sites-available/{{ item }}"
+    src: "{{ nginx_runtime.config.src_dir }}/sites-available/{{ item }}"
     dest: "/etc/nginx/sites-available/{{ item }}"
     owner: root
     group: root
     mode: "0644"
   become: true
-  loop: "{{ nginx.site_files | default([]) }}"
+  loop: "{{ nginx_runtime.config.site_files | default([]) }}"
   notify: Reload nginx
   tags:
     - nginx
@@ -74,7 +74,7 @@
     owner: root
     group: root
   become: true
-  loop: "{{ nginx.enabled_sites | default([]) }}"
+  loop: "{{ nginx_runtime.config.enabled_sites | default([]) }}"
   notify: Reload nginx
   tags:
     - nginx
@@ -82,7 +82,7 @@
 
 - name: Ensure nginx is started and enabled
   ansible.builtin.systemd:
-    name: "{{ nginx_service }}"
+    name: "{{ nginx_runtime.config.service }}"
     state: started
     enabled: true
   become: true

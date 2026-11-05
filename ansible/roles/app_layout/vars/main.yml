@@ -1,0 +1,2 @@
+app_layout_runtime:
+  config: '{{ app_layout_defaults | combine(app_layout, recursive=True) }}'

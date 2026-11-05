@@ -14,7 +14,7 @@
 
 - name: Check if new data-root directory has data
   ansible.builtin.stat:
-    path: "{{ docker.data_root }}/overlay2"
+    path: "{{ docker_runtime.config.data_root }}/overlay2"
   register: new_data_root_stat
   become: true
   tags:
@@ -26,7 +26,7 @@
     docker_migration_needed: >-
       {{
         current_docker_root.rc == 0 and
-        current_docker_root.stdout != docker.data_root and
+        current_docker_root.stdout != docker_runtime.config.data_root and
         not new_data_root_stat.stat.exists
       }}
   tags:
@@ -39,7 +39,7 @@
   block:
     - name: Ensure new Docker data directory exists
       ansible.builtin.file:
-        path: "{{ docker.data_root }}"
+        path: "{{ docker_runtime.config.data_root }}"
         state: directory
         owner: root
         group: root
@@ -73,9 +73,9 @@
 
     - name: Sync Docker data to new location
       ansible.builtin.command: >
-        rsync {{ docker.rsync_opts | default('-aHAXxvP') }}
-        {{ docker.old_data_root | default('/var/lib/docker') }}/
-        {{ docker.data_root }}/
+        rsync {{ docker_runtime.config.rsync_opts | default('-aHAXxvP') }}
+        {{ docker_runtime.config.old_data_root | default('/var/lib/docker') }}/
+        {{ docker_runtime.config.data_root }}/
       become: true
       register: rsync_result
 
@@ -118,19 +118,19 @@
       ansible.builtin.command: docker info --format '{{ '{{' }}.DockerRootDir{{ '}}' }}'
       register: verify_docker_root
       changed_when: false
-      failed_when: verify_docker_root.stdout != docker.data_root
+      failed_when: verify_docker_root.stdout != docker_runtime.config.data_root
       become: true
 
     - name: Display migration success message
       ansible.builtin.debug:
         msg: |
           Docker data-root migration completed successfully!
-          Old location: {{ docker.old_data_root | default('/var/lib/docker') }}
-          New location: {{ docker.data_root }}
+          Old location: {{ docker_runtime.config.old_data_root | default('/var/lib/docker') }}
+          New location: {{ docker_runtime.config.data_root }}
 
           IMPORTANT: After verifying everything works correctly,
           you can manually remove the old data:
-            sudo rm -rf {{ docker.old_data_root | default('/var/lib/docker') }}
+            sudo rm -rf {{ docker_runtime.config.old_data_root | default('/var/lib/docker') }}
 
   rescue:
     - name: Migration failed - attempting rollback
@@ -169,7 +169,7 @@
 # Already migrated message
 - name: Already migrated message
   ansible.builtin.debug:
-    msg: "Docker data-root is already at {{ docker.data_root }}. No migration needed."
+    msg: "Docker data-root is already at {{ docker_runtime.config.data_root }}. No migration needed."
   when: not (docker_migration_needed | default(false))
   tags:
     - docker
@@ -178,14 +178,14 @@
 # Optional: Remove old Docker data (recommended: manual cleanup)
 - name: Remove old Docker data (if configured)
   ansible.builtin.file:
-    path: "{{ docker.old_data_root | default('/var/lib/docker') }}"
+    path: "{{ docker_runtime.config.old_data_root | default('/var/lib/docker') }}"
     state: absent
   become: true
   when:
-    - docker.remove_old_data | default(false)
+    - docker_runtime.config.remove_old_data | default(false)
     - docker_migration_needed | default(false)
     - verify_docker_root is defined
-    - verify_docker_root.stdout == docker.data_root
+    - verify_docker_root.stdout == docker_runtime.config.data_root
   tags:
     - docker
     - docker-migration

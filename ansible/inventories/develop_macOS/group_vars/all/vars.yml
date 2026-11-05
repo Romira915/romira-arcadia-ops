@@ -1,5 +1,3 @@
-additional_path: /opt/homebrew/bin:/opt/homebrew/sbin:~/.cargo/bin
-
 macos_defaults:
   dock_tilesize: 48
   dock_magnification: true
@@ -260,12 +258,15 @@ ai_skills:
     - ~/.gemini/skills
     - ~/.config/opencode/skills
     - ~/.hermes/skills
-opencode_env_files:
-  - dest: ~/.config/opencode/env/google-oauth-client-id
-    content: "{{ vault_opencode_env.google_oauth_client_id }}"
-  - dest: ~/.config/opencode/env/google-oauth-client-secret
-    content: "{{ vault_opencode_env.google_oauth_client_secret }}"
-  - dest: ~/.config/opencode/env/user-google-email
-    content: "{{ vault_opencode_env.user_google_email }}"
-  - dest: ~/.config/opencode/env/google-maps-api-key
-    content: "{{ vault_opencode_env.google_maps_api_key }}"
+shell:
+  additional_path: /opt/homebrew/bin:/opt/homebrew/sbin:~/.cargo/bin
+opencode:
+  env_files:
+    - dest: ~/.config/opencode/env/google-oauth-client-id
+      content: "{{ vault_opencode_env.google_oauth_client_id }}"
+    - dest: ~/.config/opencode/env/google-oauth-client-secret
+      content: "{{ vault_opencode_env.google_oauth_client_secret }}"
+    - dest: ~/.config/opencode/env/user-google-email
+      content: "{{ vault_opencode_env.user_google_email }}"
+    - dest: ~/.config/opencode/env/google-maps-api-key
+      content: "{{ vault_opencode_env.google_maps_api_key }}"

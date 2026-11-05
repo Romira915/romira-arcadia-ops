@@ -2,16 +2,16 @@
 - name: Require encrypted Hermes service credentials
   ansible.builtin.assert:
     that:
-      - vault_hermes_api_server_key is defined
-      - vault_hermes_api_server_key | length >= 32
-      - vault_hermes_dashboard_password is defined
-      - vault_hermes_dashboard_password | length >= 32
-      - vault_hermes_dashboard_secret is defined
-      - vault_hermes_dashboard_secret | length >= 32
-      - vault_hermes_openclaw_mcp_token is defined
-      - vault_hermes_openclaw_mcp_token | length >= 32
-      - vault_hermes_gog_keyring_password is defined
-      - vault_hermes_gog_keyring_password | length >= 32
+      - vault_hermes.api_server_key is defined
+      - vault_hermes.api_server_key | length >= 32
+      - vault_hermes.dashboard_password is defined
+      - vault_hermes.dashboard_password | length >= 32
+      - vault_hermes.dashboard_secret is defined
+      - vault_hermes.dashboard_secret | length >= 32
+      - vault_hermes.openclaw_mcp_token is defined
+      - vault_hermes.openclaw_mcp_token | length >= 32
+      - vault_hermes_gog.keyring_password is defined
+      - vault_hermes_gog.keyring_password | length >= 32
     fail_msg: Encrypted Hermes credentials are missing or too short.
   no_log: true
 
@@ -134,15 +134,15 @@
       ROMIRA_AI_CONFIG_SOURCE={{ hermes.config_source }}
       PERSONAL_FILE_SOURCE={{ hermes.personal_file_source }}
       OBSIDIAN_VAULT_SOURCE={{ hermes.vault_path }}
-      API_SERVER_KEY={{ vault_hermes_api_server_key }}
+      API_SERVER_KEY={{ vault_hermes.api_server_key }}
       HERMES_DASHBOARD_BASIC_AUTH_USERNAME={{ hermes.dashboard_username }}
-      HERMES_DASHBOARD_BASIC_AUTH_PASSWORD={{ vault_hermes_dashboard_password }}
-      HERMES_DASHBOARD_BASIC_AUTH_SECRET={{ vault_hermes_dashboard_secret }}
+      HERMES_DASHBOARD_BASIC_AUTH_PASSWORD={{ vault_hermes.dashboard_password }}
+      HERMES_DASHBOARD_BASIC_AUTH_SECRET={{ vault_hermes.dashboard_secret }}
       HERMES_DASHBOARD_PUBLIC_URL={{ hermes.dashboard_public_url }}
-      HERMES_OPENCLAW_MCP_TOKEN={{ vault_hermes_openclaw_mcp_token }}
+      HERMES_OPENCLAW_MCP_TOKEN={{ vault_hermes.openclaw_mcp_token }}
       GOG_HOME={{ hermes.gog_home }}
       GOG_KEYRING_BACKEND=file
-      GOG_KEYRING_PASSWORD={{ vault_hermes_gog_keyring_password }}
+      GOG_KEYRING_PASSWORD={{ vault_hermes_gog.keyring_password }}
     dest: "{{ hermes.project_dir }}/.env"
     owner: root
     group: root

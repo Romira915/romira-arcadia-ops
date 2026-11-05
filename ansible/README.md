@@ -1,5 +1,26 @@
 # Ansible
 
+## Configuration namespaces
+
+All project configuration uses dictionaries, including existing roles, inventory
+overrides, shared settings, test fixtures, and Vault secrets. For example, use
+`openclaw.project_dir`, `apt.upgrade`, `development.setup_user`, and
+`deployment.inventory` instead of flat variables with prefixes.
+
+Reusable defaults remain in roles. Roles that combine inventory settings with
+defaults use `<role>_defaults`, the public `<role>` override dictionary, and an
+explicit recursive merge in `<role>_runtime.config`. This preserves default
+settings when an inventory overrides only part of a dictionary. Shared defaults
+are not copied into every inventory. Ansible connection variables retain their
+required `ansible_*` names; external role parameters are adapted at the call site.
+
+Run the namespace regression checks from this directory using the Python
+environment that provides Ansible and the existing Vault password file:
+
+```shell
+python -m unittest discover -s tests -p 'test_*.py'
+```
+
 ## Common setup
 
 1. create .vault-password-file

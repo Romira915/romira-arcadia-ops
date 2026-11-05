@@ -15,7 +15,7 @@ postgresql:
     - blog_romira_dev
   users:
     - name: blog
-      password: "{{ vault_postgresql_blog_password }}"
+      password: "{{ vault_postgresql.blog_password }}"
       db: blog_romira_dev
 ```
 

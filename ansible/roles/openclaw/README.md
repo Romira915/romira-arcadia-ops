@@ -14,7 +14,7 @@ OpenClaw uses the existing `ai-config/CLAUDE.md` as its workspace `AGENTS.md`. S
 
 The private file `/mnt/d/openclaw/data/personal/personal.md` is created empty only if absent and mounted read-only as `/home/node/.claude/personal.md` in the containers. Its contents are not managed in Git or overwritten by Ansible.
 
-When `openclaw_proxy_enabled` is enabled, the role trusts the Docker bridge address for proxy attribution and adds the origins listed in `openclaw_proxy_origins` to the Control UI allowlist. Existing entries and Gateway authentication are retained. The reverse proxy itself is configured separately.
+When `openclaw.proxy_enabled` is enabled, the role trusts the Docker bridge address for proxy attribution and adds the origins listed in `openclaw.proxy_origins` to the Control UI allowlist. Existing entries and Gateway authentication are retained. The reverse proxy itself is configured separately.
 
 The role keeps the shared Vault at `/mnt/d/obsidian/vault` and LiveSync state at `/mnt/d/obsidian/livesync`. It verifies that the Vault contains Markdown notes before ensuring LiveSync runs. Compose refuses to create a missing Vault bind mount.
 
@@ -22,4 +22,4 @@ The role retains existing Gateway credentials and state. Gateway access stays on
 
 Run from `ansible/` with the OCI inventory and `--tags openclaw`. Follow the repository guidance for lint, check mode, and apply authorization. Gateway tokens and provider credentials must not be committed.
 
-Role defaults remain in `defaults/main.yml`. Inventory overrides for new settings use the `openclaw` dictionary (`openclaw.vault_access_uids` and `openclaw.cron_shared_state_mcp`). Existing OpenClaw flat settings retain their current interface.
+All OpenClaw settings use the `openclaw` dictionary in the inventory. `openclaw_defaults` in `defaults/main.yml` supplies shared defaults, and `openclaw_runtime.config` merges inventory overrides recursively before tasks and templates consume them.

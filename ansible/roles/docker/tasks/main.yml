@@ -18,7 +18,7 @@
     mode: "0644"
   become: true
   notify: Restart docker
-  when: (docker.data_root | default('/var/lib/docker')) != "/var/lib/docker" or (docker_daemon_config | default({}) | length > 0)
+  when: (docker_runtime.config.data_root | default('/var/lib/docker')) != "/var/lib/docker" or (docker_runtime.config.daemon_config | default({}) | length > 0)
   tags:
     - docker
     - docker-config
@@ -26,7 +26,7 @@
 # Data-root migration process
 - name: Include Docker data-root migration tasks
   ansible.builtin.include_tasks: migrate_data_root.yml
-  when: docker.migrate_data_root | default(false)
+  when: docker_runtime.config.migrate_data_root | default(false)
   tags:
     - docker
     - docker-migration

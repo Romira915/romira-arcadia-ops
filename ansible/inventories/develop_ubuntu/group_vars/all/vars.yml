@@ -1,6 +1,3 @@
-is_wsl: true
-setup_user: romira
-windows_user: romira
 apt:
   dependencies:
     - "{{ (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('8', '<')) | ternary('python-apt', 'python3-apt') }}"
@@ -117,7 +114,7 @@ develop_configuration:
   wsl_symbolic_links:
     - src: /mnt/c/Windows/System32/clip.exe
       dest: ~/.local/bin/clip
-    - src: /mnt/c/Users/{{ windows_user }}/AppData/Local/Programs/Microsoft VS Code/bin/code
+    - src: /mnt/c/Users/{{ development.windows_user }}/AppData/Local/Programs/Microsoft VS Code/bin/code
       dest: ~/.local/bin/code
     - src: /mnt/c/Windows/explorer.exe
       dest: ~/.local/bin/explorer
@@ -129,9 +126,9 @@ develop_configuration:
       dest: ~/.local/bin/msedge
     - src: ~/.local/share/JetBrains/Toolbox/apps/rustrover/bin/rustrover
       dest: ~/.local/bin/rustrover
-    - src: /mnt/c/Users/{{ windows_user }}/AppData/Local/Programs/Obsidian/Obsidian.exe
+    - src: /mnt/c/Users/{{ development.windows_user }}/AppData/Local/Programs/Obsidian/Obsidian.exe
       dest: ~/.local/bin/obsidian
-    - src: /mnt/c/Users/{{ windows_user }}/AppData/Local/Programs/Zed/bin/zed
+    - src: /mnt/c/Users/{{ development.windows_user }}/AppData/Local/Programs/Zed/bin/zed
       dest: ~/.local/bin/zed
 gh:
   github_fine_grained_token: "{{ vault_gh.vault_github_fine_grained_token }}"
@@ -151,7 +148,6 @@ user:
       password_salt: "{{ vault_user.vault_romira.vault_password_salt }}"
       authorized_keys: https://github.com/Romira915.keys
   absent_users: []
-additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/romira/.cargo/bin
 ai_skills:
   src: ~/.config/romira-s-config/ai-config/skills
   destinations:
@@ -160,15 +156,25 @@ ai_skills:
     - ~/.gemini/skills
     - ~/.config/opencode/skills
     - ~/.hermes/skills
-opencode_env_files:
-  - dest: ~/.config/opencode/env/google-oauth-client-id
-    content: "{{ vault_opencode_env.google_oauth_client_id }}"
-  - dest: ~/.config/opencode/env/google-oauth-client-secret
-    content: "{{ vault_opencode_env.google_oauth_client_secret }}"
-  - dest: ~/.config/opencode/env/user-google-email
-    content: "{{ vault_opencode_env.user_google_email }}"
-  - dest: ~/.config/opencode/env/google-maps-api-key
-    content: "{{ vault_opencode_env.google_maps_api_key }}"
 brew:
   extra_packages:
     - xsel
+development:
+  is_wsl: true
+  setup_user: romira
+  windows_user: romira
+shell:
+  additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:/home/romira/.cargo/bin
+opencode:
+  env_files:
+    - dest: ~/.config/opencode/env/google-oauth-client-id
+      content: "{{ vault_opencode_env.google_oauth_client_id }}"
+    - dest: ~/.config/opencode/env/google-oauth-client-secret
+      content: "{{ vault_opencode_env.google_oauth_client_secret }}"
+    - dest: ~/.config/opencode/env/user-google-email
+      content: "{{ vault_opencode_env.user_google_email }}"
+    - dest: ~/.config/opencode/env/google-maps-api-key
+      content: "{{ vault_opencode_env.google_maps_api_key }}"
+linuxbrew:
+  use_installer: true
+  init_shell: false

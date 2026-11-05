@@ -8,7 +8,7 @@
 
 - name: Reload nginx
   ansible.builtin.systemd:
-    name: "{{ nginx_service }}"
+    name: "{{ nginx_runtime.config.service }}"
     state: reloaded
   become: true
   when: not ansible_check_mode

@@ -73,7 +73,7 @@ All Terraform projects use tfmigrate for import history management (see `tfmigra
 - **ansible/inventories/**: Host-specific configurations
   - Each inventory has `group_vars/all/vars.yml` and `vault.yml`
   - Vault password is auto-loaded via ansible.cfg
-- Keep reusable role defaults in `roles/<role>/defaults/main.yml` and role constants in `roles/<role>/vars/main.yml`. Put environment-specific overrides in the selected inventory's `group_vars/all/vars.yml` and secrets in its encrypted Vault files. New role settings must be nested under a role dictionary (for example, `hermes.project_dir`); do not add flat top-level settings such as `hermes_project_dir` or copy shared defaults into every inventory. Preserve existing variable interfaces unless a migration is required by the task.
+- All project-owned configuration inputs must be dictionaries at the top level, throughout role defaults/vars, inventories, playbooks, and test fixtures. This applies to existing settings and every task, regardless of the PR scope; scalar prefixes such as `openclaw_project_dir` are not namespaces. Keep role settings under their role dictionary and shared settings under a named dictionary such as `development`, `deployment`, or `shell`. Preserve reusable defaults in roles and environment overrides in inventories. Where dictionary overrides need defaults, merge `<role>_defaults` with the public role dictionary into `<role>_runtime.config` explicitly; do not rely on Ansible's default dictionary replacement. Ansible's own `ansible_*` inputs and external role API parameter names retain their required names; adapt external APIs at the call site from project dictionaries. Registered results and computed task facts are runtime state, not configuration inputs. Secrets stay encrypted and scalar secrets are grouped into Vault dictionaries.
 - **Playbooks**: `site.yml` (main), `develop_*.yml` (dev environments), server-specific (homeserver.yml, wakaba.yml, hinokuni.yml, oci-tokyo-ampere.yml)
 
 ### Security Considerations
@@ -113,4 +113,4 @@ When modifying Ansible:
 2. Run the playbook with `--check --diff` flags by default.
 3. Run the full playbook only when the user has explicitly authorized the target and operation.
 4. Verify no sensitive data is exposed in plain text
-5. Confirm new role settings are namespaced dictionaries, reusable defaults remain in their roles, and environment-specific overrides stay in the target inventory.
+5. Run `tests/test_variable_namespaces.py` with the Python interpreter used by Ansible to verify all configuration sources, including existing roles and test fixtures. Confirm reusable defaults remain in roles and inventory overrides retain their effective values.

@@ -1,5 +1,3 @@
----
-target_inventory: homeserver
 apt:
   package:
     - unzip
@@ -88,33 +86,33 @@ openlitespeed:
       group: www-data
     - name: api.home.discord.romira.dev
       root: /var/www/discord
-lsphp:
-  - php: lsphp82
-    package:
-      - lsphp82-common
-      - lsphp82-curl
-      - lsphp82-mysql
-      - lsphp82-opcache
-      - lsphp82-imap
-      - lsphp82-apcu
-      - lsphp82-intl
-      - lsphp82-memcached
-      - lsphp82-redis
-      - lsphp82-pear
-      - lsphp82-imagick
-    lib:
-      - libsmbclient-dev
-      - zlib1g-dev
-      - pkg-config
-      - libmagickwand-dev
-    pecl:
+  php_versions:
+    - php: lsphp82
       package:
-        - smbclient
-        - memcache
+        - lsphp82-common
+        - lsphp82-curl
+        - lsphp82-mysql
+        - lsphp82-opcache
+        - lsphp82-imap
+        - lsphp82-apcu
+        - lsphp82-intl
+        - lsphp82-memcached
+        - lsphp82-redis
+        - lsphp82-pear
+        - lsphp82-imagick
+      lib:
+        - libsmbclient-dev
+        - zlib1g-dev
+        - pkg-config
+        - libmagickwand-dev
+      pecl:
+        package:
+          - smbclient
+          - memcache
         # - imagick
-      prompts:
-        - null
-        - (.*)Enable memcache session handler support? \[yes\]: "yes"
+        prompts:
+          -
+          - (.*)Enable memcache session handler support? \[yes\]: "yes"
         # - Please provide the prefix of ImageMagick installation \[autodetect\]: "autodetect"
 mysql:
   login_user: root
@@ -140,3 +138,5 @@ nextcloud:
   apps:
     - files_external
   maintenance_window_start: 14
+deployment:
+  inventory: homeserver

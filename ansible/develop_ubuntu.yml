@@ -13,17 +13,16 @@
 - name: Linuxbrew installation
   hosts: develop_ubuntu
   roles:
-    - markosamuli.linuxbrew
-  vars:
-    linuxbrew_use_installer: true
-    linuxbrew_init_shell: false
+    - role: markosamuli.linuxbrew
+      linuxbrew_use_installer: "{{ linuxbrew.use_installer }}"
+      linuxbrew_init_shell: "{{ linuxbrew.init_shell }}"
   tags: develop_ubuntu
 
 # Play 3: User tools provisioning (setup_user)
 - name: User tools provisioning
   hosts: develop_ubuntu
   become: true
-  become_user: "{{ setup_user }}"
+  become_user: "{{ development.setup_user }}"
   pre_tasks:
     - name: Load common Homebrew selections
       ansible.builtin.include_vars:
@@ -44,7 +43,7 @@
 - name: User environment setup
   hosts: develop_ubuntu
   become: true
-  become_user: "{{ setup_user }}"
+  become_user: "{{ development.setup_user }}"
   gather_facts: true
   tasks:
     - name: Import symlink tasks
@@ -130,7 +129,7 @@
 - name: Set up only wsl configuration
   hosts: develop_ubuntu
   become: true
-  become_user: "{{ setup_user }}"
+  become_user: "{{ development.setup_user }}"
   tasks:
     - name: Import wsl tasks
       ansible.builtin.import_tasks:

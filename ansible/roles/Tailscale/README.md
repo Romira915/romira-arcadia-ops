@@ -1,10 +1,10 @@
 # Tailscale
 
-This role installs Tailscale on Ubuntu Noble. Existing router-oriented forwarding and NIC settings are controlled by `tailscale_configure_router`, which defaults to `true` to preserve existing hosts' behavior.
+This role installs Tailscale on Ubuntu Noble. Existing router-oriented forwarding and NIC settings are controlled by `tailscale.configure_router`, which defaults to `true` to preserve existing hosts' behavior.
 
 Set `tailscale_connect: true` to run `tailscale up` with default client settings. If interactive authentication is required, the playbook reports the login URL and stops; complete authentication and rerun it.
 
-With `tailscale_connect: true`, configure tailnet-only HTTPS proxies with `tailscale_serve_routes`, for example:
+With `tailscale_connect: true`, configure tailnet-only HTTPS proxies with `tailscale.serve_routes`, for example:
 
 ```yaml
 tailscale_serve_routes:

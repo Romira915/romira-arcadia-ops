@@ -6,18 +6,17 @@
   roles:
     - ../../
 #  vars:
-#    apt_manage_sources_list: true
-#
-#    apt_ubuntu_partner_enable: true
-#    apt_ubuntu_extras_enable: true
-#
-#    apt_dpkg_configure: true
-#    apt_etc_apt_apt_conf:
-#      - |
-#        APT {
-#          Install-Recommends "false";
-#          Install-Suggests "false";
-#          Get {
-#            Fix-Broken "true";
+#    apt:
+#      manage_sources_list: true
+#      ubuntu_partner_enable: true
+#      ubuntu_extras_enable: true
+#      dpkg_configure: true
+#      etc_apt_apt_conf:
+#        - |
+#          APT {
+#            Install-Recommends "false";
+#            Install-Suggests "false";
+#            Get {
+#              Fix-Broken "true";
+#            };
 #          };
-#        };

@@ -1,7 +1,7 @@
 services:
   livesync-cli:
     build: !reset null
-    image: "{{ openclaw_livesync_image }}"
+    image: "{{ openclaw_runtime.config.livesync_image }}"
     entrypoint: [/bin/sh, -c]
     command:
       - |
@@ -14,10 +14,10 @@ services:
       LIVESYNC_DB_PATH: /data
     volumes:
       - type: bind
-        source: "{{ openclaw_vault_path }}"
+        source: "{{ openclaw_runtime.config.vault_path }}"
         target: /vault
         bind:
           create_host_path: false
       - type: bind
-        source: "{{ openclaw_livesync_data }}"
+        source: "{{ openclaw_runtime.config.livesync_data }}"
         target: /data

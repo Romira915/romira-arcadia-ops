@@ -1,19 +1,4 @@
----
 # vars for oci-tokyo-ampere
-
-target_inventory: oci-tokyo-ampere
-
-tailscale_configure_router: false
-tailscale_connect: true
-openclaw_tailscale_port: 8443
-tailscale_serve_routes:
-  - port: "{{ openclaw_tailscale_port }}"
-    target: http://127.0.0.1:18789
-  - port: "{{ hermes.tailscale_port }}"
-    target: http://127.0.0.1:19119
-openclaw_proxy_enabled: true
-openclaw_proxy_origins:
-  - "https://ampere-instance.tail340994.ts.net:{{ openclaw_tailscale_port }}"
 
 apt:
   package:
@@ -86,81 +71,15 @@ postgresql:
       owner: comiketer
   users:
     - name: blog
-      password: "{{ vault_postgresql_blog_password }}"
+      password: "{{ vault_postgresql.blog_password }}"
       db: blog_romira_dev
     - name: comiketer
 
-systemd_units:
-  - name: blog-romira-dev-leptos.service
-  - name: discord-bot-mgpf.service
-  - name: hasu-music-quiz-backend.service
-  - name: vaultwarden.service
-
-# Docker data-root migration settings
 docker:
   migrate_data_root: true
   data_root: "/mnt/d/docker"
   old_data_root: "/var/lib/docker"
   remove_old_data: false
-
-app_layouts:
-  - name: hasu-music-quiz-backend
-    path: /opt/hasu-music-quiz-backend
-    owner: root
-    group: root
-    mode: "0755"
-    directories:
-      - path: bin
-        owner: root
-        group: root
-        mode: "0755"
-    required_files:
-      - path: systemd_env
-        managed: true
-        owner: root
-        group: root
-        mode: "0600"
-      - path: bin/hasu-music-quiz-backend
-        managed: false
-
-  - name: blog-romira-dev-leptos
-    path: /usr/local/blog-romira-dev-leptos
-    owner: ubuntu
-    group: ubuntu
-    mode: "0755"
-    directories:
-      - path: bin
-        owner: ubuntu
-        group: ubuntu
-        mode: "0755"
-    required_files:
-      - path: systemd_env
-        managed: false
-      - path: bin/blog-romira-dev-server
-        managed: false
-
-  - name: vaultwarden
-    path: /usr/local/vaultwarden
-    owner: root
-    group: root
-    mode: "0755"
-    directories:
-      - path: vw-data
-        owner: root
-        group: root
-        mode: "0755"
-    required_files:
-      - path: docker-compose.yml
-        managed: false
-
-  - name: obsidian-livesync
-    path: /usr/local/obsidian-livesync
-    owner: ubuntu
-    group: ubuntu
-    mode: "0755"
-    required_files:
-      - path: compose.yaml
-        managed: false
 
 newrelic:
   infra:
@@ -186,6 +105,11 @@ openclaw:
         - shared_state_get
         - shared_state_set
 
+  tailscale_port: 8443
+  proxy_enabled: true
+  proxy_origins:
+    - "https://ampere-instance.tail340994.ts.net:{{ openclaw.tailscale_port }}"
+
 hermes:
   tailscale_port: 8444
   dashboard_public_url: "https://ampere-instance.tail340994.ts.net:{{ hermes.tailscale_port }}"
@@ -208,11 +132,90 @@ hermes:
   api_host_port: 18642
   image: docker.io/nousresearch/hermes-agent:latest@sha256:9c5561579f3ffdf333401797094ac3a743738d6c25d40f4331c7bf77b694238d
 
-vault_newrelic_license_key: !vault |
-  $ANSIBLE_VAULT;1.1;AES256
-  39383965306137323061393966353931613931373434623531336539313535663831343766373830
-  6338343461336433633437323531303665616435316366630a653765386133323861333164633162
-  61306166353137393663646161353465363134666235613766656133356265643932646235643032
-  3333633761373739380a306463323666313762373263613034663665383834623565376530386633
-  36633066643465346335636538383834656532623230643331376665366261366364356235646638
-  3738303562323630373737656337396162336431366234376165
+deployment:
+  inventory: oci-tokyo-ampere
+tailscale:
+  configure_router: false
+  connect: true
+  serve_routes:
+    - port: "{{ openclaw.tailscale_port }}"
+      target: http://127.0.0.1:18789
+    - port: "{{ hermes.tailscale_port }}"
+      target: http://127.0.0.1:19119
+systemd_units:
+  units:
+    - name: blog-romira-dev-leptos.service
+    - name: discord-bot-mgpf.service
+    - name: hasu-music-quiz-backend.service
+    - name: vaultwarden.service
+
+# Docker data-root migration settings
+app_layout:
+  layouts:
+    - name: hasu-music-quiz-backend
+      path: /opt/hasu-music-quiz-backend
+      owner: root
+      group: root
+      mode: "0755"
+      directories:
+        - path: bin
+          owner: root
+          group: root
+          mode: "0755"
+      required_files:
+        - path: systemd_env
+          managed: true
+          owner: root
+          group: root
+          mode: "0600"
+        - path: bin/hasu-music-quiz-backend
+          managed: false
+
+    - name: blog-romira-dev-leptos
+      path: /usr/local/blog-romira-dev-leptos
+      owner: ubuntu
+      group: ubuntu
+      mode: "0755"
+      directories:
+        - path: bin
+          owner: ubuntu
+          group: ubuntu
+          mode: "0755"
+      required_files:
+        - path: systemd_env
+          managed: false
+        - path: bin/blog-romira-dev-server
+          managed: false
+
+    - name: vaultwarden
+      path: /usr/local/vaultwarden
+      owner: root
+      group: root
+      mode: "0755"
+      directories:
+        - path: vw-data
+          owner: root
+          group: root
+          mode: "0755"
+      required_files:
+        - path: docker-compose.yml
+          managed: false
+
+    - name: obsidian-livesync
+      path: /usr/local/obsidian-livesync
+      owner: ubuntu
+      group: ubuntu
+      mode: "0755"
+      required_files:
+        - path: compose.yaml
+          managed: false
+
+vault_newrelic:
+  license_key: !vault |
+    $ANSIBLE_VAULT;1.1;AES256
+    39383965306137323061393966353931613931373434623531336539313535663831343766373830
+    6338343461336433633437323531303665616435316366630a653765386133323861333164633162
+    61306166353137393663646161353465363134666235613766656133356265643932646235643032
+    3333633761373739380a306463323666313762373263613034663665383834623565376530386633
+    36633066643465346335636538383834656532623230643331376665366261366364356235646638
+    3738303562323630373737656337396162336431366234376165

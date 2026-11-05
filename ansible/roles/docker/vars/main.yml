@@ -1,2 +1,2 @@
----
-# vars file for docker
+docker_runtime:
+  config: '{{ docker_defaults | combine(docker, recursive=True) }}'

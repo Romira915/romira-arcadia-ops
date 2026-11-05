@@ -1,6 +1,6 @@
----
 # defaults file for roles/win_gh
-gh:
+gh:  # noqa: var-naming[no-role-prefix]
   github_fine_grained_token:
   repository: []
-additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin
+shell:  # noqa: var-naming[no-role-prefix]
+  additional_path: /home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin
