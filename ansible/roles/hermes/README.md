@@ -14,6 +14,15 @@ Gog is the standard Google Workspace interface for Hermes conversations and Cron
 
 The derived Hermes image and Compose service both add `/opt/data/bin` to `PATH`, so the gateway and its command tools resolve commands such as `gog`. The role replaces the bundled Google Workspace skill with a Gog-first version and removes its retired Python helper scripts and the unused duplicate OAuth client copy. It also removes the legacy `google-readonly` MCP and token only after confirming that no Cron configuration or prompt references them. The original OAuth client file is left untouched.
 
-The Compose file leaves CPU and memory limits unset, so Hermes can use the OCI VM's available resources. The VM's current size is 2 OCPU and 12 GB RAM. Hermes model/provider authentication is instance-local and must be completed in the dashboard before the agent can answer.
+The Compose file leaves CPU and memory limits unset, so Hermes can use the OCI VM's available resources. The VM's current size is 2 OCPU and 12 GB RAM. Hermes model/provider authentication is instance-local.
+
+The derived image includes Claude Code pinned to the version in `files/image/Dockerfile`. The role installs the official `claude-subscription-directsdk` plugin into persistent storage without changing the selected model. For Claude Pro/Max, log in using the official CLI as the runtime user:
+
+```sh
+ssh -t oci-tokyo-ampere 'sudo docker exec -it --user 10000:10000 hermes-agent claude auth login'
+ssh -t oci-tokyo-ampere 'sudo docker exec -it --user 10000:10000 hermes-agent /opt/hermes/bin/hermes model'
+```
+
+Open the login URL in your local browser and finish the CLI's prompts, then select `Claude Subscription DirectSDK (Experimental)` in the model picker. Claude stores its login under the persistent `/opt/data` home; do not copy tokens into Ansible or the host environment. This experimental subscription provider is distinct from native Anthropic OAuth, which requires Max extra usage credits. See the [official plugin instructions](https://hermes-agent.nousresearch.com/docs/plugins/claude-subscription-directsdk).
 
 Run from `ansible/` with the OCI inventory and `--tags hermes,openclaw,tailscale` after explicit user authorization. The Hermes Docker install is updated by changing the image digest and re-running the role; `hermes update` is not supported in Docker.

@@ -159,7 +159,7 @@
     mode: '0644'
   become: true
 
-- name: Deploy the sudo-enabled Hermes image definition
+- name: Deploy the Hermes image definition with sudo and Claude Code
   ansible.builtin.copy:
     src: image/Dockerfile
     dest: "{{ hermes_project_dir }}/image/Dockerfile"
@@ -196,6 +196,24 @@
   until:
     - hermes_api_health.status == 200
     - (hermes_api_health.json | default({})).status == 'ok'
+  when: not ansible_check_mode
+
+- name: Install the official Claude subscription provider in persistent storage
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes_user_uid }}:{{ hermes_user_uid }}"
+      - hermes-agent
+      - /opt/hermes/bin/hermes
+      - plugins
+      - install
+      - claude-subscription-directsdk
+      - --yes-deps
+      - --enable
+    creates: "{{ hermes_data_root }}/plugins/claude-subscription-directsdk-experimental/plugin.yaml"
+  become: true
   when: not ansible_check_mode
 
 - name: Read Hermes shared-skill configuration

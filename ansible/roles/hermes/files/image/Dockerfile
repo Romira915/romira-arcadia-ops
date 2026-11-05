@@ -9,6 +9,11 @@ RUN install -d /etc/profile.d \
 
 USER root
 
+ARG CLAUDE_CODE_VERSION=2.1.318
+RUN npm install --global --prefix /usr/local --allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
+    && npm cache clean --force \
+    && claude --version
+
 RUN set -eux; \
     test "$(id -u hermes)" = "10000"; \
     apt-get update; \
