@@ -301,14 +301,14 @@
           - config
           - set
           - mcp.servers.cron_shared_state
-          - "{{ openclaw_cron_shared_state_mcp | to_json }}"
+          - "{{ openclaw.cron_shared_state_mcp | to_json }}"
           - --strict-json
       become: true
       register: openclaw_cron_shared_state_mcp_set
       changed_when: true
       when: >-
         openclaw_cron_shared_state_mcp_current.rc != 0 or
-        (openclaw_cron_shared_state_mcp_current.stdout | from_json) != openclaw_cron_shared_state_mcp
+        (openclaw_cron_shared_state_mcp_current.stdout | from_json) != openclaw.cron_shared_state_mcp
 
     - name: Verify the Cron shared-state MCP server
       ansible.builtin.command:

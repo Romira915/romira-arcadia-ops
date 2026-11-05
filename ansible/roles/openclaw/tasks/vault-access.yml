@@ -35,7 +35,7 @@
     recursive: true
     state: present
   become: true
-  loop: "{{ openclaw_vault_access_uids }}"
+  loop: "{{ openclaw.vault_access_uids }}"
   loop_control:
     label: "UID {{ item }}"
 
@@ -60,6 +60,6 @@
   loop: >-
     {{ ([openclaw_vault_path] +
         (openclaw_shared_vault_directories.files | map(attribute='path') | list))
-       | product(openclaw_vault_access_uids) | list }}
+       | product(openclaw.vault_access_uids) | list }}
   loop_control:
     label: "{{ item.0 }} for UID {{ item.1 }}"

@@ -1,0 +1,11 @@
+---
+# defaults file for roles/MySQL
+mysql:
+  login_user: root
+  login_password:
+  login_unix_socket:
+  databases: []
+  users:
+    - name:
+      password:
+      priv:

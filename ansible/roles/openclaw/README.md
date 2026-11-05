@@ -21,3 +21,5 @@ The role keeps the shared Vault at `/mnt/d/obsidian/vault` and LiveSync state at
 The role retains existing Gateway credentials and state. Gateway access stays on loopback and is reached through the separately configured Tailscale Serve route.
 
 Run from `ansible/` with the OCI inventory and `--tags openclaw`. Follow the repository guidance for lint, check mode, and apply authorization. Gateway tokens and provider credentials must not be committed.
+
+Role defaults remain in `defaults/main.yml`. Inventory overrides for new settings use the `openclaw` dictionary (`openclaw.vault_access_uids` and `openclaw.cron_shared_state_mcp`). Existing OpenClaw flat settings retain their current interface.

@@ -1,0 +1,14 @@
+---
+# defaults file for roles/OpenLiteSpeed
+openlitespeed:
+  admin:
+    user:
+    password:
+  vhosts: []
+lsphp:
+  - php:
+    package: []
+    lib:
+    pecl:
+      package:
+      prompts:

@@ -73,7 +73,7 @@ All Terraform projects use tfmigrate for import history management (see `tfmigra
 - **ansible/inventories/**: Host-specific configurations
   - Each inventory has `group_vars/all/vars.yml` and `vault.yml`
   - Vault password is auto-loaded via ansible.cfg
-- Runtime settings belong in the selected inventory's `group_vars/all/vars.yml`; secrets belong in its `vault.yml`. Do not define deployment settings in role `defaults/main.yml`, role `vars/main.yml`, or play-level `vars:`. Test-only fixture values may stay in test playbooks.
+- Keep reusable role defaults in `roles/<role>/defaults/main.yml` and role constants in `roles/<role>/vars/main.yml`. Put environment-specific overrides in the selected inventory's `group_vars/all/vars.yml` and secrets in its encrypted Vault files. New role settings must be nested under a role dictionary (for example, `hermes.project_dir`); do not add flat top-level settings such as `hermes_project_dir` or copy shared defaults into every inventory. Preserve existing variable interfaces unless a migration is required by the task.
 - **Playbooks**: `site.yml` (main), `develop_*.yml` (dev environments), server-specific (homeserver.yml, wakaba.yml, hinokuni.yml, oci-tokyo-ampere.yml)
 
 ### Security Considerations
@@ -113,4 +113,4 @@ When modifying Ansible:
 2. Run the playbook with `--check --diff` flags by default.
 3. Run the full playbook only when the user has explicitly authorized the target and operation.
 4. Verify no sensitive data is exposed in plain text
-5. Confirm runtime variables are in the selected inventory's `group_vars/all/vars.yml`; any Playbook `vars:` must be test-only.
+5. Confirm new role settings are namespaced dictionaries, reusable defaults remain in their roles, and environment-specific overrides stay in the target inventory.

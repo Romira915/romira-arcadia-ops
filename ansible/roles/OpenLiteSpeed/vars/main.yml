@@ -1,0 +1,3 @@
+---
+# vars file for roles/OpenLiteSpeed
+openlitespeed_dir: /usr/local/lsws

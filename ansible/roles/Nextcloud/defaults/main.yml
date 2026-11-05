@@ -1,0 +1,14 @@
+---
+# defaults file for roles/Nextcloud
+nextcloud:
+  executable_php:
+  trusted_domain:
+  database:
+  database_name:
+  database_user:
+  database_pass:
+  admin_user:
+  admin_pass:
+  redis_host:
+  redis_port:
+  apps: []

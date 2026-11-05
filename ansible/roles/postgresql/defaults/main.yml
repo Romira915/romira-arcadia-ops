@@ -1,0 +1,9 @@
+---
+# defaults file for roles/postgresql
+postgresql:
+  databases: []
+  users: []
+  # users:
+  #   - name: myuser
+  #     password: mypassword
+  #     db: mydatabase
