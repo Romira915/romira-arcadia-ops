@@ -66,6 +66,7 @@
     - {path: "{{ hermes.data_root }}/workspace/obsidian-vault", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/.claude", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/shared-skills", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
+    - {path: "{{ hermes.data_root }}/shared-config", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
 
 - name: Ensure the Google Workspace skill directory exists
   ansible.builtin.file:
@@ -105,14 +106,14 @@
     state: absent
   become: true
 
-- name: Ensure read-only shared context mount target exists
-  ansible.builtin.copy:
-    content: ''
-    dest: "{{ hermes.data_root }}/workspace/AGENTS.md"
-    owner: "{{ hermes.user_uid }}"
-    group: "{{ hermes.user_uid }}"
-    mode: '0400'
-    force: false
+- name: Link the workspace AGENTS.md to the shared CLAUDE.md inside the container
+  # Why: a directory mount sees git's file replacements without a container restart,
+  # which a single-file mount would not. Hermes reads AGENTS.md at session start.
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/workspace/AGENTS.md"
+    src: /opt/data/shared-config/CLAUDE.md
+    state: link
+    force: true
   become: true
 
 - name: Ensure read-only personal file mount target exists
@@ -672,9 +673,9 @@
         | map(attribute='Source') | list) == [hermes.config_source ~ '/skills']
       - >-
         ((hermes_container_mounts.stdout | from_json)
-        | selectattr('Destination', 'equalto', '/opt/data/workspace/AGENTS.md')
+        | selectattr('Destination', 'equalto', '/opt/data/shared-config')
         | selectattr('RW', 'equalto', false)
-        | map(attribute='Source') | list) == [hermes.config_source ~ '/CLAUDE.md']
+        | map(attribute='Source') | list) == [hermes.config_source]
       - >-
         ((hermes_container_mounts.stdout | from_json)
         | selectattr('Destination', 'equalto', '/opt/data/.claude/personal.md')
@@ -686,6 +687,29 @@
         | selectattr('RW', 'equalto', true)
         | map(attribute='Source') | list) == [hermes.vault_path]
     fail_msg: Hermes container mounts differ from the intended configuration.
+  when: not ansible_check_mode
+
+- name: Confirm the workspace AGENTS.md resolves to the shared CLAUDE.md inside the container
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes.user_uid }}:{{ hermes.user_uid }}"
+      - hermes-agent
+      - readlink
+      - -f
+      - /opt/data/workspace/AGENTS.md
+  become: true
+  register: hermes_agents_link
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Validate the AGENTS.md link target
+  ansible.builtin.assert:
+    that:
+      - hermes_agents_link.stdout | trim == '/opt/data/shared-config/CLAUDE.md'
+    fail_msg: Hermes workspace AGENTS.md does not resolve to the shared CLAUDE.md.
   when: not ansible_check_mode
 
 - name: Verify shared skills are visible to Hermes
@@ -719,3 +743,13 @@
       - "'basic' in hermes_dashboard_status.json.auth_providers"
     fail_msg: Hermes dashboard password authentication is not active.
   when: not ansible_check_mode
+
+- name: Deploy the hourly shared configuration sync script
+  ansible.builtin.copy:
+    src: config-sync.sh
+    dest: /usr/local/bin/hermes-config-sync
+    owner: root
+    group: root
+    mode: '0750'
+  become: true
+
