@@ -752,6 +752,6 @@
     dest: /usr/local/bin/hermes-config-sync
     owner: root
     group: root
-    mode: '0750'
+    mode: '0755'
   become: true
 
