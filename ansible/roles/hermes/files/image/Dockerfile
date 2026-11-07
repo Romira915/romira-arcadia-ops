@@ -9,6 +9,10 @@ RUN install -d /etc/profile.d \
 
 USER root
 
+RUN set -eux; \
+    if ! getent group 1001 >/dev/null; then groupadd --gid 1001 oci-share; fi; \
+    usermod --append --groups "$(getent group 1001 | cut -d: -f1)" hermes
+
 ARG CLAUDE_CODE_VERSION=2.1.318
 RUN npm install --global --prefix /usr/local --allow-scripts=@anthropic-ai/claude-code @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
     && npm cache clean --force \

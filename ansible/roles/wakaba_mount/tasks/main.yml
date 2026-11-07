@@ -1,0 +1,51 @@
+---
+- name: Load wakaba Samba credentials from the existing encrypted inventory
+  ansible.builtin.include_vars:
+    file: "{{ playbook_dir }}/inventories/wakaba/group_vars/all/vault.yml"
+    name: wakaba_secrets
+  no_log: true
+
+- name: Install CIFS client tools
+  ansible.builtin.apt:
+    name: cifs-utils
+    state: present
+    update_cache: true
+  become: true
+
+- name: Create wakaba mount point
+  ansible.builtin.file:
+    path: /mnt/z
+    state: directory
+    mode: '0755'
+  become: true
+
+- name: Store wakaba Samba credentials
+  ansible.builtin.copy:
+    content: |
+      username=romira
+      password={{ wakaba_secrets.vault_user.vault_romira.vault_password }}
+    dest: /etc/wakaba-samba.credentials
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+  no_log: true
+
+- name: Configure on-demand wakaba mount
+  ansible.posix.mount:
+    path: /mnt/z
+    src: //wakaba.tail340994.ts.net/romira
+    fstype: cifs
+    opts: credentials=/etc/wakaba-samba.credentials,rw,uid=1001,gid=1001,file_mode=0770,dir_mode=0770,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.mount-timeout=15
+    state: present
+  become: true
+  register: wakaba_mount_result
+
+- name: Enable wakaba automount
+  ansible.builtin.systemd:
+    name: mnt-z.automount
+    daemon_reload: true
+    enabled: true
+    state: "{{ 'restarted' if wakaba_mount_result.changed else 'started' }}"
+  become: true
+  when: not ansible_check_mode

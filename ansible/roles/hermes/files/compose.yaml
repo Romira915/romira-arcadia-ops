@@ -58,6 +58,13 @@ services:
         read_only: false
         bind:
           create_host_path: false
+      - type: bind
+        source: /mnt
+        target: /mnt
+        read_only: true
+        bind:
+          propagation: rslave
+          create_host_path: false
     cap_drop:
       - NET_RAW
       - NET_ADMIN

@@ -1,0 +1,5 @@
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# Run at 05:00 JST, away from late-night use.
+0 5 * * * root /usr/local/bin/hermes-image-update /opt/hermes
