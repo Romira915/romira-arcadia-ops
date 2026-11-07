@@ -166,7 +166,7 @@
     path: /mnt/z
     src: //wakaba.tail340994.ts.net/romira
     fstype: cifs
-    opts: credentials=/etc/wakaba-samba.credentials,ro,uid=10000,gid=10000,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.mount-timeout=15
+    opts: credentials=/etc/wakaba-samba.credentials,rw,uid=10000,gid=10000,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.mount-timeout=15
     state: present
   become: true
   register: hermes_wakaba_mount
@@ -176,7 +176,7 @@
     name: mnt-z.automount
     daemon_reload: true
     enabled: true
-    state: started
+    state: "{{ 'restarted' if hermes_wakaba_mount.changed else 'started' }}"
   become: true
   when: not ansible_check_mode
 
