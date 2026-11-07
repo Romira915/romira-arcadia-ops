@@ -166,7 +166,7 @@
     path: /mnt/z
     src: //wakaba.tail340994.ts.net/romira
     fstype: cifs
-    opts: credentials=/etc/wakaba-samba.credentials,rw,uid=10000,gid=10000,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.mount-timeout=15
+    opts: credentials=/etc/wakaba-samba.credentials,rw,uid=10000,gid=1001,file_mode=0770,dir_mode=0770,_netdev,nofail,x-systemd.automount,x-systemd.idle-timeout=60,x-systemd.mount-timeout=15
     state: present
   become: true
   register: hermes_wakaba_mount
