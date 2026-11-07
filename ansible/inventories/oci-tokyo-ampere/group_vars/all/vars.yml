@@ -130,6 +130,10 @@ hermes:
   dashboard_username: romira
   dashboard_host_port: 19119
   api_host_port: 18642
+  tailscale_hostname: ampere-hermes
+  tailscale_state_dir: /opt/hermes/tailscale
+  exit_node: wakaba
+  tailscale_image: docker.io/tailscale/tailscale:stable
   image: docker.io/nousresearch/hermes-agent:latest
 
 deployment:

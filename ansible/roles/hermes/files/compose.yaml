@@ -10,9 +10,12 @@ services:
         HERMES_BASE_IMAGE: ${HERMES_IMAGE:?set HERMES_IMAGE in .env}
     platform: linux/arm64
     container_name: hermes-agent
-    networks:
-      - default
-      - openclaw
+    # Why a shared network namespace: only Hermes' outbound traffic follows the sidecar's exit node,
+    # leaving the host's Tailscale, OpenClaw and every other host service untouched.
+    network_mode: service:tailscale
+    depends_on:
+      tailscale:
+        condition: service_started
     restart: unless-stopped
     working_dir: /opt/data/workspace
     command: [gateway, run]
@@ -25,9 +28,6 @@ services:
       HERMES_DASHBOARD: "1"
       HERMES_DASHBOARD_HOST: 0.0.0.0
       TZ: Asia/Tokyo
-    ports:
-      - "127.0.0.1:18642:8642"
-      - "127.0.0.1:19119:9119"
     volumes:
       - type: bind
         source: ${HERMES_DATA_ROOT:?set HERMES_DATA_ROOT in .env}
@@ -85,6 +85,78 @@ services:
       timeout: 8s
       retries: 5
       start_period: 2m
+
+  tailscale:
+    image: ${HERMES_TAILSCALE_IMAGE:?set HERMES_TAILSCALE_IMAGE in .env}
+    container_name: hermes-tailscale
+    hostname: ${HERMES_TAILSCALE_HOSTNAME:?set HERMES_TAILSCALE_HOSTNAME in .env}
+    networks:
+      - default
+      - openclaw
+    # Why public resolvers: Docker's embedded DNS queries its upstream from this namespace, so while
+    # the exit node is active an upstream such as OCI's 169.254.169.254 would be unreachable.
+    dns:
+      - 1.1.1.1
+      - 1.0.0.1
+    environment:
+      # Why no auth key: the node logs in once interactively and the persisted state keeps it signed in.
+      TS_HOSTNAME: ${HERMES_TAILSCALE_HOSTNAME}
+      TS_STATE_DIR: /var/lib/tailscale
+      TS_SOCKET: /var/run/tailscale/tailscaled.sock
+      TS_USERSPACE: "false"
+      # Why no DNS takeover: MagicDNS would rewrite resolv.conf and bypass Docker's service names.
+      TS_ACCEPT_DNS: "false"
+      # Why no exit node here: the watchdog is the single owner of exit-node state, so a restart
+      # never blackholes traffic while wakaba is asleep.
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "127.0.0.1:18642:8642"
+      - "127.0.0.1:19119:9119"
+    volumes:
+      - type: bind
+        source: ${HERMES_TAILSCALE_STATE_DIR:?set HERMES_TAILSCALE_STATE_DIR in .env}
+        target: /var/lib/tailscale
+        bind:
+          create_host_path: false
+      - tailscale-socket:/var/run/tailscale
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  exit-node-watchdog:
+    image: ${HERMES_TAILSCALE_IMAGE:?set HERMES_TAILSCALE_IMAGE in .env}
+    container_name: hermes-exit-node-watchdog
+    network_mode: service:tailscale
+    depends_on:
+      tailscale:
+        condition: service_started
+    entrypoint: [/bin/sh, /watchdog.sh]
+    environment:
+      TS_SOCKET: /var/run/tailscale/tailscaled.sock
+      HERMES_EXIT_NODE: ${HERMES_EXIT_NODE:?set HERMES_EXIT_NODE in .env}
+    volumes:
+      - type: bind
+        source: ./exit-node-watchdog.sh
+        target: /watchdog.sh
+        read_only: true
+        bind:
+          create_host_path: false
+      - tailscale-socket:/var/run/tailscale
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+volumes:
+  tailscale-socket:
 
 networks:
   openclaw:

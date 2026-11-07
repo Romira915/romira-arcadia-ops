@@ -61,6 +61,7 @@
   loop:
     - {path: "{{ hermes.project_dir }}", owner: root, group: root, mode: '0755'}
     - {path: "{{ hermes.project_dir }}/image", owner: root, group: root, mode: '0755'}
+    - {path: "{{ hermes.tailscale_state_dir }}", owner: root, group: root, mode: '0700'}
     - {path: "{{ hermes.data_root }}", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/workspace", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/workspace/obsidian-vault", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
@@ -146,6 +147,10 @@
       GOG_HOME={{ hermes.gog_home }}
       GOG_KEYRING_BACKEND=file
       GOG_KEYRING_PASSWORD={{ vault_hermes_gog.keyring_password }}
+      HERMES_TAILSCALE_IMAGE={{ hermes.tailscale_image }}
+      HERMES_TAILSCALE_HOSTNAME={{ hermes.tailscale_hostname }}
+      HERMES_TAILSCALE_STATE_DIR={{ hermes.tailscale_state_dir }}
+      HERMES_EXIT_NODE={{ hermes.exit_node }}
     dest: "{{ hermes.project_dir }}/.env"
     owner: root
     group: root
@@ -162,6 +167,15 @@
     mode: '0644'
   become: true
 
+- name: Deploy the exit node watchdog
+  ansible.builtin.copy:
+    src: exit-node-watchdog.sh
+    dest: "{{ hermes.project_dir }}/exit-node-watchdog.sh"
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
 - name: Deploy the Hermes image definition with sudo and Claude Code
   ansible.builtin.copy:
     src: image/Dockerfile
@@ -171,6 +185,14 @@
     mode: '0644'
   become: true
 
+- name: Pull the Tailscale sidecar image when it is absent
+  # Why not compose pull: the compose task uses pull: never so Hermes only changes through its own update script.
+  community.docker.docker_image:
+    name: "{{ hermes.tailscale_image }}"
+    source: pull
+  become: true
+  when: not ansible_check_mode
+
 - name: Start the Hermes gateway and dashboard
   community.docker.docker_compose_v2:
     project_src: "{{ hermes.project_dir }}"
@@ -178,6 +200,8 @@
     env_files:
       - .env
     services:
+      - tailscale
+      - exit-node-watchdog
       - hermes
     state: present
     pull: never
@@ -312,7 +336,7 @@
       - inspect
       - --format
       - "{{ '{{' }}range .NetworkSettings.Networks{{ '}}' }}{{ '{{' }}.Gateway{{ '}}' }}{{ '{{' }}end{{ '}}' }}"
-      - hermes-agent
+      - hermes-tailscale
   become: true
   register: hermes_bridge_gateway
   changed_when: false
