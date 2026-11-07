@@ -6,6 +6,18 @@ The dashboard is available through the tailnet at port `8444`; host ports `19119
 
 Hermes runs its agent processes as the verified `hermes` user (UID/GID `10000:10000`) inside the container. The derived image installs `sudo` and grants that user passwordless root access inside the container so it can install packages. `no-new-privileges` is disabled because it blocks sudo's UID transition; Docker's default capability set and the existing `NET_RAW`/`NET_ADMIN` drops remain in place. Runtime package installs live in the container's writable layer and are lost when the container is recreated; add packages that must survive recreation to `files/image/Dockerfile`.
 
+## Outbound traffic via the wakaba exit node
+
+Hermes shares the network namespace of the `hermes-tailscale` sidecar (`ampere-hermes` on the tailnet), so only Hermes' outbound traffic can leave through wakaba's residential IP. The host's Tailscale, OpenClaw and every other host service are unchanged. The `exit-node-watchdog` container pings `hermes.exit_node` every 30 seconds: it sets the exit node (with LAN access, so the published ports and OpenClaw stay on the Docker networks) while wakaba answers, and clears it after two failed probes so Hermes goes out directly while wakaba sleeps. Switching drops open connections, which Hermes reconnects. The watchdog owns the exit-node state; do not set it in the sidecar's environment.
+
+First login is interactive and must happen before the sidecar first runs: containerboot gives up after 60 seconds without a login and restarts in a loop, and every sidecar restart leaves Hermes attached to a dead namespace. Log in once with a temporary container that shares the persisted state, then start the stack:
+
+```sh
+ssh -t oci-tokyo-ampere 'sudo docker run --rm -it --device /dev/net/tun --cap-add NET_ADMIN -v /opt/hermes/tailscale:/var/lib/tailscale --entrypoint sh docker.io/tailscale/tailscale:stable -c "tailscaled --statedir=/var/lib/tailscale --tun=userspace-networking >/dev/null 2>&1 & sleep 3; tailscale up --hostname=ampere-hermes --accept-dns=false; tailscale status | head -3"'
+```
+
+Disable key expiry for `ampere-hermes` in the Tailscale admin console. Whenever the sidecar is recreated, recreate `hermes` too (`docker compose up -d --force-recreate tailscale exit-node-watchdog hermes`); otherwise Hermes keeps a stale namespace and its ports and DNS stop working. The sidecar image is pulled only when absent, so refresh it manually when needed.
+
 Hermes loads the shared `ai-config/skills` as a read-only external skill directory. The whole `ai-config` directory is mounted read-only at `/opt/data/shared-config`, and workspace `AGENTS.md` is a symlink to its `CLAUDE.md`. Hermes reads `AGENTS.md` at session start, so a directory mount (rather than a single-file mount) picks up git updates without a container restart. Existing sessions keep the content they started with; a `/new` starts a session with the updated file. An hourly cron (`/etc/cron.d/hermes-config-sync`, from `inventories/oci-tokyo-ampere/files/cron/`) runs `git pull --ff-only` on `/opt/romira-s-config` and never restarts Hermes. The personal file is mounted read-only and is not auto-loaded. Hermes-created skills, memory, sessions, and provider authentication stay in its separate persistent data directory.
 
 Hermes and OpenClaw both mount `/mnt/d/obsidian/vault` read-write. The OpenClaw role grants POSIX ACLs to their runtime UIDs on existing Vault entries and default ACLs on every directory, so new notes remain editable by both agents. LiveSync credentials live outside the Vault under `/mnt/d/obsidian/livesync` and are not mounted into either agent. Existing LiveSync remains the sole sync service.
