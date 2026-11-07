@@ -48,7 +48,7 @@
   ansible.builtin.assert:
     that:
       - hermes_host_architecture.stdout == 'aarch64'
-    fail_msg: The Hermes image is pinned for the OCI Ampere ARM64 host.
+    fail_msg: The Hermes image update script pulls linux/arm64 for the OCI Ampere host.
 
 - name: Ensure Hermes project and persistent state directories exist
   ansible.builtin.file:
@@ -750,6 +750,15 @@
   ansible.builtin.copy:
     src: config-sync.sh
     dest: /usr/local/bin/hermes-config-sync
+    owner: root
+    group: root
+    mode: '0755'
+  become: true
+
+- name: Deploy the nightly Hermes image update script
+  ansible.builtin.copy:
+    src: image-update.sh
+    dest: /usr/local/bin/hermes-image-update
     owner: root
     group: root
     mode: '0755'

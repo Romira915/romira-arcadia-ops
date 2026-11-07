@@ -1,6 +1,6 @@
 # Hermes on OCI
 
-The `hermes` role deploys the official multi-architecture Hermes Agent image on `oci-tokyo-ampere`. The image is pinned by its multi-platform manifest digest, the container selects `linux/arm64`, and all mutable Hermes state lives under `/mnt/d/hermes/data`.
+The `hermes` role deploys the official multi-architecture Hermes Agent image on `oci-tokyo-ampere`. The image follows the `latest` tag, the container selects `linux/arm64`, and all mutable Hermes state lives under `/mnt/d/hermes/data`.
 
 The dashboard is available through the tailnet at port `8444`; host ports `19119` (dashboard) and `18642` (OpenAI-compatible API) bind to loopback only. Tailscale's HTTPS origin is configured as the dashboard's public URL, and only the Hermes Docker bridge gateway is trusted to supply forwarded headers. Dashboard Basic Auth, its stable cookie secret, and the API bearer key are kept in the encrypted inventory file `inventories/oci-tokyo-ampere/group_vars/all/vault-hermes.yml` and rendered into `/opt/hermes/.env` with mode `0600`. The API is not served through Tailscale.
 
@@ -25,6 +25,10 @@ ssh -t oci-tokyo-ampere 'sudo docker exec -it --user 10000:10000 hermes-agent /o
 
 Open the login URL in your local browser and finish the CLI's prompts, then select `Claude Subscription DirectSDK (Experimental)` in the model picker. Claude stores its login under the persistent `/opt/data` home; do not copy tokens into Ansible or the host environment. This experimental subscription provider is distinct from native Anthropic OAuth, which requires Max extra usage credits. See the [official plugin instructions](https://hermes-agent.nousresearch.com/docs/plugins/claude-subscription-directsdk).
 
-Run from `ansible/` with the OCI inventory and `--tags hermes,openclaw,tailscale` after explicit user authorization. The Hermes Docker install is updated by changing the image digest and re-running the role; `hermes update` is not supported in Docker.
+Run from `ansible/` with the OCI inventory and `--tags hermes,openclaw,tailscale` after explicit user authorization. `hermes update` is not supported in Docker; the install is updated by pulling a new image.
+
+`/etc/cron.d/hermes-image-update` (from `inventories/oci-tokyo-ampere/files/cron/`) runs `/usr/local/bin/hermes-image-update` daily at 05:00 JST. Check `hermes cron list` before adding jobs near it. The script pulls `latest`, and only when the image ID changed it rebuilds the derived image and recreates the container, which interrupts running sessions for about a minute. It waits up to 5 minutes for the container healthcheck. If the new image is unhealthy, it retags the previous derived image (`hermes-agent-sudo:rollback`), recreates the container, and does not retry that release; a failed build is retried the next night. Results are written to syslog under the `hermes-image-update` tag (`journalctl -t hermes-image-update`); there is no other notification. Re-running the role keeps using the local `latest` image because the role never pulls (`pull: never`).
 
 Configuration defaults live in `defaults/main.yml` under the `hermes` dictionary. Environment-specific overrides use the same dictionary in the target inventory; secrets stay in encrypted Vault files.
+
+The wakaba `romira` Samba share is mounted read-write on demand at `/mnt/z` on the host and in Hermes. systemd automount avoids blocking startup when wakaba is asleep; an access while it is offline can fail or block until the mount timeout, and a later access retries. Existing open files can fail across interruptions. The host `wakaba_mount` role assigns ownership to OCI ubuntu UID and GID 1001; Hermes receives GID 1001 as a supplementary group for write access. Credentials are taken from the encrypted wakaba inventory. The container receives `/mnt` read-only with slave propagation so a mount created after container startup is visible.

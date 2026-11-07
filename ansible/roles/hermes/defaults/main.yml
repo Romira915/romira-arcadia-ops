@@ -20,4 +20,4 @@ hermes:  # noqa: var-naming[no-role-prefix]
   dashboard_username: romira
   dashboard_host_port: 19119
   api_host_port: 18642
-  image: docker.io/nousresearch/hermes-agent:latest@sha256:9c5561579f3ffdf333401797094ac3a743738d6c25d40f4331c7bf77b694238d
+  image: docker.io/nousresearch/hermes-agent:latest

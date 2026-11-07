@@ -13,6 +13,8 @@
     - systemd_units
     - role: Tailscale
       tags: tailscale
+    - role: wakaba_mount
+      tags: wakaba-mount
     - role: openclaw
       tags: openclaw
     - role: hermes
