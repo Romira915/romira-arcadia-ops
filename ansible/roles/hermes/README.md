@@ -28,3 +28,5 @@ Open the login URL in your local browser and finish the CLI's prompts, then sele
 Run from `ansible/` with the OCI inventory and `--tags hermes,openclaw,tailscale` after explicit user authorization. The Hermes Docker install is updated by changing the image digest and re-running the role; `hermes update` is not supported in Docker.
 
 Configuration defaults live in `defaults/main.yml` under the `hermes` dictionary. Environment-specific overrides use the same dictionary in the target inventory; secrets stay in encrypted Vault files.
+
+The wakaba `romira` Samba share is mounted read-only on demand at `/mnt/z` on the host and in Hermes. systemd automount avoids blocking startup when wakaba is asleep; an access while it is offline can fail or block until the mount timeout, and a later access retries. Existing open files can fail across interruptions. Credentials are taken from the encrypted wakaba inventory. The container receives `/mnt` read-only with slave propagation so a mount created after container startup is visible.
