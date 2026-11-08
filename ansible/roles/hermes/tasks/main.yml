@@ -193,6 +193,36 @@
   become: true
   when: not ansible_check_mode
 
+- name: Ensure the Muse bridge script and secret directories exist
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/{{ item.name }}"
+    state: directory
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: "{{ item.mode }}"
+  become: true
+  loop:
+    - {name: scripts, mode: '0755'}
+    - {name: secrets, mode: '0700'}
+
+- name: Deploy the Muse MCP bridge
+  ansible.builtin.copy:
+    src: mcp/muse_mcp_bridge.py
+    dest: "{{ hermes.data_root }}/scripts/muse_mcp_bridge.py"
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0644'
+  become: true
+  register: hermes_muse_bridge_script
+
+- name: Generate the Muse bridge bearer token when it is absent
+  # Why creates: the token is pasted into Muse by hand, so an existing token is never rotated here.
+  ansible.builtin.shell:
+    cmd: umask 077 && openssl rand -hex 32 > "{{ hermes.data_root }}/secrets/muse-mcp.token" && chown {{ hermes.user_uid }}:{{ hermes.user_uid }} "{{ hermes.data_root }}/secrets/muse-mcp.token"
+    creates: "{{ hermes.data_root }}/secrets/muse-mcp.token"
+  become: true
+  no_log: true
+
 - name: Start the Hermes gateway and dashboard
   community.docker.docker_compose_v2:
     project_src: "{{ hermes.project_dir }}"
@@ -203,12 +233,23 @@
       - tailscale
       - exit-node-watchdog
       - hermes
+      - muse-bridge
     state: present
     pull: never
     build: always
     recreate: auto
   become: true
   when: not ansible_check_mode
+
+- name: Restart the Muse bridge after its script changed
+  # Why: Compose recreates containers only for configuration changes, not for a bind-mounted file edit.
+  ansible.builtin.command:
+    argv: [docker, restart, hermes-muse-bridge]
+  become: true
+  when:
+    - not ansible_check_mode
+    - hermes_muse_bridge_script.changed
+  changed_when: true
 
 - name: Wait for the Hermes API health endpoint
   ansible.builtin.uri:

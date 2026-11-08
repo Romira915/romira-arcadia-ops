@@ -44,3 +44,13 @@ Run from `ansible/` with the OCI inventory and `--tags hermes,openclaw,tailscale
 Configuration defaults live in `defaults/main.yml` under the `hermes` dictionary. Environment-specific overrides use the same dictionary in the target inventory; secrets stay in encrypted Vault files.
 
 The wakaba `romira` Samba share is mounted read-write on demand at `/mnt/z` on the host and in Hermes. systemd automount avoids blocking startup when wakaba is asleep; an access while it is offline can fail or block until the mount timeout, and a later access retries. Existing open files can fail across interruptions. The host `wakaba_mount` role assigns ownership to OCI ubuntu UID and GID 1001; Hermes receives GID 1001 as a supplementary group for write access. Credentials are taken from the encrypted wakaba inventory. The container receives `/mnt` read-only with slave propagation so a mount created after container startup is visible.
+
+## Muse bridge
+
+`muse-bridge` (a separate Compose service sharing the Tailscale sidecar's network namespace) runs `files/mcp/muse_mcp_bridge.py`, which exposes one MCP tool, `ask_hermes`, over Streamable HTTP. Each call runs `hermes -p muse-qa chat --oneshot` on a profile with every toolset disabled, so a caller can only get text answers. The container receives no `.env` secrets, drops all capabilities and cannot gain privileges. The host publishes it on `127.0.0.1:18650` and the Tailscale role serves it to the tailnet as `https://<host>.<tailnet>.ts.net:8650/mcp` (Serve only; no Funnel).
+
+- The Bearer token is `secrets/muse-mcp.token` under the Hermes data root. It is generated once when absent and is never rotated by Ansible. Paste it into Muse's connector from that file; do not put it in chat or logs.
+- The `muse-qa` profile, its toolset restrictions and its plugin symlink (`profiles/muse-qa/plugins/claude-subscription-directsdk-experimental` → `/opt/data/plugins/…`) are Hermes state under the data root, not managed by Ansible. If the profile is missing, `hermes -p` fails and the bridge answers with an error; it never falls back to the default profile.
+- `hermes chat` opens a session through the profile's gateway. Do not `park` `muse-qa` (`hermes -p muse-qa gateway stop`): chat then fails with `Gateway starting: deadline`. `hermes -p muse-qa gateway start` serves it from the default gateway.
+- The bridge listens on `0.0.0.0` inside the sidecar's namespace so the published port can reach it; every request still needs the Bearer token.
+- The sidecar sets `TS_AUTH_ONCE=true`. The exit-node watchdog persists its own preferences, and without this setting containerboot's `tailscale up` fails after the container is recreated, leaving Hermes off the tailnet.

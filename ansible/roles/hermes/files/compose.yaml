@@ -106,6 +106,9 @@ services:
       TS_USERSPACE: "false"
       # Why no DNS takeover: MagicDNS would rewrite resolv.conf and bypass Docker's service names.
       TS_ACCEPT_DNS: "false"
+      # Why: the watchdog persists exit-node settings; containerboot's `tailscale up` refuses to run
+      # over them after a recreate. Only log in when the node is not yet authenticated.
+      TS_AUTH_ONCE: "true"
       # Why no exit node here: the watchdog is the single owner of exit-node state, so a restart
       # never blackholes traffic while wakaba is asleep.
     devices:
@@ -115,6 +118,8 @@ services:
     ports:
       - "127.0.0.1:18642:8642"
       - "127.0.0.1:19119:9119"
+      # Why loopback only: the host's Tailscale Serve is the sole tailnet entrance to the Muse bridge.
+      - "127.0.0.1:18650:8650"
     volumes:
       - type: bind
         source: ${HERMES_TAILSCALE_STATE_DIR:?set HERMES_TAILSCALE_STATE_DIR in .env}
@@ -122,6 +127,45 @@ services:
         bind:
           create_host_path: false
       - tailscale-socket:/var/run/tailscale
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
+  muse-bridge:
+    image: hermes-agent-sudo:arm64
+    container_name: hermes-muse-bridge
+    # Why a separate container: it holds only the bridge token and no Hermes secrets from .env,
+    # and cannot gain privileges, so a flaw in the bridge does not expose the main Hermes process.
+    # Why the Tailscale network namespace: the host's published port and Serve reach it there.
+    network_mode: service:tailscale
+    depends_on:
+      tailscale:
+        condition: service_started
+      hermes:
+        condition: service_healthy
+    user: "10000:10000"
+    entrypoint: [/opt/hermes/.venv/bin/python3, /opt/data/scripts/muse_mcp_bridge.py]
+    environment:
+      PATH: /opt/data/bin:/opt/hermes/bin:/opt/hermes/.venv/bin:/opt/data/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      HOME: /opt/data
+      HERMES_HOME: /opt/data
+      HERMES_MUSE_MCP_HOST: 0.0.0.0
+      HERMES_MUSE_MCP_PORT: "8650"
+      HERMES_MUSE_MCP_TOKEN_FILE: /opt/data/secrets/muse-mcp.token
+      TZ: Asia/Tokyo
+    volumes:
+      - type: bind
+        source: ${HERMES_DATA_ROOT:?set HERMES_DATA_ROOT in .env}
+        target: /opt/data
+        bind:
+          create_host_path: false
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     logging:
       driver: json-file
