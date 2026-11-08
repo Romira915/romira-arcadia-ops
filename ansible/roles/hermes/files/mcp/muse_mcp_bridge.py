@@ -1,25 +1,37 @@
 #!/usr/bin/env python3
 """Minimal MCP (Streamable HTTP, JSON responses) server exposing one tool: ask_hermes.
 
-Localhost-only by default. Requires a Bearer token (>= 32 chars) read from
-HERMES_MUSE_MCP_TOKEN_FILE (or HERMES_MUSE_MCP_TOKEN).
-Each call runs a one-shot query on the tool-less `muse-qa` Hermes profile; metadata-only logging.
+Forwards each question to the running Hermes agent's OpenAI-compatible API, so Muse talks to
+the same Hermes (memory, past sessions, skills, tools) that the user talks to.
+Requires a Bearer token (>= 32 chars) from HERMES_MUSE_MCP_TOKEN_FILE and the Hermes API key
+in API_SERVER_KEY. Logging is metadata-only, as JSON lines on stdout.
 """
 import hmac
 import json
 import os
-import subprocess
 import sys
-import tempfile
 import threading
 import time
+import urllib.error
+import urllib.request
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOST = os.environ.get("HERMES_MUSE_MCP_HOST", "127.0.0.1")
 PORT = int(os.environ.get("HERMES_MUSE_MCP_PORT", "8650"))
-# Why a profile and no per-call toolset option: the default profile has every tool enabled,
-# so the restriction must live in a profile that the caller of this bridge cannot widen.
-PROFILE = "muse-qa"
+API_URL = os.environ.get("HERMES_API_URL", "http://127.0.0.1:8642/v1/chat/completions")
+API_KEY = os.environ.get("API_SERVER_KEY", "")
+MAX_Q = 8000
+MAX_A = 12000
+RATE_PER_MIN = 20
+TIMEOUT_S = 170
+JST = timezone(timedelta(hours=9))
+# Why a per-day session: everything Muse asks on a day lands in one Hermes session, so Hermes
+# remembers it later (session search) and follow-up questions keep their context.
+CONTEXT = (
+    "このメッセージは、MCP コネクタ経由で Muse(Meta の個人向けエージェント)から届いた。"
+    "ユーザー本人の依頼として扱い、通常どおり記憶・スキル・ツールを使ってよい。"
+)
 
 
 def load_token():
@@ -31,22 +43,13 @@ def load_token():
 
 
 TOKEN = load_token()
-MAX_Q = 2000
-MAX_A = 4000
-RATE_PER_MIN = 20
-TIMEOUT_S = 150
-LOG = os.environ.get("HERMES_MUSE_MCP_LOG", "/opt/data/logs/muse_mcp_bridge.log")
-SCRATCH = "/opt/data/cache/scratch"
-
 _lock = threading.Lock()
 _calls = []
 
 
 def log(event, **meta):
-    os.makedirs(os.path.dirname(LOG), exist_ok=True)
     rec = {"ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "event": event, **meta}
-    with open(LOG, "a", encoding="utf-8") as f:
-        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    print(json.dumps(rec, ensure_ascii=False), flush=True)
 
 
 def rate_ok():
@@ -61,8 +64,9 @@ def rate_ok():
 
 TOOL = {
     "name": "ask_hermes",
-    "description": "Ask the Hermes agent a question and get its text answer. "
-                   "Read-only Q&A; no file writes or outbound actions.",
+    "description": "Send a question or a task to the Hermes agent and get its text answer. "
+                   "Hermes shares the user's memory, past sessions, skills and tools, "
+                   "so it can look things up and act, not only chat.",
     "inputSchema": {
         "type": "object",
         "properties": {"question": {"type": "string", "maxLength": MAX_Q}},
@@ -73,31 +77,34 @@ TOOL = {
 
 
 def ask_hermes(question):
-    os.makedirs(SCRATCH, exist_ok=True)
-    fd, path = tempfile.mkstemp(dir=SCRATCH, prefix="muse-q-", suffix=".txt")
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        f.write(question)
-    cmd = ["hermes", "-p", PROFILE, "chat", "--query-file", path, "--oneshot", "-Q"]
+    session = "muse-" + datetime.now(JST).strftime("%Y%m%d")
+    body = json.dumps({
+        "model": "hermes-agent",
+        "messages": [
+            {"role": "system", "content": CONTEXT},
+            {"role": "user", "content": question},
+        ],
+    }).encode()
+    req = urllib.request.Request(API_URL, data=body, method="POST", headers={
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+        "X-Hermes-Session-Id": session,
+    })
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT_S)
-        lines = (p.stdout or "").rstrip().splitlines()
-        # Why: Hermes prints a trailing session_id line, which is not part of the answer.
-        while lines and (not lines[-1].strip() or lines[-1].startswith("session_id:")):
-            lines.pop()
-        out = "\n".join(lines).strip()
-        if p.returncode != 0:
-            log("ask_error", rc=p.returncode, q_len=len(question))
-            return "Hermes returned an error.", True
+        with urllib.request.urlopen(req, timeout=TIMEOUT_S) as resp:
+            data = json.load(resp)
+        out = (data["choices"][0]["message"].get("content") or "").strip()
         log("ask_ok", q_len=len(question), a_len=len(out))
         return out[:MAX_A], False
-    except subprocess.TimeoutExpired:
+    except TimeoutError:
         log("ask_timeout", q_len=len(question))
         return "Hermes timed out.", True
-    finally:
-        try:
-            os.remove(path)
-        except OSError:
-            pass
+    except urllib.error.HTTPError as e:
+        log("ask_error", status=e.code, q_len=len(question))
+        return "Hermes returned an error.", True
+    except (urllib.error.URLError, OSError, ValueError, KeyError, IndexError) as e:
+        log("ask_error", kind=type(e).__name__, q_len=len(question))
+        return "Hermes returned an error.", True
 
 
 def handle(msg):
@@ -107,7 +114,7 @@ def handle(msg):
         return {"jsonrpc": "2.0", "id": mid, "result": {
             "protocolVersion": msg.get("params", {}).get("protocolVersion", "2025-06-18"),
             "capabilities": {"tools": {}},
-            "serverInfo": {"name": "hermes-muse-bridge", "version": "0.1.0"},
+            "serverInfo": {"name": "hermes-muse-bridge", "version": "0.2.0"},
         }}
     if method and method.startswith("notifications/"):
         return None
@@ -180,6 +187,9 @@ class H(BaseHTTPRequestHandler):
 def main():
     if len(TOKEN) < 32:
         print("Muse MCP token missing or shorter than 32 chars", file=sys.stderr)
+        sys.exit(2)
+    if not API_KEY:
+        print("API_SERVER_KEY is required", file=sys.stderr)
         sys.exit(2)
     srv = ThreadingHTTPServer((HOST, PORT), H)
     print(f"listening on {HOST}:{PORT}", flush=True)

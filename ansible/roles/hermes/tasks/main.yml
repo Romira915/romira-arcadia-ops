@@ -193,7 +193,7 @@
   become: true
   when: not ansible_check_mode
 
-- name: Ensure the Muse bridge script and secret directories exist
+- name: Ensure the Muse bridge and secret directories exist
   ansible.builtin.file:
     path: "{{ hermes.data_root }}/{{ item.name }}"
     state: directory
@@ -202,18 +202,24 @@
     mode: "{{ item.mode }}"
   become: true
   loop:
-    - {name: scripts, mode: '0755'}
+    - {name: muse-bridge, mode: '0755'}
     - {name: secrets, mode: '0700'}
 
 - name: Deploy the Muse MCP bridge
   ansible.builtin.copy:
     src: mcp/muse_mcp_bridge.py
-    dest: "{{ hermes.data_root }}/scripts/muse_mcp_bridge.py"
+    dest: "{{ hermes.data_root }}/muse-bridge/muse_mcp_bridge.py"
     owner: "{{ hermes.user_uid }}"
     group: "{{ hermes.user_uid }}"
     mode: '0644'
   become: true
   register: hermes_muse_bridge_script
+
+- name: Remove the retired hand-placed Muse bridge script
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/scripts/muse_mcp_bridge.py"
+    state: absent
+  become: true
 
 - name: Generate the Muse bridge bearer token when it is absent
   # Why creates: the token is pasted into Muse by hand, so an existing token is never rotated here.

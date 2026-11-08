@@ -137,9 +137,11 @@ services:
   muse-bridge:
     image: hermes-agent-sudo:arm64
     container_name: hermes-muse-bridge
-    # Why a separate container: it holds only the bridge token and no Hermes secrets from .env,
-    # and cannot gain privileges, so a flaw in the bridge does not expose the main Hermes process.
-    # Why the Tailscale network namespace: the host's published port and Serve reach it there.
+    # Why a separate container: it holds only the bridge token and the Hermes API key, not the rest
+    # of .env or the data directory, and cannot gain privileges. It forwards Muse's questions to the
+    # real Hermes over the API, so Muse gets the same memory, skills and tools as the user.
+    # Why the Tailscale network namespace: the host's published port and Serve reach it there, and
+    # Hermes' API listens on this namespace's loopback.
     network_mode: service:tailscale
     depends_on:
       tailscale:
@@ -147,21 +149,27 @@ services:
       hermes:
         condition: service_healthy
     user: "10000:10000"
-    entrypoint: [/opt/hermes/.venv/bin/python3, /opt/data/scripts/muse_mcp_bridge.py]
+    entrypoint: [/opt/hermes/.venv/bin/python3, /app/muse_mcp_bridge.py]
     environment:
-      PATH: /opt/data/bin:/opt/hermes/bin:/opt/hermes/.venv/bin:/opt/data/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-      HOME: /opt/data
-      HERMES_HOME: /opt/data
       HERMES_MUSE_MCP_HOST: 0.0.0.0
       HERMES_MUSE_MCP_PORT: "8650"
-      HERMES_MUSE_MCP_TOKEN_FILE: /opt/data/secrets/muse-mcp.token
+      HERMES_MUSE_MCP_TOKEN_FILE: /run/muse/token
+      API_SERVER_KEY: ${API_SERVER_KEY:?set API_SERVER_KEY in .env}
       TZ: Asia/Tokyo
     volumes:
       - type: bind
-        source: ${HERMES_DATA_ROOT:?set HERMES_DATA_ROOT in .env}
-        target: /opt/data
+        source: ${HERMES_DATA_ROOT:?set HERMES_DATA_ROOT in .env}/muse-bridge
+        target: /app
+        read_only: true
         bind:
           create_host_path: false
+      - type: bind
+        source: ${HERMES_DATA_ROOT:?set HERMES_DATA_ROOT in .env}/secrets/muse-mcp.token
+        target: /run/muse/token
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
     cap_drop:
       - ALL
     security_opt:
