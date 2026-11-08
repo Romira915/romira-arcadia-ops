@@ -146,6 +146,8 @@ tailscale:
       target: http://127.0.0.1:18789
     - port: "{{ hermes.tailscale_port }}"
       target: http://127.0.0.1:19119
+    - port: 8650
+      target: http://127.0.0.1:18650
 systemd_units:
   units:
     - name: blog-romira-dev-leptos.service

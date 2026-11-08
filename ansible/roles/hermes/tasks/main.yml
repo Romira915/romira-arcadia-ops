@@ -193,6 +193,42 @@
   become: true
   when: not ansible_check_mode
 
+- name: Ensure the Muse bridge and secret directories exist
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/{{ item.name }}"
+    state: directory
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: "{{ item.mode }}"
+  become: true
+  loop:
+    - {name: muse-bridge, mode: '0755'}
+    - {name: secrets, mode: '0700'}
+
+- name: Deploy the Muse MCP bridge
+  ansible.builtin.copy:
+    src: mcp/muse_mcp_bridge.py
+    dest: "{{ hermes.data_root }}/muse-bridge/muse_mcp_bridge.py"
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0644'
+  become: true
+  register: hermes_muse_bridge_script
+
+- name: Remove the retired hand-placed Muse bridge script
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/scripts/muse_mcp_bridge.py"
+    state: absent
+  become: true
+
+- name: Generate the Muse bridge bearer token when it is absent
+  # Why creates: the token is pasted into Muse by hand, so an existing token is never rotated here.
+  ansible.builtin.shell:
+    cmd: umask 077 && openssl rand -hex 32 > "{{ hermes.data_root }}/secrets/muse-mcp.token" && chown {{ hermes.user_uid }}:{{ hermes.user_uid }} "{{ hermes.data_root }}/secrets/muse-mcp.token"
+    creates: "{{ hermes.data_root }}/secrets/muse-mcp.token"
+  become: true
+  no_log: true
+
 - name: Start the Hermes gateway and dashboard
   community.docker.docker_compose_v2:
     project_src: "{{ hermes.project_dir }}"
@@ -203,12 +239,23 @@
       - tailscale
       - exit-node-watchdog
       - hermes
+      - muse-bridge
     state: present
     pull: never
     build: always
     recreate: auto
   become: true
   when: not ansible_check_mode
+
+- name: Restart the Muse bridge after its script changed
+  # Why: Compose recreates containers only for configuration changes, not for a bind-mounted file edit.
+  ansible.builtin.command:
+    argv: [docker, restart, hermes-muse-bridge]
+  become: true
+  when:
+    - not ansible_check_mode
+    - hermes_muse_bridge_script.changed
+  changed_when: true
 
 - name: Wait for the Hermes API health endpoint
   ansible.builtin.uri:
@@ -224,6 +271,100 @@
     - hermes_api_health.status == 200
     - (hermes_api_health.json | default({})).status == 'ok'
   when: not ansible_check_mode
+
+- name: Ensure the Muse digest directory exists
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/muse-exchange"
+    state: directory
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0755'
+  become: true
+
+- name: Deploy the Muse digest input script
+  ansible.builtin.copy:
+    src: scripts/muse_digest_prefetch.py
+    dest: "{{ hermes.data_root }}/scripts/muse_digest_prefetch.py"
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0644'
+  become: true
+
+- name: Read the Hermes built-in memory limits
+  ansible.builtin.command:
+    argv: [docker, exec, hermes-agent, hermes, config, get, "memory.{{ item.key }}"]
+  become: true
+  register: hermes_memory_limits
+  changed_when: false
+  loop:
+    - {key: memory_char_limit, value: 6000}
+    - {key: user_char_limit, value: 3000}
+  loop_control:
+    label: "{{ item.key }}"
+  when: not ansible_check_mode
+
+- name: Raise the Hermes built-in memory limits
+  # Why: the 2200/1375-character defaults made Hermes delete older entries to store Muse's shared
+  # instructions. The memory is still a compact snapshot injected into every session.
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes.user_uid }}:{{ hermes.user_uid }}"
+      - hermes-agent
+      - hermes
+      - config
+      - set
+      - "memory.{{ item.item.key }}"
+      - "{{ item.item.value }}"
+  become: true
+  changed_when: true
+  loop: "{{ hermes_memory_limits.results }}"
+  loop_control:
+    label: "{{ item.item.key }}"
+  when:
+    - not ansible_check_mode
+    - item.stdout | trim != (item.item.value | string)
+
+- name: List Hermes scheduled jobs
+  ansible.builtin.command:
+    argv: [docker, exec, hermes-agent, hermes, cron, list]
+  become: true
+  register: hermes_cron_jobs
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Create the Muse digest scheduled job
+  # Why create only when absent: Hermes owns the job state (last runs, edits made in its dashboard).
+  # Why 07:30, 12:30, 20:30: each run finishes before Muse's exchange at 08:00, 13:00 and 21:00.
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes.user_uid }}:{{ hermes.user_uid }}"
+      - hermes-agent
+      - hermes
+      - cron
+      - create
+      - "30 7,12,20 * * *"
+      - "{{ lookup('ansible.builtin.file', 'scripts/muse_digest_prompt.txt') }}"
+      - --name
+      - Muse向けダイジェスト
+      - --script
+      - muse_digest_prefetch.py
+      - --deliver
+      - local
+      - --timezone
+      - Asia/Tokyo
+      - --catch-up
+      - "off"
+  become: true
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - "'Muse向けダイジェスト' not in hermes_cron_jobs.stdout"
 
 - name: Install the official Claude subscription provider in persistent storage
   ansible.builtin.command:
