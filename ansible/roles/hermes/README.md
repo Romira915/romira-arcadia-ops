@@ -53,3 +53,9 @@ The wakaba `romira` Samba share is mounted read-write on demand at `/mnt/z` on t
 - The Bearer token is `secrets/muse-mcp.token` under the Hermes data root. It is generated once when absent and is never rotated by Ansible. Paste it into Muse's connector from that file; do not put it in chat or logs.
 - The bridge listens on `0.0.0.0` inside the sidecar's namespace so the published port can reach it; every request still needs the Bearer token. Logs are metadata-only JSON lines in `docker logs hermes-muse-bridge`.
 - The sidecar sets `TS_AUTH_ONCE=true`. The exit-node watchdog persists its own preferences, and without this setting containerboot's `tailscale up` fails after the container is recreated, leaving Hermes off the tailnet.
+
+## Muse digest and memory
+
+Hermes' built-in memory (`MEMORY.md`, `USER.md`) is a compact snapshot injected into every session, so it holds durable rules and facts only; daily logs and task progress belong in skills or session history. The role raises its limits to 6000 and 3000 characters (Hermes' defaults of 2200 and 1375 made it delete older entries to store Muse's shared instructions).
+
+The scheduled job `Muse向けダイジェスト` (07:30, 12:30 and 20:30 JST) gives Muse the Hermes side of the picture. `scripts/muse_digest_prefetch.py` reads the last 24 hours of the user's conversations straight from `state.db` (read-only; Discord, desktop, TUI and local sessions, not Muse's own, cron or subagent sessions) because the `session_search` tool only lists ten recent sessions. The job's agent summarizes them, user instructions first, into `muse-exchange/latest.md` under the Hermes data root, and keeps dated copies for 14 days. The files are kept outside the Obsidian vault, which LiveSync mirrors to every device. Muse's scheduled task reads `latest.md` through `ask_hermes`. The job is created only when absent; later edits belong to Hermes (`hermes cron edit`).
