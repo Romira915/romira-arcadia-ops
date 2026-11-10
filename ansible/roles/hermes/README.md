@@ -1,10 +1,10 @@
 # Hermes on OCI
 
-The `hermes` role deploys the official multi-architecture Hermes Agent image on `oci-tokyo-ampere`. The image follows the `latest` tag, the container selects `linux/arm64`, and all mutable Hermes state lives under `/mnt/d/hermes/data`.
+The `hermes` role deploys the derived Hermes Agent image `ghcr.io/romira915/hermes-agent-image` on `oci-tokyo-ampere`. The image is built from the private repository `Romira915/hermes-agent-image` on top of a pinned upstream release, and adds sudo, Claude Code, and the stop-gate patches (work queue gate and factgate). The inventory pins it by tag and digest (`hermes.image`), the container selects `linux/arm64`, and all mutable Hermes state lives under `/mnt/d/hermes/data`.
 
 The dashboard is available through the tailnet at port `8444`; host ports `19119` (dashboard) and `18642` (OpenAI-compatible API) bind to loopback only. Tailscale's HTTPS origin is configured as the dashboard's public URL, and only the Hermes Docker bridge gateway is trusted to supply forwarded headers. Dashboard Basic Auth, its stable cookie secret, and the API bearer key are kept in the encrypted inventory file `inventories/oci-tokyo-ampere/group_vars/all/vault-hermes.yml` and rendered into `/opt/hermes/.env` with mode `0600`. The API is not served through Tailscale.
 
-Hermes runs its agent processes as the verified `hermes` user (UID/GID `10000:10000`) inside the container. The derived image installs `sudo` and grants that user passwordless root access inside the container so it can install packages. `no-new-privileges` is disabled because it blocks sudo's UID transition; Docker's default capability set and the existing `NET_RAW`/`NET_ADMIN` drops remain in place. Runtime package installs live in the container's writable layer and are lost when the container is recreated; add packages that must survive recreation to `files/image/Dockerfile`.
+Hermes runs its agent processes as the verified `hermes` user (UID/GID `10000:10000`) inside the container. The derived image installs `sudo` and grants that user passwordless root access inside the container so it can install packages. `no-new-privileges` is disabled because it blocks sudo's UID transition; Docker's default capability set and the existing `NET_RAW`/`NET_ADMIN` drops remain in place. Runtime package installs live in the container's writable layer and are lost when the container is recreated; add packages that must survive recreation to the Dockerfile in `Romira915/hermes-agent-image`, and place standalone binaries in `/opt/data/bin`.
 
 ## Outbound traffic via the wakaba exit node
 
@@ -28,7 +28,7 @@ The derived Hermes image and Compose service both add `/opt/data/bin` to `PATH`,
 
 The Compose file leaves CPU and memory limits unset, so Hermes can use the OCI VM's available resources. The VM's current size is 2 OCPU and 12 GB RAM. Hermes model/provider authentication is instance-local.
 
-The derived image includes Claude Code pinned to the version in `files/image/Dockerfile`. The role installs the official `claude-subscription-directsdk` plugin into persistent storage without changing the selected model. For Claude Pro/Max, log in using the official CLI as the runtime user:
+The derived image includes Claude Code pinned to the version in the `Romira915/hermes-agent-image` Dockerfile. The role installs the official `claude-subscription-directsdk` plugin into persistent storage without changing the selected model. For Claude Pro/Max, log in using the official CLI as the runtime user:
 
 ```sh
 ssh -t oci-tokyo-ampere 'sudo docker exec -it --user 10000:10000 hermes-agent claude auth login'
@@ -39,7 +39,7 @@ Open the login URL in your local browser and finish the CLI's prompts, then sele
 
 Run from `ansible/` with the OCI inventory and `--tags hermes,openclaw,tailscale` after explicit user authorization. `hermes update` is not supported in Docker; the install is updated by pulling a new image.
 
-`/etc/cron.d/hermes-image-update` (from `inventories/oci-tokyo-ampere/files/cron/`) runs `/usr/local/bin/hermes-image-update` daily at 05:00 JST. Check `hermes cron list` before adding jobs near it. The script pulls `latest`, and only when the image ID changed it rebuilds the derived image and recreates the container, which interrupts running sessions for about a minute. It waits up to 5 minutes for the container healthcheck. If the new image is unhealthy, it retags the previous derived image (`hermes-agent-sudo:rollback`), recreates the container, and does not retry that release; a failed build is retried the next night. Results are written to syslog under the `hermes-image-update` tag (`journalctl -t hermes-image-update`); there is no other notification. Re-running the role keeps using the local `latest` image because the role never pulls (`pull: never`).
+The image is updated only by changing `hermes.image` and running the role; there is no nightly update. The host pulls from GHCR with a read-only token (`vault_hermes.registry_pull_token`, `read:packages`) and never builds. Compose pulls only a missing image, so a new tag and digest are pulled once and the containers are recreated. To roll back, set `hermes.image` to the previous tag and digest (or a local image) and run the role again. New upstream releases are detected by the image repository's `upstream-check` workflow; raising the pinned upstream version is a separate decision because the stop-gate diff may need to be regenerated.
 
 Configuration defaults live in `defaults/main.yml` under the `hermes` dictionary. Environment-specific overrides use the same dictionary in the target inventory; secrets stay in encrypted Vault files.
 

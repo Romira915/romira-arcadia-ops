@@ -24,4 +24,8 @@ hermes:  # noqa: var-naming[no-role-prefix]
   tailscale_state_dir: /opt/hermes/tailscale
   exit_node: wakaba
   tailscale_image: docker.io/tailscale/tailscale:stable
-  image: docker.io/nousresearch/hermes-agent:latest
+  # Built from Romira915/hermes-agent-image; pinned by tag and digest, updated only by this role.
+  image: ghcr.io/romira915/hermes-agent-image:v0.23.0-r1
+  registry:
+    url: ghcr.io
+    username: Romira915

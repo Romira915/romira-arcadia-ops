@@ -2,12 +2,9 @@ name: hermes
 
 services:
   hermes:
-    image: hermes-agent-sudo:arm64
-    build:
-      context: ./image
-      dockerfile: Dockerfile
-      args:
-        HERMES_BASE_IMAGE: ${HERMES_IMAGE:?set HERMES_IMAGE in .env}
+    # Why a prebuilt image: the derived image (sudo, Claude Code, stop-gate patches) is built and
+    # verified in its own repository, so the host only pulls a pinned tag and never builds.
+    image: ${HERMES_IMAGE:?set HERMES_IMAGE in .env}
     platform: linux/arm64
     container_name: hermes-agent
     # Why a shared network namespace: only Hermes' outbound traffic follows the sidecar's exit node,
@@ -135,7 +132,7 @@ services:
         max-file: "3"
 
   muse-bridge:
-    image: hermes-agent-sudo:arm64
+    image: ${HERMES_IMAGE:?set HERMES_IMAGE in .env}
     container_name: hermes-muse-bridge
     # Why a separate container: it holds only the bridge token and the Hermes API key, not the rest
     # of .env or the data directory, and cannot gain privileges. It forwards Muse's questions to the

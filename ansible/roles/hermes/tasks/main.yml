@@ -48,7 +48,7 @@
   ansible.builtin.assert:
     that:
       - hermes_host_architecture.stdout == 'aarch64'
-    fail_msg: The Hermes image update script pulls linux/arm64 for the OCI Ampere host.
+    fail_msg: The derived Hermes image is published for linux/arm64 only.
 
 - name: Ensure Hermes project and persistent state directories exist
   ansible.builtin.file:
@@ -60,7 +60,6 @@
   become: true
   loop:
     - {path: "{{ hermes.project_dir }}", owner: root, group: root, mode: '0755'}
-    - {path: "{{ hermes.project_dir }}/image", owner: root, group: root, mode: '0755'}
     - {path: "{{ hermes.tailscale_state_dir }}", owner: root, group: root, mode: '0700'}
     - {path: "{{ hermes.data_root }}", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/workspace", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
@@ -176,17 +175,32 @@
     mode: '0644'
   become: true
 
-- name: Deploy the Hermes image definition with sudo and Claude Code
-  ansible.builtin.copy:
-    src: image/Dockerfile
-    dest: "{{ hermes.project_dir }}/image/Dockerfile"
-    owner: root
-    group: root
-    mode: '0644'
+- name: Remove the retired host-side image build and nightly update
+  # Why: the derived image is now built in Romira915/hermes-agent-image and pinned in the inventory,
+  # so an unattended rebuild would replace the pinned image with an unpatched upstream release.
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
   become: true
+  loop:
+    - "{{ hermes.project_dir }}/image"
+    - /etc/cron.d/hermes-image-update
+    - /etc/cron.d/hermes-image-update.disabled
+    - /usr/local/bin/hermes-image-update
+    - /var/lib/hermes-image-update
+
+- name: Log in to the registry that hosts the derived Hermes image
+  community.docker.docker_login:
+    registry_url: "{{ hermes.registry.url }}"
+    username: "{{ hermes.registry.username }}"
+    password: "{{ vault_hermes.registry_pull_token }}"
+    reauthorize: true
+  become: true
+  no_log: true
+  when: not ansible_check_mode
 
 - name: Pull the Tailscale sidecar image when it is absent
-  # Why not compose pull: the compose task uses pull: never so Hermes only changes through its own update script.
+  # Why not compose pull: the compose task pulls only missing images, so a moving tag such as stable is not refreshed here.
   community.docker.docker_image:
     name: "{{ hermes.tailscale_image }}"
     source: pull
@@ -241,8 +255,9 @@
       - hermes
       - muse-bridge
     state: present
-    pull: never
-    build: always
+    # Why missing: the Hermes image is pinned by tag and digest, so a changed pin is pulled once.
+    pull: missing
+    build: never
     recreate: auto
   become: true
   when: not ansible_check_mode
@@ -920,12 +935,4 @@
     mode: '0755'
   become: true
 
-- name: Deploy the nightly Hermes image update script
-  ansible.builtin.copy:
-    src: image-update.sh
-    dest: /usr/local/bin/hermes-image-update
-    owner: root
-    group: root
-    mode: '0755'
-  become: true
 
