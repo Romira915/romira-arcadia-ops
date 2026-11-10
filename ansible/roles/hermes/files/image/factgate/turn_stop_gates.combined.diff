@@ -1,0 +1,80 @@
+--- turn_stop_gates.py
++++ turn_stop_gates.py
+@@ -131,6 +131,44 @@
+         logger.debug(flush_fail_msg, exc_info=True)
+ 
+ 
++# WORK_QUEUE_STOP_GATE (patch by Hermes; see /opt/data/patches).
++# Scope: only this session's open items plus global open items gate the turn.
++# blocked items never gate. Off when /opt/data/work_queue_gate.disabled exists.
++def _work_queue_stop_nudge(agent) -> Optional[str]:
++    import os
++    import subprocess
++    import time as _t
++    if os.path.exists("/opt/data/work_queue_gate.disabled"):
++        return None
++    sid = str(getattr(agent, "session_id", "") or "")
++    cmd = ["python3", "-I", "/opt/data/scripts/workqueue.py", "check"]
++    if sid:
++        cmd += ["--session", sid]
++    try:
++        r = subprocess.run(cmd, capture_output=True, text=True, timeout=20)
++    except Exception:
++        logger.debug("work queue check failed", exc_info=True)
++        return None
++    items = [l for l in (r.stdout or "").splitlines() if l.startswith("#")]
++    nudge = r.returncode != 0 and getattr(agent, "_work_queue_nudges", 0) < 10
++    try:
++        with open("/opt/data/gate_call.log", "a", encoding="utf-8") as f:
++            f.write("%s GATE sid=%s open=%s nudge=%s\n" % (
++                _t.strftime("%Y-%m-%dT%H:%M:%S"), sid or "-",
++                ",".join(l.split()[0] for l in items) or "none", nudge))
++    except Exception:
++        pass
++    if not nudge:
++        return None
++    agent._work_queue_nudges = getattr(agent, "_work_queue_nudges", 0) + 1
++    causes = " ".join(l.split()[0] for l in items)
++    return (
++        "[System note: the work queue still has unfinished items for this session. "
++        "Cause items: " + causes + ". Do the next item now instead of ending with a plan. "
++        "Open items:\n" + "\n".join(items) + "]"
++    )
++
++
+ def apply_stop_gates(
+     agent: Any, final_msg: dict[str, Any], *, final_response: Any, messages: list[dict[str, Any]],
+     conversation_history: Any, pending_verification_response: Any,
+@@ -175,6 +213,32 @@
+             pending_verification_response_previewed=agent._interim_content_was_streamed(final_response or ""),
+         )
+ 
++    _wq_nudge = _work_queue_stop_nudge(agent)
++    if _wq_nudge:
++        final_msg["finish_reason"] = "work_queue_open"
++        final_msg["_work_queue_synthetic"] = True
++        append_message(messages, final_msg)
++        return _continue(_wq_nudge, "_work_queue_synthetic")
++
++    # fact gate (2026-11-10): monitoring-scope answers must be grounded in monitoring-roster.md
++    try:
++        from agent.factgate import factgate_nudge as _fg
++        _fact_nudge = _fg(
++            final_response=final_response, messages=messages,
++            nudges_so_far=getattr(agent, "_factgate_nudges", 0),
++            platform=getattr(agent, "platform", None),
++            session_id=str(getattr(agent, "session_id", "-") or "-"),
++        )
++    except Exception:
++        logger.debug("factgate check failed", exc_info=True)
++        _fact_nudge = None
++    if _fact_nudge:
++        agent._factgate_nudges = getattr(agent, "_factgate_nudges", 0) + 1
++        final_msg["finish_reason"] = "factgate_continue"
++        final_msg["_factgate_synthetic"] = True
++        append_message(messages, final_msg)
++        return _continue(_fact_nudge, "_factgate_synthetic")
++
+     _verify_nudge = _verify_on_stop_nudge(agent)
+     if _verify_nudge:
+         agent._verification_stop_nudges = getattr(agent, "_verification_stop_nudges", 0) + 1
