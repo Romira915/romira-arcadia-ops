@@ -134,7 +134,11 @@ hermes:
   tailscale_state_dir: /opt/hermes/tailscale
   exit_node: wakaba
   tailscale_image: docker.io/tailscale/tailscale:stable
-  image: docker.io/nousresearch/hermes-agent:latest
+  # Built from Romira915/hermes-agent-image; pinned by tag and digest, updated only by this role.
+  image: ghcr.io/romira915/hermes-agent-image:v0.23.0-r1@sha256:9c1dfc66ef56c36afdbcbe2cbbe7c8f240414a611d801a2cea5ba6ec15e2ea08
+  registry:
+    url: ghcr.io
+    username: Romira915
 
 deployment:
   inventory: oci-tokyo-ampere
