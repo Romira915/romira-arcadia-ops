@@ -24,6 +24,7 @@ brew:
     - zoxide
     - bat
     - ripgrep
+    - tgrep
     - rga
     - fd
     - eza
