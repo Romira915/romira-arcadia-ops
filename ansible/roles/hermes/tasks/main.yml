@@ -12,6 +12,8 @@
       - vault_hermes.openclaw_mcp_token | length >= 32
       - vault_hermes_gog.keyring_password is defined
       - vault_hermes_gog.keyring_password | length >= 32
+      - vault_hermes.github_token is defined
+      - vault_hermes.github_token | length >= 40
       - vault_hermes.image_apply_webhook_url is defined
       - vault_hermes.image_apply_webhook_url is match('https://discord(app)?\\.com/api/webhooks/')
     fail_msg: Encrypted Hermes credentials are missing or too short.
@@ -152,6 +154,10 @@
       HERMES_TAILSCALE_HOSTNAME={{ hermes.tailscale_hostname }}
       HERMES_TAILSCALE_STATE_DIR={{ hermes.tailscale_state_dir }}
       HERMES_EXIT_NODE={{ hermes.exit_node }}
+      GH_TOKEN={{ vault_hermes.github_token }}
+      GIT_CONFIG_COUNT=1
+      GIT_CONFIG_KEY_0=credential.https://github.com.helper
+      GIT_CONFIG_VALUE_0="!{{ hermes.gh.binary }} auth git-credential"
     dest: "{{ hermes.project_dir }}/.env"
     owner: root
     group: root
@@ -277,6 +283,41 @@
   community.docker.docker_image:
     name: "{{ hermes.tailscale_image }}"
     source: pull
+  become: true
+  when: not ansible_check_mode
+
+- name: Ensure the Hermes command directory exists
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/bin"
+    state: directory
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0755'
+  become: true
+
+- name: Download the pinned GitHub CLI release
+  ansible.builtin.get_url:
+    url: "https://github.com/cli/cli/releases/download/v{{ hermes.gh.version }}/gh_{{ hermes.gh.version }}_linux_arm64.tar.gz"
+    dest: "/var/cache/hermes-gh_{{ hermes.gh.version }}_linux_arm64.tar.gz"
+    checksum: "sha256:{{ hermes.gh.sha256 }}"
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Install the GitHub CLI where Hermes resolves commands
+  # Why extract only the binary: Hermes needs the command, not the man pages and license files.
+  ansible.builtin.unarchive:
+    src: "/var/cache/hermes-gh_{{ hermes.gh.version }}_linux_arm64.tar.gz"
+    dest: "{{ hermes.data_root }}/bin"
+    remote_src: true
+    include:
+      - "gh_{{ hermes.gh.version }}_linux_arm64/bin/gh"
+    extra_opts:
+      - --strip-components=2
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0755'
   become: true
   when: not ansible_check_mode
 
@@ -614,7 +655,7 @@
       not hermes_config_file.stat.exists or
       hermes_bridge_gateway.stdout | trim not in (hermes_existing_trusted_proxies | default([]))
 
-- name: Configure Gog environment for Hermes terminal sessions
+- name: Configure Gog and GitHub environment for Hermes terminal sessions
   ansible.builtin.command:
     argv:
       - docker
@@ -626,7 +667,7 @@
       - terminal.env_passthrough
       - >-
         {{ ((hermes_existing_terminal_env_passthrough | default([])) +
-            ['GOG_HOME', 'GOG_KEYRING_BACKEND', 'GOG_KEYRING_PASSWORD']) | unique | list | to_json }}
+            hermes.terminal_env_passthrough) | unique | list | to_json }}
   become: true
   register: hermes_gog_terminal_env_set
   changed_when: true
@@ -635,7 +676,7 @@
     - not ansible_check_mode
     - >-
       not hermes_config_file.stat.exists or
-      (['GOG_HOME', 'GOG_KEYRING_BACKEND', 'GOG_KEYRING_PASSWORD'] |
+      (hermes.terminal_env_passthrough |
        difference(hermes_existing_terminal_env_passthrough | default([])) | length > 0)
 
 - name: Read configured Hermes MCP servers before reconciling Google access
