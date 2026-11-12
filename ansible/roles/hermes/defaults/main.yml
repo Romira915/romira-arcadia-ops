@@ -41,7 +41,7 @@ hermes:  # noqa: var-naming[no-role-prefix]
   tailscale_image: docker.io/tailscale/tailscale:stable
   # Built from Romira915/hermes-agent-image and pinned by tag and digest. The image repository's CI opens
   # the pull request that changes it; after the merge, hermes-image-apply on the host replaces the image.
-  image: ghcr.io/romira915/hermes-agent-image:v0.23.0-r1@sha256:9c1dfc66ef56c36afdbcbe2cbbe7c8f240414a611d801a2cea5ba6ec15e2ea08
+  image: ghcr.io/romira915/hermes-agent-image:v0.23.0-r2@sha256:b40579a852b2040d12d4abb9c7cf940898f0b46c35f00a8cd452b4fdf29b9c2f
   # Files the host checks in a new image before and after replacing it. Change them in the same pull
   # request as the image when the stop-gate patches change.
   image_verify:
