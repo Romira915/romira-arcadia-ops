@@ -154,7 +154,7 @@
       HERMES_TAILSCALE_HOSTNAME={{ hermes.tailscale_hostname }}
       HERMES_TAILSCALE_STATE_DIR={{ hermes.tailscale_state_dir }}
       HERMES_EXIT_NODE={{ hermes.exit_node }}
-      GH_TOKEN={{ vault_hermes.github_token }}
+      GH_CONFIG_DIR={{ hermes.gh.config_dir }}
       GIT_CONFIG_COUNT=1
       GIT_CONFIG_KEY_0=credential.https://github.com.helper
       GIT_CONFIG_VALUE_0="!{{ hermes.gh.binary }} auth git-credential"
@@ -320,6 +320,31 @@
     mode: '0755'
   become: true
   when: not ansible_check_mode
+
+- name: Ensure the GitHub CLI configuration directory exists
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/{{ hermes.gh.config_dir | regex_replace('^/opt/data/', '') }}"
+    state: directory
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0700'
+  become: true
+
+- name: Store the GitHub token where the GitHub CLI reads it
+  # Why a hosts file and not GH_TOKEN: Hermes strips GH_TOKEN from every terminal and tool process
+  # (Tier-1 secret) even when env_passthrough lists it, so gh and git there never saw the token.
+  ansible.builtin.copy:
+    content: |
+      github.com:
+          oauth_token: {{ vault_hermes.github_token }}
+          user: {{ hermes.registry.username }}
+          git_protocol: https
+    dest: "{{ hermes.data_root }}/{{ hermes.gh.config_dir | regex_replace('^/opt/data/', '') }}/hosts.yml"
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0600'
+  become: true
+  no_log: true
 
 - name: Ensure the Muse bridge and secret directories exist
   ansible.builtin.file:
