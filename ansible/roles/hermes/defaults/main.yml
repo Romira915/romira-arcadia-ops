@@ -10,6 +10,21 @@ hermes:  # noqa: var-naming[no-role-prefix]
   workspace_path: /opt/data/workspace
   gog_home: /opt/data/home/.config/gogcli
   gog_binary: /opt/data/bin/gog
+  # Why /opt/data/bin and not the image: gh is a standalone binary, and the image tag stays tied to
+  # upstream and stop-gate changes, so a gh upgrade does not need a new image release.
+  gh:
+    version: 2.103.3
+    sha256: ee32df2323c8847f5fac6cb6b4b69ca75828e9329a8f22f677021f7b3306ce63
+    binary: /opt/data/bin/gh
+  # Environment variables that Hermes passes from .env into its terminal sessions.
+  terminal_env_passthrough:
+    - GOG_HOME
+    - GOG_KEYRING_BACKEND
+    - GOG_KEYRING_PASSWORD
+    - GH_TOKEN
+    - GIT_CONFIG_COUNT
+    - GIT_CONFIG_KEY_0
+    - GIT_CONFIG_VALUE_0
   gog_mcp_args:
     - mcp
     - --allow-write
