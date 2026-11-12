@@ -43,10 +43,11 @@ hermes:  # noqa: var-naming[no-role-prefix]
   # the pull request that changes it; after the merge, hermes-image-apply on the host replaces the image.
   image: ghcr.io/romira915/hermes-agent-image:v0.23.0-r2@sha256:b40579a852b2040d12d4abb9c7cf940898f0b46c35f00a8cd452b4fdf29b9c2f
   # Files the host checks in a new image before and after replacing it. Change them in the same pull
-  # request as the image when the stop-gate patches change.
+  # request as the image when the stop-gate patches change. Keep the digests quoted: YAML would read a
+  # digest made only of digits (or digits and one "e") as a number, and the host would refuse it.
   image_verify:
-    /opt/hermes/agent/turn_stop_gates.py: 852c853b9aa6e741bbfcd0ca2612f541b30dbb053de420245fcf7ae453c79f22
-    /opt/hermes/agent/factgate.py: bcea2d10e1e37454b000948a77581aefcff829844d80d1d61c2c9a5122cd8edd
+    /opt/hermes/agent/turn_stop_gates.py: "852c853b9aa6e741bbfcd0ca2612f541b30dbb053de420245fcf7ae453c79f22"
+    /opt/hermes/agent/factgate.py: "bcea2d10e1e37454b000948a77581aefcff829844d80d1d61c2c9a5122cd8edd"
   image_apply:
     source_url: https://api.github.com/repos/Romira915/romira-arcadia-ops/contents/ansible/inventories/oci-tokyo-ampere/group_vars/all/vars.yml?ref=main
     # Why 05:00-06:45 JST: Hermes' maintenance jobs run at 03:00, vaultwarden's backup at 04:00-04:30,

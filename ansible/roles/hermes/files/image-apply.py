@@ -75,7 +75,8 @@ def fetch_pin(config):
         isinstance(path, str) and path.startswith("/") and isinstance(digest, str) and SHA256_PATTERN.match(digest)
         for path, digest in verify.items()
     ):
-        raise Abort("hermes.image_verify on main must map absolute paths to SHA-256 digests")
+        # Why strings only: an unquoted digest of digits (or digits and one "e") would load as a number.
+        raise Abort("hermes.image_verify on main must map absolute paths to quoted SHA-256 digests")
     return image, verify
 
 
