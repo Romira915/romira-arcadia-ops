@@ -8,9 +8,11 @@ Only human conversations count; Muse's own sessions, cron output, subagents and 
 left out so the digest never echoes what Muse already knows.
 """
 import sqlite3
+import subprocess
 import sys
 import time
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 DB = "/opt/data/state.db"
 WINDOW_HOURS = 24
@@ -20,6 +22,9 @@ MAX_TOTAL = 50000
 MAX_SESSION = 8000
 MAX_USER = 600
 MAX_ASSISTANT = 150
+SOURCES_DIR = Path("/opt/data/scripts/muse_digest_sources")
+SOURCE_TIMEOUT_SECONDS = 180
+MAX_SOURCE = 12000
 
 
 def clip(text, limit):
@@ -68,8 +73,34 @@ def main():
             out.append(line)
         if omitted:
             out.append(f"  …(字数の上限で{omitted}件を省略)")
+    out.append(extra_sources())
     text = "\n".join(out)
     sys.stdout.write(text + "\n")
+
+
+def extra_sources():
+    """Append what Hermes' own source scripts print (schedules to cross-check, job anomalies).
+
+    Why a directory of Hermes-owned scripts instead of code here: they read the user's calendars and
+    Hermes' notes, whose identifiers do not belong in this public repository, and Hermes maintains them.
+    """
+    parts = []
+    for script in sorted(SOURCES_DIR.glob("*.py")):
+        try:
+            result = subprocess.run([sys.executable, "-I", str(script)], capture_output=True, text=True,
+                                    timeout=SOURCE_TIMEOUT_SECONDS)
+            if result.returncode == 0:
+                body = result.stdout.strip()
+            else:
+                body = f"# {script.name}\n- 取得失敗（終了コード {result.returncode}）。この資料による照合はできていない。"
+        except subprocess.TimeoutExpired:
+            body = f"# {script.name}\n- 取得失敗（{SOURCE_TIMEOUT_SECONDS}秒で打ち切り）。この資料による照合はできていない。"
+        parts.append(clip_block(body, MAX_SOURCE))
+    return "\n\n".join(parts)
+
+
+def clip_block(text, limit):
+    return text if len(text) <= limit else text[:limit] + "\n…(字数の上限で以降を省略)"
 
 
 if __name__ == "__main__":
