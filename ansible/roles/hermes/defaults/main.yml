@@ -39,8 +39,20 @@ hermes:  # noqa: var-naming[no-role-prefix]
   tailscale_state_dir: /opt/hermes/tailscale
   exit_node: wakaba
   tailscale_image: docker.io/tailscale/tailscale:stable
-  # Built from Romira915/hermes-agent-image; pinned by tag and digest, updated only by this role.
+  # Built from Romira915/hermes-agent-image and pinned by tag and digest. The image repository's CI opens
+  # the pull request that changes it; after the merge, hermes-image-apply on the host replaces the image.
   image: ghcr.io/romira915/hermes-agent-image:v0.23.0-r1@sha256:9c1dfc66ef56c36afdbcbe2cbbe7c8f240414a611d801a2cea5ba6ec15e2ea08
+  # Files the host checks in a new image before and after replacing it. Change them in the same pull
+  # request as the image when the stop-gate patches change.
+  image_verify:
+    /opt/hermes/agent/turn_stop_gates.py: 852c853b9aa6e741bbfcd0ca2612f541b30dbb053de420245fcf7ae453c79f22
+    /opt/hermes/agent/factgate.py: bcea2d10e1e37454b000948a77581aefcff829844d80d1d61c2c9a5122cd8edd
+  image_apply:
+    source_url: https://api.github.com/repos/Romira915/romira-arcadia-ops/contents/ansible/inventories/oci-tokyo-ampere/group_vars/all/vars.yml?ref=main
+    # Why 05:00-06:45 JST: Hermes' maintenance jobs run at 03:00, vaultwarden's backup at 04:00-04:30,
+    # and the morning notification jobs from 07:05, so a replacement interrupts none of them.
+    on_calendar: "*-*-* 05,06:00/15:00"
+    health_timeout_seconds: 300
   registry:
     url: ghcr.io
     username: Romira915
