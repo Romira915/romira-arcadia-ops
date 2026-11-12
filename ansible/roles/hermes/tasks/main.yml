@@ -753,28 +753,21 @@
     - hermes_gog_mcp_config.rc == 0
     - (hermes_gog_mcp_config.stdout | from_json).get('args', []) != hermes.gog_mcp_args
 
-- name: Read Gog MCP configuration after adding or updating it
-  ansible.builtin.command:
-    argv:
-      - docker
-      - exec
-      - --user
-      - "{{ hermes.user_uid }}:{{ hermes.user_uid }}"
-      - hermes-agent
-      - /opt/hermes/bin/hermes
-      - config
-      - get
-      - --json
-      - mcp_servers.gog
+- name: Read the stored Gog MCP configuration after adding or updating it
+  # Why the file and not `hermes config get`: get expands ${VAR} references and redacts secrets, so
+  # its env never equals the stored references; comparing against it rewrote the env and restarted
+  # Hermes on every run, and would have written expanded or redacted values back for any extra key.
+  ansible.builtin.slurp:
+    src: "{{ hermes.data_root }}/config.yaml"
   become: true
   register: hermes_gog_mcp_config_for_env
-  changed_when: false
   no_log: true
   when: not ansible_check_mode
 
 - name: Preserve existing Gog MCP environment entries
   ansible.builtin.set_fact:
-    hermes_gog_mcp_env_raw: "{{ (hermes_gog_mcp_config_for_env.stdout | from_json).get('env', {}) }}"
+    hermes_gog_mcp_env_raw: >-
+      {{ (((hermes_gog_mcp_config_for_env.content | b64decode | from_yaml).get('mcp_servers') or {}).get('gog') or {}).get('env', {}) }}
   no_log: true
   when: not ansible_check_mode
 
