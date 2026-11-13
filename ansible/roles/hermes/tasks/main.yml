@@ -450,9 +450,7 @@
   become: true
   register: hermes_memory_limits
   changed_when: false
-  loop:
-    - {key: memory_char_limit, value: 6000}
-    - {key: user_char_limit, value: 3000}
+  loop: "{{ hermes.memory_limits | dict2items }}"
   loop_control:
     label: "{{ item.key }}"
   when: not ansible_check_mode
