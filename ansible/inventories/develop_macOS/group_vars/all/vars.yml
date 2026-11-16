@@ -182,7 +182,9 @@ develop_configuration:
     - ~/.local/bin/
     - ~/workspace/repositories
     - ~/.claude/
+    - ~/.claude/hooks/
     - ~/.codex/
+    - ~/.codex/hooks/
     - ~/.gemini/
     - ~/.config/opencode/
     - ~/.config/ghostty/
@@ -231,6 +233,10 @@ develop_configuration:
       dest: ~/.hermes/config.yaml
     - src: ~/.config/romira-s-config/ai-config/claude-code/settings.json
       dest: ~/.claude/settings.json
+    - src: ~/.config/romira-s-config/ai-config/hooks/herdr-tab-title/hook.py
+      dest: ~/.claude/hooks/herdr-tab-title.py
+    - src: ~/.config/romira-s-config/ai-config/hooks/herdr-tab-title/hook.py
+      dest: ~/.codex/hooks/herdr-tab-title.py
     - src: ~/.config/romira-s-config/ai-config/litellm/claude-free
       dest: ~/.local/bin/claude-free
     - src: ~/.config/romira-s-config/ai-config/claude-code-router/claude-copilot
