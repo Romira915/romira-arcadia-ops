@@ -158,6 +158,10 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\.hermes\config.yaml
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\claude-code\settings.json
       dest: C:\Users\{{ ansible_user }}\.claude\settings.json
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\hooks\herdr-tab-title\hook.py
+      dest: C:\Users\{{ ansible_user }}\.claude\hooks\herdr-tab-title.py
+    - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\ai-config\hooks\herdr-tab-title\hook.py
+      dest: C:\Users\{{ ansible_user }}\.codex\hooks\herdr-tab-title.py
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\starship\starship.toml
       dest: C:\Users\{{ ansible_user }}\.config\starship.toml
     - src: C:\Users\{{ ansible_user }}\.config\romira-s-config\tmux\.tmux.conf
@@ -184,7 +188,9 @@ develop_configuration:
       dest: C:\Users\{{ ansible_user }}\AppData\Local\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json
   ai_config_dirs:
     - C:\Users\{{ ansible_user }}\.claude
+    - C:\Users\{{ ansible_user }}\.claude\hooks
     - C:\Users\{{ ansible_user }}\.codex
+    - C:\Users\{{ ansible_user }}\.codex\hooks
     - C:\Users\{{ ansible_user }}\.gemini
     - C:\Users\{{ ansible_user }}\.config\opencode
     - C:\Users\{{ ansible_user }}\.config\herdr

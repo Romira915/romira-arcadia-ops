@@ -193,6 +193,8 @@
         - "{{ test.home }}/.zshrc"
         - "{{ test.home }}/.vimrc"
         - "{{ test.home }}/.tmux.conf"
+        - "{{ test.home }}/.claude/hooks/herdr-tab-title.py"
+        - "{{ test.home }}/.codex/hooks/herdr-tab-title.py"
 
     - name: Assert symbolic links exist
       ansible.builtin.assert:

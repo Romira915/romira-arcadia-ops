@@ -46,7 +46,9 @@ develop_configuration:
     - ~/.local/bin/
     - ~/workspace/repositories
     - ~/.claude/
+    - ~/.claude/hooks/
     - ~/.codex/
+    - ~/.codex/hooks/
     - ~/.gemini/
     - ~/.config/opencode/
     - ~/.hermes/
@@ -130,6 +132,10 @@ develop_configuration:
       dest: ~/.local/bin/obsidian
     - src: /mnt/c/Users/{{ development.windows_user }}/AppData/Local/Programs/Zed/bin/zed
       dest: ~/.local/bin/zed
+    - src: ~/.config/romira-s-config/ai-config/hooks/herdr-tab-title/hook.py
+      dest: ~/.claude/hooks/herdr-tab-title.py
+    - src: ~/.config/romira-s-config/ai-config/hooks/herdr-tab-title/hook.py
+      dest: ~/.codex/hooks/herdr-tab-title.py
 gh:
   github_fine_grained_token: "{{ vault_gh.vault_github_fine_grained_token }}"
   repository:
