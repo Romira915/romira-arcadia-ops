@@ -359,6 +359,28 @@
         public: "{{ hermes.html.public_base_url }}"
   become: true
 
+- name: Ensure the Hermes user plugin directory exists
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/plugins"
+    state: directory
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0755'
+  become: true
+
+- name: Deploy the Pages dashboard plugin
+  # Why a dashboard plugin and not a page of its own: the list then sits behind the dashboard's
+  # existing tailnet-only password login, and its backend reads pages only through hermes-pages.
+  ansible.builtin.copy:
+    src: plugins/html-pages/
+    dest: "{{ hermes.data_root }}/plugins/html-pages/"
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0644'
+    directory_mode: '0755'
+  register: hermes_pages_plugin_set
+  become: true
+
 - name: Download the pinned GitHub CLI release
   ansible.builtin.get_url:
     url: "https://github.com/cli/cli/releases/download/v{{ hermes.gh.version }}/gh_{{ hermes.gh.version }}_linux_arm64.tar.gz"
@@ -766,6 +788,29 @@
       (hermes.terminal_env_passthrough |
        difference(hermes_existing_terminal_env_passthrough | default([])) | length > 0)
 
+- name: Enable the Pages dashboard plugin
+  # Why enable explicitly: the dashboard imports a user plugin's backend only when it is in plugins.enabled.
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes.user_uid }}:{{ hermes.user_uid }}"
+      - hermes-agent
+      - hermes
+      - plugins
+      - enable
+      - html-pages
+  become: true
+  register: hermes_pages_plugin_enable
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - >-
+      not hermes_config_file.stat.exists or
+      'html-pages' not in ((((hermes_existing_config.content | b64decode | from_yaml).plugins
+        | default({}, true)).enabled) | default([], true))
+
 - name: Read configured Hermes MCP servers before reconciling Google access
   ansible.builtin.command:
     argv:
@@ -988,6 +1033,8 @@
     - >-
       hermes_google_workspace_skill_set is changed or
       hermes_publish_html_skill_set is changed or
+      hermes_pages_plugin_set is changed or
+      (hermes_pages_plugin_enable is defined and hermes_pages_plugin_enable is changed) or
       (hermes_retired_google_workspace_files_removed is defined and
        hermes_retired_google_workspace_files_removed is changed) or
       hermes_shared_skills_set is changed or

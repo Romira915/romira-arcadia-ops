@@ -1,0 +1,9 @@
+name: html-pages
+label: Pages
+kind: standalone
+version: 1.0.0
+description: >
+  Dashboard tab listing the HTML pages Hermes published with hermes-pages:
+  what each page is, whether it is private or public, and its URL.
+provides_tools: []
+provides_hooks: []

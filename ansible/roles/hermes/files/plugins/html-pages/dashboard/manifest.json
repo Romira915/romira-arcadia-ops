@@ -1,0 +1,11 @@
+{
+  "name": "html-pages",
+  "label": "Pages",
+  "description": "HTML pages Hermes published: what each page is, its visibility and URL.",
+  "icon": "Globe",
+  "version": "1.0.0",
+  "tab": { "path": "/pages", "position": "end" },
+  "entry": "dist/index.js",
+  "css": "dist/style.css",
+  "api": "plugin_api.py"
+}

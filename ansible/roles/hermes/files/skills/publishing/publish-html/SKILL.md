@@ -1,7 +1,7 @@
 ---
 name: publish-html
-description: "Publish generated HTML pages to a URL, choose private (tailnet only) or public (anyone with the link), switch visibility, update, list, or remove pages with the hermes-pages CLI."
-version: 1.0.0
+description: "Publish generated HTML pages to a URL, choose private (tailnet only) or public (anyone with the link), switch visibility, update, describe, list, or remove pages with the hermes-pages CLI."
+version: 1.1.0
 platforms: [linux]
 metadata:
   hermes:
@@ -38,10 +38,11 @@ Before any page becomes `public` (by `publish --visibility public` or `set-visib
 3. Publish:
 
    ```sh
-   hermes-pages publish /opt/data/workspace/tmp/<name> --visibility private --name "<short english name>"
+   hermes-pages publish /opt/data/workspace/tmp/<name> --visibility private --name "<short english name>" \
+     --description "<what the page is and who it is for>"
    ```
 
-   `--name` becomes the readable part of the slug; use a few ASCII words.
+   `--name` becomes the readable part of the slug; use a few ASCII words. `--description` is required: write one sentence in the user's language saying what the page shows and, for a public page, who it was shared with (for example "11月の家計簿の集計。自分用" or "旅行の行程表。友人に共有"). The user finds pages later by this description, so do not leave it vague ("report", "page").
 
 4. Open the `url` from the output and confirm it answers 200 before replying:
 
@@ -54,21 +55,28 @@ Before any page becomes `public` (by `publish --visibility public` or `set-visib
 
 ## Change an existing page
 
-Find the page first; the user usually refers to it by title or by "the page you just made".
+Find the page first; the user usually refers to it by title, description, or "the page you just made".
 
 ```sh
 hermes-pages list
 ```
 
+`list` prints every page with its `title`, `description`, `visibility`, `url`, `created_at` and `updated_at` (UTC). A page published before descriptions existed has `description: null`; when you touch such a page, give it one with `describe`.
+
 | Request | Command |
 |---|---|
 | Make it public / share it | `hermes-pages set-visibility <slug> public` |
 | Make it private / stop sharing | `hermes-pages set-visibility <slug> private` |
-| Replace its contents | `hermes-pages update <slug> <directory>` |
+| Replace its contents | `hermes-pages update <slug> <directory>` (add `--description "<text>"` if what the page is has changed) |
+| Change what it says the page is | `hermes-pages describe <slug> "<text>"` |
 | Delete it | `hermes-pages remove <slug>` |
 
 Changing visibility keeps the slug, so only the host part of the URL changes, and the old URL stops working immediately. After `publish`, `update` or `set-visibility`, check the new URL with `curl` as above (200) before replying. Tell the user the new URL and that the old one no longer works.
 
+## Where the user sees all pages
+
+The Hermes dashboard has a **Pages** tab listing every page with its description, visibility, URL and dates. When the user asks what pages exist or where a page was, answer from `hermes-pages list`, and mention the Pages tab if they want to browse the list themselves.
+
 ## Output and errors
 
-Every command prints JSON (`slug`, `visibility`, `url`; `list` prints an array with `title`). On failure it prints `hermes-pages: <reason>` to stderr and exits non-zero; fix the cause (missing `index.html`, symbolic link, unknown slug) and retry rather than working around the CLI.
+Every command prints JSON (`slug`, `visibility`, `url`; `list` prints an array that adds `title`, `description`, `created_at` and `updated_at`). On failure it prints `hermes-pages: <reason>` to stderr and exits non-zero; fix the cause (missing `index.html`, symbolic link, unknown slug) and retry rather than working around the CLI.

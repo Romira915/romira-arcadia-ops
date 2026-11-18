@@ -2,12 +2,15 @@
 """Publish Hermes-generated HTML to the private (tailnet) or public site.
 
 A page is a directory with an index.html. Its visibility is the directory it
-lives in (<root>/private or <root>/public); nothing else records it. Every
-change is staged in <root>/.staging and moved into place with a single rename,
-so the web server never serves a half-written page.
+lives in (<root>/private or <root>/public); nothing else records it. What the
+page is for and when it was made live in <page>/.page.json, which moves with the
+page and which nginx refuses to serve. Every change is staged in <root>/.staging
+and moved into place with a single rename, so the web server never serves a
+half-written page.
 """
 
 import argparse
+from datetime import datetime, timezone
 import fcntl
 import html.parser
 import json
@@ -28,6 +31,7 @@ SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*-[a-z0-9]{8}$")
 NAME_MAX_LENGTH = 40
 DIRECTORY_MODE = 0o755
 FILE_MODE = 0o644
+METADATA_NAME = ".page.json"
 
 
 class PagesError(Exception):
@@ -53,24 +57,40 @@ class Pages:
                 return visibility
         raise PagesError(f"page not found: {slug}")
 
-    def publish(self, source, visibility, name):
+    def publish(self, source, visibility, name, description):
         source = validated_source(source)
+        description = validated_description(description)
         slug = new_slug(name or source.name)
         staged = self.stage(source, slug)
+        timestamp = now()
+        write_metadata(staged, {"description": description, "created_at": timestamp, "updated_at": timestamp})
         os.rename(staged, self.root / visibility / slug)
         return self.result(visibility, slug)
 
-    def update(self, slug, source):
+    def update(self, slug, source, description):
         source = validated_source(source)
         visibility = self.locate(slug)
         current = self.root / visibility / slug
+        metadata = read_metadata(current)
+        if description is not None:
+            metadata["description"] = validated_description(description)
+        metadata["updated_at"] = now()
         staged = self.stage(source, slug)
+        write_metadata(staged, metadata)
         retired = self.clear_staged(f"{slug}.retired")
         # Why two renames and not an exchange: the standard library has no renameat2(RENAME_EXCHANGE);
         # the page is missing only between these two calls.
         os.rename(current, retired)
         os.rename(staged, current)
         shutil.rmtree(retired)
+        return self.result(visibility, slug)
+
+    def describe(self, slug, description):
+        visibility = self.locate(slug)
+        page = self.root / visibility / slug
+        metadata = read_metadata(page)
+        metadata["description"] = validated_description(description)
+        write_metadata(page, metadata)
         return self.result(visibility, slug)
 
     def set_visibility(self, slug, visibility):
@@ -94,9 +114,14 @@ class Pages:
         for visibility in VISIBILITIES:
             for page in sorted((self.root / visibility).iterdir()):
                 if page.is_dir() and SLUG_PATTERN.match(page.name):
-                    entry = self.result(visibility, page.name)
-                    entry["title"] = read_title(page / "index.html")
-                    pages.append(entry)
+                    metadata = read_metadata(page)
+                    pages.append({
+                        **self.result(visibility, page.name),
+                        "title": read_title(page / "index.html"),
+                        "description": metadata.get("description"),
+                        "created_at": metadata.get("created_at"),
+                        "updated_at": metadata.get("updated_at"),
+                    })
         return pages
 
     def clear_staged(self, name):
@@ -122,6 +147,33 @@ def new_slug(name):
     base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")[:NAME_MAX_LENGTH].strip("-")
     suffix = "".join(secrets.choice(SUFFIX_ALPHABET) for _ in range(SUFFIX_LENGTH))
     return f"{base or 'page'}-{suffix}"
+
+
+def validated_description(description):
+    description = " ".join(description.split())
+    if not description:
+        raise PagesError("description must not be empty")
+    return description
+
+
+def now():
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def read_metadata(page):
+    """Return the page's metadata; pages published before metadata existed have none."""
+    try:
+        return json.loads((page / METADATA_NAME).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return {}
+
+
+def write_metadata(page, metadata):
+    path = page / METADATA_NAME
+    pending = page / f"{METADATA_NAME}.new"
+    pending.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    os.chmod(pending, FILE_MODE)
+    os.replace(pending, path)
 
 
 def validated_source(source):
@@ -196,12 +248,19 @@ def parse_arguments(argv):
     publish.add_argument("source")
     publish.add_argument("--visibility", choices=VISIBILITIES, required=True)
     publish.add_argument("--name", help="readable part of the slug (default: the directory name)")
-    publish.set_defaults(action=lambda pages, a: pages.publish(a.source, a.visibility, a.name))
+    publish.add_argument("--description", required=True, help="what the page is and who it is for")
+    publish.set_defaults(action=lambda pages, a: pages.publish(a.source, a.visibility, a.name, a.description))
 
     update = commands.add_parser("update", help="replace a page's contents, keeping its visibility")
     update.add_argument("slug")
     update.add_argument("source")
-    update.set_defaults(action=lambda pages, a: pages.update(a.slug, a.source))
+    update.add_argument("--description", help="replace the description (default: keep it)")
+    update.set_defaults(action=lambda pages, a: pages.update(a.slug, a.source, a.description))
+
+    describe = commands.add_parser("describe", help="set what a page is and who it is for")
+    describe.add_argument("slug")
+    describe.add_argument("description")
+    describe.set_defaults(action=lambda pages, a: pages.describe(a.slug, a.description))
 
     visibility = commands.add_parser("set-visibility", help="move a page to private or public")
     visibility.add_argument("slug")
@@ -212,7 +271,7 @@ def parse_arguments(argv):
     remove.add_argument("slug")
     remove.set_defaults(action=lambda pages, a: pages.remove(a.slug))
 
-    listing = commands.add_parser("list", help="list pages with their visibility and URL")
+    listing = commands.add_parser("list", help="list pages with their visibility, URL and description")
     listing.set_defaults(action=lambda pages, a: pages.list())
     return parser.parse_args(argv)
 

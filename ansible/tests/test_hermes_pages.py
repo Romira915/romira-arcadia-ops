@@ -50,8 +50,13 @@ class HermesPages(unittest.TestCase):
         self.assertEqual(completed.returncode, 0, completed.stderr)
         return json.loads(completed.stdout)
 
-    def publish(self, visibility="private"):
-        return self.run_ok("publish", str(self.source), "--visibility", visibility)
+    def publish(self, visibility="private", description="Weekly status for the team"):
+        return self.run_ok(
+            "publish", str(self.source), "--visibility", visibility, "--description", description,
+        )
+
+    def listed(self, slug):
+        return next(page for page in self.run_ok("list") if page["slug"] == slug)
 
     def assert_refused(self, *arguments):
         completed = self.run_cli(*arguments)
@@ -92,10 +97,55 @@ class HermesPages(unittest.TestCase):
         self.assertEqual((self.root / "public" / page["slug"] / "index.html").read_text(), "v2")
         self.assertEqual([path.name for path in (self.root / ".staging").iterdir()], [".lock"])
 
-    def test_list_reports_title_visibility_and_url(self):
+    def test_list_reports_what_each_page_is_and_where_it_lives(self):
         page = self.publish("private")
 
-        self.assertEqual(self.run_ok("list"), [{**page, "title": "Weekly report"}])
+        [entry] = self.run_ok("list")
+
+        self.assertEqual(
+            {key: entry[key] for key in ("slug", "visibility", "url", "title", "description")},
+            {**page, "title": "Weekly report", "description": "Weekly status for the team"},
+        )
+        self.assertEqual(entry["created_at"], entry["updated_at"])
+
+    def test_publish_requires_a_description(self):
+        self.assertNotEqual(self.run_cli("publish", str(self.source), "--visibility", "private").returncode, 0)
+        self.assert_refused("publish", str(self.source), "--visibility", "private", "--description", "  ")
+        self.assertEqual(self.run_ok("list"), [])
+
+    def test_description_and_creation_time_survive_update_and_visibility_changes(self):
+        page = self.publish("private")
+        created = self.listed(page["slug"])
+        replacement = self.make_source(Path(self.workdir.name) / "v2", "v2")
+
+        self.run_ok("update", page["slug"], str(replacement))
+        self.run_ok("set-visibility", page["slug"], "public")
+
+        moved = self.listed(page["slug"])
+        self.assertEqual(moved["description"], created["description"])
+        self.assertEqual(moved["created_at"], created["created_at"])
+        self.assertGreaterEqual(moved["updated_at"], created["updated_at"])
+
+    def test_update_can_replace_the_description(self):
+        page = self.publish("private")
+        replacement = self.make_source(Path(self.workdir.name) / "v2", "v2")
+
+        self.run_ok("update", page["slug"], str(replacement), "--description", "Monthly status")
+
+        self.assertEqual(self.listed(page["slug"])["description"], "Monthly status")
+
+    def test_describe_sets_the_description_of_a_page_published_without_one(self):
+        legacy = self.root / "private" / "legacy-abcdefgh"
+        legacy.mkdir()
+        (legacy / "index.html").write_text("<title>Old</title>")
+        self.assertIsNone(self.listed("legacy-abcdefgh")["description"])
+
+        self.run_ok("describe", "legacy-abcdefgh", "Trip plan for the user")
+
+        entry = self.listed("legacy-abcdefgh")
+        self.assertEqual(entry["description"], "Trip plan for the user")
+        self.assertIsNone(entry["created_at"])
+        self.assertEqual(sorted(path.name for path in legacy.iterdir()), [".page.json", "index.html"])
 
     def test_remove_deletes_the_page(self):
         page = self.publish("private")
@@ -108,13 +158,13 @@ class HermesPages(unittest.TestCase):
     def test_refuses_sources_with_symbolic_links(self):
         (self.source / "secret").symlink_to("/etc/hostname")
 
-        self.assert_refused("publish", str(self.source), "--visibility", "public")
+        self.assert_refused("publish", str(self.source), "--visibility", "public", "--description", "x")
         self.assertEqual(list((self.root / "public").iterdir()), [])
 
     def test_refuses_sources_without_index_html(self):
         (self.source / "index.html").unlink()
 
-        self.assert_refused("publish", str(self.source), "--visibility", "private")
+        self.assert_refused("publish", str(self.source), "--visibility", "private", "--description", "x")
 
     def test_refuses_slugs_that_could_leave_the_page_directories(self):
         self.publish("private")
