@@ -132,8 +132,6 @@ resource "cloudflare_dns_record" "obsidian_sync_A" {
   proxied = false
 }
 
-# --- 以下、Terraform 未管理だったレコード (imported) ---
-
 resource "cloudflare_dns_record" "astro" {
   name    = "astro"
   content = "astro-cloudflare-sandbox.pages.dev"
