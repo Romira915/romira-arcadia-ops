@@ -55,6 +55,22 @@ Configuration defaults live in `defaults/main.yml` under the `hermes` dictionary
 
 The wakaba `romira` Samba share is mounted read-write on demand at `/mnt/z` on the host and in Hermes. systemd automount avoids blocking startup when wakaba is asleep; an access while it is offline can fail or block until the mount timeout, and a later access retries. Existing open files can fail across interruptions. The host `wakaba_mount` role assigns ownership to OCI ubuntu UID and GID 1001; Hermes receives GID 1001 as a supplementary group for write access. Credentials are taken from the encrypted wakaba inventory. The container receives `/mnt` read-only with slave propagation so a mount created after container startup is visible.
 
+## HTML pages
+
+Hermes publishes generated HTML with `hermes-pages` (`files/bin/hermes-pages`, deployed to `/opt/data/bin`), following the `publish-html` skill. A page is a directory with an `index.html`; its visibility is only the directory it lives in under `hermes.html.host_root` (`/var/www/hermes`), mounted into Hermes at `hermes.html.container_root`:
+
+| Visibility | Directory | Served by | URL |
+|---|---|---|---|
+| private | `private/<slug>/` | nginx on `127.0.0.1:hermes.html.private_listen_port`, exposed to the tailnet by the host's Tailscale Serve (no Funnel) | `hermes.html.private_base_url` |
+| public | `public/<slug>/` | nginx on 443 for `hermes.html.public_server_name`, behind Cloudflare | `hermes.html.public_base_url` |
+
+- The tree lives on the host's local disk because nginx cannot enter the `0700` data root and should not depend on `/mnt/d`. `.staging/` shares the filesystem, so publishing, updating and switching visibility are each a rename; nginx never serves a half-written page, and the old URL stops working as soon as a page moves.
+- Slugs end in eight random characters, and the CLI accepts only that form, so arguments cannot point outside the tree. It refuses sources containing symbolic links, and nginx sets `disable_symlinks on`, because links would resolve in the host's filesystem.
+- The public site sends `Cache-Control: no-store` (Cloudflare would otherwise keep cached assets reachable after a page goes private), `X-Robots-Tag: noindex` and a CSP whose `connect-src 'self'` stops pages from sending data to other origins.
+- Hermes checks each URL itself before replying. The sidecar lists Tailscale's resolver (`100.100.100.100`) first in `dns`, so tailnet names resolve inside Hermes; it returns SERVFAIL for other names and Docker's embedded DNS moves on to the public resolvers. `TS_ACCEPT_DNS` stays `false`: with `true`, resolv.conf points at Tailscale, which does not resolve Docker service names such as `openclaw-gateway`.
+- The skill tells Hermes to publish privately unless the user asks for public, and to check a page for personal information and ask before it becomes public. It is overwritten on every run, unlike the Google Workspace skill, because it documents the CLI deployed with it.
+- nginx, Tailscale Serve and the CLI's configuration (`html-pages.json` under the data root) are all rendered from the inventory's `hermes.html`. The public certificate is issued once by hand before the nginx site is deployed, with the nginx authenticator like the host's other certificates: `sudo certbot certonly --nginx -d hermes.romira.dev`.
+
 ## Muse bridge
 
 `muse-bridge` (a separate Compose service sharing the Tailscale sidecar's network namespace) runs `files/mcp/muse_mcp_bridge.py`, which exposes one MCP tool, `ask_hermes`, over Streamable HTTP. Each call is forwarded to the running Hermes agent's OpenAI-compatible API (`127.0.0.1:8642`), so Muse gets the same memory, past sessions, skills and tools as the user, and can hand work over as well as ask questions. Muse's exchanges for a day share one Hermes session (`muse-YYYYMMDD`), which later session searches can find. The container receives only the bridge token and `API_SERVER_KEY`, mounts nothing writable, drops all capabilities and cannot gain privileges. The host publishes it on `127.0.0.1:18650` and the Tailscale role serves it to the tailnet as `https://<host>.<tailnet>.ts.net:8650/mcp` (Serve only; no Funnel).

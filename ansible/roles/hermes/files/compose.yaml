@@ -55,6 +55,13 @@ services:
         read_only: false
         bind:
           create_host_path: false
+      # Why a separate host tree: the host's nginx serves these pages, and the data root is not readable by it.
+      - type: bind
+        source: ${HERMES_HTML_ROOT:?set HERMES_HTML_ROOT in .env}
+        target: ${HERMES_HTML_MOUNT:?set HERMES_HTML_MOUNT in .env}
+        read_only: false
+        bind:
+          create_host_path: false
       - type: bind
         source: /mnt
         target: /mnt
@@ -90,9 +97,13 @@ services:
     networks:
       - default
       - openclaw
+    # Why Tailscale's resolver first: it answers tailnet names (*.ts.net) and returns SERVFAIL for the
+    # rest, on which Docker's embedded DNS moves on to the public resolvers. TS_ACCEPT_DNS stays false
+    # because it would point resolv.conf at Tailscale, which cannot resolve Docker service names.
     # Why public resolvers: Docker's embedded DNS queries its upstream from this namespace, so while
     # the exit node is active an upstream such as OCI's 169.254.169.254 would be unreachable.
     dns:
+      - 100.100.100.100
       - 1.1.1.1
       - 1.0.0.1
     environment:
