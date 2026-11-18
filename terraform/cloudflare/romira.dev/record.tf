@@ -132,18 +132,6 @@ resource "cloudflare_dns_record" "obsidian_sync_A" {
   proxied = false
 }
 
-# --- 以下、Terraform 未管理だったレコード (imported) ---
-
-resource "cloudflare_dns_record" "opencode" {
-  name    = "opencode"
-  content = "138.2.19.89"
-  type    = "A"
-  zone_id = local.zone_id
-  ttl     = 1
-  proxied = false
-  comment = "opencode in openchamber"
-}
-
 resource "cloudflare_dns_record" "astro" {
   name    = "astro"
   content = "astro-cloudflare-sandbox.pages.dev"

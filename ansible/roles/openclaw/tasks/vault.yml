@@ -1,8 +1,17 @@
 ---
-- name: Deploy the LiveSync service override
+- name: Ensure the LiveSync Compose directory exists
+  ansible.builtin.file:
+    path: "{{ openclaw_runtime.config.livesync_dir }}"
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+  become: true
+
+- name: Deploy the LiveSync Compose project
   ansible.builtin.template:
-    src: livesync-override.yml.j2
-    dest: "{{ openclaw_runtime.config.project_dir }}/livesync-override.yml"
+    src: livesync-compose.yaml.j2
+    dest: "{{ openclaw_runtime.config.livesync_dir }}/compose.yaml"
     owner: ubuntu
     group: ubuntu
     mode: '0644'
@@ -35,10 +44,9 @@
           - openclaw_initialized_notes.matched | default(0) | int > 0
         fail_msg: The shared Vault is missing or contains no Markdown notes; LiveSync must not start.
 
-- name: Ensure OpenChamber and LiveSync remain running
+- name: Ensure LiveSync remains running
   community.docker.docker_compose_v2:
-    project_src: "{{ openclaw_runtime.config.chamber_dir }}"
-    services: [openchamber, livesync-cli]
+    project_src: "{{ openclaw_runtime.config.livesync_dir }}"
     state: present
     pull: missing
     recreate: auto
