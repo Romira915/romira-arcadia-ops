@@ -1,7 +1,11 @@
+name: livesync-cli
+
 services:
   livesync-cli:
-    build: !reset null
     image: "{{ openclaw_runtime.config.livesync_image }}"
+    container_name: livesync-cli
+    restart: unless-stopped
+    user: "{{ openclaw_runtime.config.livesync_user }}"
     entrypoint: [/bin/sh, -c]
     command:
       - |
@@ -21,3 +25,5 @@ services:
       - type: bind
         source: "{{ openclaw_runtime.config.livesync_data }}"
         target: /data
+        bind:
+          create_host_path: false

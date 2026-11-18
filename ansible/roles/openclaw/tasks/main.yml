@@ -1,22 +1,4 @@
 ---
-- name: Inspect OpenChamber environment
-  ansible.builtin.slurp:
-    src: "{{ openclaw_runtime.config.chamber_dir }}/.env"
-  become: true
-  register: openclaw_chamber_env
-  no_log: true
-
-- name: Identify the currently configured Vault
-  ansible.builtin.set_fact:
-    openclaw_chamber_vault: "{{ ((openclaw_chamber_env.content | b64decode) | regex_findall('(?m)^VAULT_PATH=(.*)$') | first) | default('') }}"
-  no_log: true
-
-- name: Validate the current Vault configuration
-  ansible.builtin.assert:
-    that:
-      - openclaw_chamber_vault == openclaw_runtime.config.vault_path
-    fail_msg: OpenChamber is not configured to use the managed Vault path.
-
 - name: Ensure OpenClaw directories exist
   ansible.builtin.file:
     path: "{{ item.path }}"

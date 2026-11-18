@@ -16,7 +16,7 @@ The private file `/mnt/d/openclaw/data/personal/personal.md` is created empty on
 
 When `openclaw.proxy_enabled` is enabled, the role trusts the Docker bridge address for proxy attribution and adds the origins listed in `openclaw.proxy_origins` to the Control UI allowlist. Existing entries and Gateway authentication are retained. The reverse proxy itself is configured separately.
 
-The role keeps the shared Vault at `/mnt/d/obsidian/vault` and LiveSync state at `/mnt/d/obsidian/livesync`. It verifies that the Vault contains Markdown notes before ensuring LiveSync runs. Compose refuses to create a missing Vault bind mount.
+The role keeps the shared Vault at `/mnt/d/obsidian/vault` and LiveSync state at `/mnt/d/obsidian/livesync`. LiveSync runs as its own Compose project in `/opt/livesync-cli`. The role verifies that the Vault contains Markdown notes before ensuring LiveSync runs. Compose refuses to create a missing Vault bind mount.
 
 The role retains existing Gateway credentials and state. Gateway access stays on loopback and is reached through the separately configured Tailscale Serve route.
 

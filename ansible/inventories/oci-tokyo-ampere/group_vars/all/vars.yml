@@ -47,7 +47,6 @@ nginx:
     - blog.romira.dev.conf
     - dev-site.romira.dev.conf
     - obsidian-sync.romira.dev
-    - opencode.romira.dev.conf
     - vaultwarden.romira.dev.conf
   enabled_sites:
     - name: api.hasu-music-quiz.example.com.conf
@@ -58,8 +57,6 @@ nginx:
       src: ../sites-available/dev-site.romira.dev.conf
     - name: obsidian-sync.romira.dev
       src: /etc/nginx/sites-available/obsidian-sync.romira.dev
-    - name: opencode.romira.dev.conf
-      src: /etc/nginx/sites-available/opencode.romira.dev.conf
     - name: vaultwarden.romira.dev.conf
       src: ../sites-available/vaultwarden.romira.dev.conf
 

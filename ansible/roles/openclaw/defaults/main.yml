@@ -21,7 +21,8 @@ openclaw_defaults: # noqa: var-naming[no-role-prefix]
   config_version: master
   config_owner: ubuntu
   vault_path: /mnt/d/obsidian/vault
-  chamber_dir: /opt/opencode-obsidian-stack
+  livesync_dir: /opt/livesync-cli
+  livesync_user: '1001:1001'
   livesync_data: /mnt/d/obsidian/livesync
   livesync_image: ghcr.io/vrtmrz/livesync-cli:1.0.42-cli@sha256:0044b787488a3479fa23a22e27e203f7f689ee6b0d7025a9169c7e3de87d0620
   image: localhost/openclaw:2026.10.9-codex-apps-v18
