@@ -1,0 +1,52 @@
+# Pages that Hermes publishes with hermes-pages. Visibility is the directory a page lives in.
+{% set common %}
+    index index.html;
+    autoindex off;
+    # Why relative: behind Tailscale Serve, an absolute redirect would name nginx's own port and scheme.
+    absolute_redirect off;
+    # Why: hermes-pages refuses links, and nginx resolves any that appear in the host's filesystem.
+    disable_symlinks on;
+
+    location ~ /\. {
+        deny all;
+    }
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+{% endset %}
+
+# Private pages: reachable only through the host's Tailscale Serve on the tailnet.
+server {
+    listen 127.0.0.1:{{ hermes.html.private_listen_port }};
+    server_name _;
+    root {{ hermes.html.host_root }}/private;
+
+{{ common }}}
+
+# Public pages: anyone with the link, through Cloudflare.
+server {
+    listen 443 ssl;
+    server_name {{ hermes.html.public_server_name }};
+    root {{ hermes.html.host_root }}/public;
+
+    ssl_certificate /etc/letsencrypt/live/{{ hermes.html.public_server_name }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ hermes.html.public_server_name }}/privkey.pem;
+
+    # Why no-store: Cloudflare caches static assets by extension, and a cached copy would stay
+    # reachable after the page is made private or removed.
+    add_header Cache-Control "no-store" always;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer" always;
+    # Why connect-src 'self': generated pages may load CDN scripts, but must not send data elsewhere.
+    add_header Content-Security-Policy "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src 'self'; form-action 'self'; base-uri 'self'; frame-ancestors 'none'" always;
+
+{{ common }}}
+
+server {
+    listen 80;
+    server_name {{ hermes.html.public_server_name }};
+
+    return 301 https://$host$request_uri;
+}

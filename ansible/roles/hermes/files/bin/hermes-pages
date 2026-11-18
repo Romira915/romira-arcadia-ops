@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+"""Publish Hermes-generated HTML to the private (tailnet) or public site.
+
+A page is a directory with an index.html. Its visibility is the directory it
+lives in (<root>/private or <root>/public); nothing else records it. Every
+change is staged in <root>/.staging and moved into place with a single rename,
+so the web server never serves a half-written page.
+"""
+
+import argparse
+import fcntl
+import html.parser
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import shutil
+import string
+import sys
+
+
+DEFAULT_CONFIG = "/opt/data/html-pages.json"
+VISIBILITIES = ("private", "public")
+SUFFIX_ALPHABET = string.ascii_lowercase + string.digits
+SUFFIX_LENGTH = 8
+SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*-[a-z0-9]{8}$")
+NAME_MAX_LENGTH = 40
+DIRECTORY_MODE = 0o755
+FILE_MODE = 0o644
+
+
+class PagesError(Exception):
+    """A request the CLI refuses; the message is shown to the agent."""
+
+
+class Pages:
+    def __init__(self, config):
+        self.root = Path(config["root"])
+        self.base_urls = config["base_urls"]
+        self.staging = self.root / ".staging"
+
+    def url(self, visibility, slug):
+        return f"{self.base_urls[visibility].rstrip('/')}/{slug}/"
+
+    def result(self, visibility, slug):
+        return {"slug": slug, "visibility": visibility, "url": self.url(visibility, slug)}
+
+    def locate(self, slug):
+        validate_slug(slug)
+        for visibility in VISIBILITIES:
+            if (self.root / visibility / slug).is_dir():
+                return visibility
+        raise PagesError(f"page not found: {slug}")
+
+    def publish(self, source, visibility, name):
+        source = validated_source(source)
+        slug = new_slug(name or source.name)
+        staged = self.stage(source, slug)
+        os.rename(staged, self.root / visibility / slug)
+        return self.result(visibility, slug)
+
+    def update(self, slug, source):
+        source = validated_source(source)
+        visibility = self.locate(slug)
+        current = self.root / visibility / slug
+        staged = self.stage(source, slug)
+        retired = self.clear_staged(f"{slug}.retired")
+        # Why two renames and not an exchange: the standard library has no renameat2(RENAME_EXCHANGE);
+        # the page is missing only between these two calls.
+        os.rename(current, retired)
+        os.rename(staged, current)
+        shutil.rmtree(retired)
+        return self.result(visibility, slug)
+
+    def set_visibility(self, slug, visibility):
+        current = self.locate(slug)
+        if current != visibility:
+            target = self.root / visibility / slug
+            if target.exists():
+                raise PagesError(f"{visibility} already has {slug}")
+            os.rename(self.root / current / slug, target)
+        return self.result(visibility, slug)
+
+    def remove(self, slug):
+        visibility = self.locate(slug)
+        retired = self.clear_staged(f"{slug}.retired")
+        os.rename(self.root / visibility / slug, retired)
+        shutil.rmtree(retired)
+        return {"slug": slug, "visibility": visibility, "removed": True}
+
+    def list(self):
+        pages = []
+        for visibility in VISIBILITIES:
+            for page in sorted((self.root / visibility).iterdir()):
+                if page.is_dir() and SLUG_PATTERN.match(page.name):
+                    entry = self.result(visibility, page.name)
+                    entry["title"] = read_title(page / "index.html")
+                    pages.append(entry)
+        return pages
+
+    def clear_staged(self, name):
+        """Return a free staging path, discarding what an interrupted run left there."""
+        path = self.staging / name
+        if path.exists():
+            shutil.rmtree(path)
+        return path
+
+    def stage(self, source, slug):
+        staged = self.clear_staged(f"{slug}.new")
+        shutil.copytree(source, staged, symlinks=True)
+        normalize_modes(staged)
+        return staged
+
+
+def validate_slug(slug):
+    if not SLUG_PATTERN.match(slug):
+        raise PagesError(f"invalid slug: {slug!r}")
+
+
+def new_slug(name):
+    base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")[:NAME_MAX_LENGTH].strip("-")
+    suffix = "".join(secrets.choice(SUFFIX_ALPHABET) for _ in range(SUFFIX_LENGTH))
+    return f"{base or 'page'}-{suffix}"
+
+
+def validated_source(source):
+    source = Path(source)
+    if source.is_symlink() or not source.is_dir():
+        raise PagesError(f"source is not a directory: {source}")
+    if not (source / "index.html").is_file():
+        raise PagesError(f"source has no index.html: {source}")
+    for directory, subdirectories, files in os.walk(source):
+        for entry in subdirectories + files:
+            path = Path(directory) / entry
+            # Why refuse links: the host's nginx resolves them in the host's filesystem, not Hermes'.
+            if path.is_symlink():
+                raise PagesError(f"symbolic links are not allowed: {path}")
+            if not (path.is_dir() or path.is_file()):
+                raise PagesError(f"only regular files and directories are allowed: {path}")
+    return source
+
+
+def normalize_modes(tree):
+    os.chmod(tree, DIRECTORY_MODE)
+    for directory, subdirectories, files in os.walk(tree):
+        for entry in subdirectories:
+            os.chmod(Path(directory) / entry, DIRECTORY_MODE)
+        for entry in files:
+            os.chmod(Path(directory) / entry, FILE_MODE)
+
+
+class TitleParser(html.parser.HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.in_title = False
+        self.title = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "title" and self.title is None:
+            self.in_title = True
+            self.title = ""
+
+    def handle_endtag(self, tag):
+        if tag == "title":
+            self.in_title = False
+
+    def handle_data(self, data):
+        if self.in_title:
+            self.title += data
+
+
+def read_title(index):
+    parser = TitleParser()
+    try:
+        parser.feed(index.read_text(encoding="utf-8", errors="replace"))
+    except OSError:
+        return None
+    return " ".join(parser.title.split()) if parser.title else None
+
+
+def load_config():
+    path = Path(os.environ.get("HERMES_PAGES_CONFIG", DEFAULT_CONFIG))
+    config = json.loads(path.read_text(encoding="utf-8"))
+    missing = [visibility for visibility in VISIBILITIES if visibility not in config["base_urls"]]
+    if missing:
+        raise PagesError(f"{path} has no base URL for {', '.join(missing)}")
+    return config
+
+
+def parse_arguments(argv):
+    parser = argparse.ArgumentParser(prog="hermes-pages", description=__doc__.splitlines()[0])
+    commands = parser.add_subparsers(dest="command", required=True)
+
+    publish = commands.add_parser("publish", help="publish a directory containing index.html")
+    publish.add_argument("source")
+    publish.add_argument("--visibility", choices=VISIBILITIES, required=True)
+    publish.add_argument("--name", help="readable part of the slug (default: the directory name)")
+    publish.set_defaults(action=lambda pages, a: pages.publish(a.source, a.visibility, a.name))
+
+    update = commands.add_parser("update", help="replace a page's contents, keeping its visibility")
+    update.add_argument("slug")
+    update.add_argument("source")
+    update.set_defaults(action=lambda pages, a: pages.update(a.slug, a.source))
+
+    visibility = commands.add_parser("set-visibility", help="move a page to private or public")
+    visibility.add_argument("slug")
+    visibility.add_argument("visibility", choices=VISIBILITIES)
+    visibility.set_defaults(action=lambda pages, a: pages.set_visibility(a.slug, a.visibility))
+
+    remove = commands.add_parser("remove", help="delete a page")
+    remove.add_argument("slug")
+    remove.set_defaults(action=lambda pages, a: pages.remove(a.slug))
+
+    listing = commands.add_parser("list", help="list pages with their visibility and URL")
+    listing.set_defaults(action=lambda pages, a: pages.list())
+    return parser.parse_args(argv)
+
+
+def main(argv):
+    arguments = parse_arguments(argv)
+    try:
+        pages = Pages(load_config())
+        with open(pages.staging / ".lock", "a", encoding="utf-8") as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+            output = arguments.action(pages, arguments)
+    except (PagesError, OSError, KeyError, ValueError) as error:
+        print(f"hermes-pages: {error}", file=sys.stderr)
+        return 1
+    print(json.dumps(output, ensure_ascii=False, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

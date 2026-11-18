@@ -48,6 +48,8 @@ nginx:
     - dev-site.romira.dev.conf
     - obsidian-sync.romira.dev
     - vaultwarden.romira.dev.conf
+  site_templates:
+    - hermes-pages.conf
   enabled_sites:
     - name: api.hasu-music-quiz.aileafmura.com.conf
       src: ../sites-available/api.hasu-music-quiz.aileafmura.com.conf
@@ -59,6 +61,8 @@ nginx:
       src: /etc/nginx/sites-available/obsidian-sync.romira.dev
     - name: vaultwarden.romira.dev.conf
       src: ../sites-available/vaultwarden.romira.dev.conf
+    - name: hermes-pages.conf
+      src: ../sites-available/hermes-pages.conf
 
 postgresql:
   databases:
@@ -110,6 +114,15 @@ openclaw:
 hermes:
   tailscale_port: 8444
   dashboard_public_url: "https://ampere-instance.tail340994.ts.net:{{ hermes.tailscale_port }}"
+  # Pages that Hermes publishes with hermes-pages. nginx, Tailscale Serve and the CLI all read these values.
+  html:
+    host_root: /var/www/hermes
+    container_root: /opt/data/workspace/html
+    public_server_name: hermes.romira.dev
+    public_base_url: "https://{{ hermes.html.public_server_name }}/"
+    private_tailscale_port: 8445
+    private_listen_port: 18445
+    private_base_url: "https://ampere-instance.tail340994.ts.net:{{ hermes.html.private_tailscale_port }}/"
   project_dir: /opt/hermes
   data_root: /mnt/d/hermes/data
   config_source: /opt/romira-s-config/ai-config
@@ -179,6 +192,8 @@ tailscale:
       target: http://127.0.0.1:19119
     - port: 8650
       target: http://127.0.0.1:18650
+    - port: "{{ hermes.html.private_tailscale_port }}"
+      target: "http://127.0.0.1:{{ hermes.html.private_listen_port }}"
 systemd_units:
   units:
     - name: blog-romira-dev-leptos.service
