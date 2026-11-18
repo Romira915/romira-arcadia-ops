@@ -68,9 +68,26 @@
     - {path: "{{ hermes.data_root }}", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/workspace", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/workspace/obsidian-vault", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
+    - {path: "{{ hermes.data_root }}/{{ hermes.html.container_root | regex_replace('^/opt/data/', '') }}", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0755'}
     - {path: "{{ hermes.data_root }}/.claude", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/shared-skills", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
     - {path: "{{ hermes.data_root }}/shared-config", owner: "{{ hermes.user_uid }}", group: "{{ hermes.user_uid }}", mode: '0700'}
+
+- name: Ensure the HTML page directories exist
+  # Why on the host's local disk: nginx serves them, and it cannot enter the 0700 data root or depend on /mnt/d.
+  # Why one tree: staging, private and public share a filesystem, so every change is a single rename.
+  ansible.builtin.file:
+    path: "{{ hermes.html.host_root }}{{ item }}"
+    state: directory
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0755'
+  become: true
+  loop:
+    - ''
+    - /private
+    - /public
+    - /.staging
 
 - name: Ensure the Google Workspace skill directory exists
   ansible.builtin.file:
@@ -91,6 +108,27 @@
     mode: '0644'
     force: false
   register: hermes_google_workspace_skill_set
+  become: true
+
+- name: Ensure the HTML publishing skill directory exists
+  ansible.builtin.file:
+    path: "{{ hermes.data_root }}/skills/publishing/publish-html"
+    state: directory
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0750'
+  become: true
+
+- name: Deploy the HTML publishing skill
+  # Why always overwrite, unlike the Google Workspace skill: it documents the hermes-pages CLI deployed
+  # below, so a copy that Hermes edited would drift from the command it describes.
+  ansible.builtin.copy:
+    src: skills/publishing/publish-html/SKILL.md
+    dest: "{{ hermes.data_root }}/skills/publishing/publish-html/SKILL.md"
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0644'
+  register: hermes_publish_html_skill_set
   become: true
 
 - name: Remove retired Google Workspace helper files
@@ -141,6 +179,8 @@
       ROMIRA_AI_CONFIG_SOURCE={{ hermes.config_source }}
       PERSONAL_FILE_SOURCE={{ hermes.personal_file_source }}
       OBSIDIAN_VAULT_SOURCE={{ hermes.vault_path }}
+      HERMES_HTML_ROOT={{ hermes.html.host_root }}
+      HERMES_HTML_MOUNT={{ hermes.html.container_root }}
       API_SERVER_KEY={{ vault_hermes.api_server_key }}
       HERMES_DASHBOARD_BASIC_AUTH_USERNAME={{ hermes.dashboard_username }}
       HERMES_DASHBOARD_BASIC_AUTH_PASSWORD={{ vault_hermes.dashboard_password }}
@@ -293,6 +333,30 @@
     owner: "{{ hermes.user_uid }}"
     group: "{{ hermes.user_uid }}"
     mode: '0755'
+  become: true
+
+- name: Deploy the HTML publishing command
+  ansible.builtin.copy:
+    src: bin/hermes-pages
+    dest: "{{ hermes.data_root }}/bin/hermes-pages"
+    owner: "{{ hermes.user_uid }}"
+    group: "{{ hermes.user_uid }}"
+    mode: '0755'
+  become: true
+
+- name: Deploy the HTML publishing configuration
+  ansible.builtin.copy:
+    content: "{{ config | to_nice_json }}\n"
+    dest: "{{ hermes.data_root }}/html-pages.json"
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    config:
+      root: "{{ hermes.html.container_root }}"
+      base_urls:
+        private: "{{ hermes.html.private_base_url }}"
+        public: "{{ hermes.html.public_base_url }}"
   become: true
 
 - name: Download the pinned GitHub CLI release
@@ -923,6 +987,7 @@
     - not ansible_check_mode
     - >-
       hermes_google_workspace_skill_set is changed or
+      hermes_publish_html_skill_set is changed or
       (hermes_retired_google_workspace_files_removed is defined and
        hermes_retired_google_workspace_files_removed is changed) or
       hermes_shared_skills_set is changed or
@@ -998,6 +1063,11 @@
         | selectattr('Destination', 'equalto', '/opt/data/workspace/obsidian-vault')
         | selectattr('RW', 'equalto', true)
         | map(attribute='Source') | list) == [hermes.vault_path]
+      - >-
+        ((hermes_container_mounts.stdout | from_json)
+        | selectattr('Destination', 'equalto', hermes.html.container_root)
+        | selectattr('RW', 'equalto', true)
+        | map(attribute='Source') | list) == [hermes.html.host_root]
     fail_msg: Hermes container mounts differ from the intended configuration.
   when: not ansible_check_mode
 
@@ -1032,7 +1102,23 @@
   changed_when: false
   retries: 6
   delay: 5
-  until: "'obsidian' in hermes_skills_list.stdout"
+  until:
+    - "'obsidian' in hermes_skills_list.stdout"
+    - "'publish-html' in hermes_skills_list.stdout"
+  when: not ansible_check_mode
+
+- name: Confirm Hermes can run the HTML publishing command
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes.user_uid }}:{{ hermes.user_uid }}"
+      - hermes-agent
+      - hermes-pages
+      - list
+  become: true
+  changed_when: false
   when: not ansible_check_mode
 
 - name: Read Hermes dashboard authentication status

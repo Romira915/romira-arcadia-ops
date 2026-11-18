@@ -65,6 +65,20 @@
     - nginx
     - configuration
 
+- name: Render nginx site templates
+  ansible.builtin.template:
+    src: "{{ nginx_runtime.config.src_dir }}/templates/{{ item }}.j2"
+    dest: "/etc/nginx/sites-available/{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  loop: "{{ nginx_runtime.config.site_templates }}"
+  notify: Reload nginx
+  tags:
+    - nginx
+    - configuration
+
 - name: Enable nginx sites
   ansible.builtin.file:
     src: "{{ item.src }}"

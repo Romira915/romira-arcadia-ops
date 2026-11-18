@@ -2,6 +2,8 @@ nginx_defaults:
   config_file: nginx.conf
   conf_d_files: []
   site_files: []
+  # Rendered from <src_dir>/templates/<name>.j2 so a site can use values from other roles' dictionaries.
+  site_templates: []
   enabled_sites: []
   package: nginx
   service: nginx.service

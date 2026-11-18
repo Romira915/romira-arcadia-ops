@@ -17,6 +17,16 @@ resource "cloudflare_dns_record" "dev-site" {
   comment = "開発用のサイト"
 }
 
+resource "cloudflare_dns_record" "hermes" {
+  name    = "hermes"
+  content = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
+  type    = "A"
+  zone_id = local.zone_id
+  ttl     = 1
+  proxied = true
+  comment = "Hermes が公開する HTML ページ"
+}
+
 resource "cloudflare_dns_record" "oci-ampere" {
   name    = "oci-ampere"
   content = data.terraform_remote_state.tokyo_always_free.outputs.ampere_public_ip
