@@ -30,6 +30,9 @@ hermes:  # noqa: var-naming[no-role-prefix]
     - GIT_CONFIG_COUNT
     - GIT_CONFIG_KEY_0
     - GIT_CONFIG_VALUE_0
+  # Named OpenAI-compatible providers written to config.yaml `providers.<name>`; each `key_env` must be
+  # rendered into .env from Vault. The main model is left as is; switch with `/model custom:<name>:<model>`.
+  providers: {}
   gog_mcp_args:
     - mcp
     - --allow-write
