@@ -147,6 +147,14 @@ hermes:
     - GIT_CONFIG_COUNT
     - GIT_CONFIG_KEY_0
     - GIT_CONFIG_VALUE_0
+  # Why Sakura AI Engine: a domestic OpenAI-compatible endpoint with a monthly free tier, kept beside
+  # the Claude subscription so a session can switch to it with `/model custom:sakura:<model>`.
+  providers:
+    sakura:
+      base_url: https://api.ai.sakura.ad.jp/v1
+      key_env: SAKURA_AI_ENGINE_API_KEY
+      api_mode: chat_completions
+      default_model: gpt-oss-120b
   gog_mcp_args:
     - mcp
     - --allow-write

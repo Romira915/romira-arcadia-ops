@@ -16,6 +16,8 @@
       - vault_hermes.github_token | length >= 40
       - vault_hermes.image_apply_webhook_url is defined
       - vault_hermes.image_apply_webhook_url is match('https://discord(app)?\\.com/api/webhooks/')
+      - vault_hermes.sakura_ai_engine_api_key is defined
+      - vault_hermes.sakura_ai_engine_api_key | length >= 32
     fail_msg: Encrypted Hermes credentials are missing or too short.
   no_log: true
 
@@ -187,6 +189,7 @@
       HERMES_DASHBOARD_BASIC_AUTH_SECRET={{ vault_hermes.dashboard_secret }}
       HERMES_DASHBOARD_PUBLIC_URL={{ hermes.dashboard_public_url }}
       HERMES_OPENCLAW_MCP_TOKEN={{ vault_hermes.openclaw_mcp_token }}
+      SAKURA_AI_ENGINE_API_KEY={{ vault_hermes.sakura_ai_engine_api_key }}
       GOG_HOME={{ hermes.gog_home }}
       GOG_KEYRING_BACKEND=file
       GOG_KEYRING_PASSWORD={{ vault_hermes_gog.keyring_password }}
@@ -788,6 +791,43 @@
       (hermes.terminal_env_passthrough |
        difference(hermes_existing_terminal_env_passthrough | default([])) | length > 0)
 
+- name: Keep any existing Hermes named providers
+  ansible.builtin.set_fact:
+    hermes_existing_providers: >-
+      {{ (((hermes_existing_config.content | b64decode | from_yaml) if hermes_config_file.stat.exists else {})
+          .get('providers') or {}) }}
+  no_log: true
+  when: not ansible_check_mode
+
+- name: Configure Hermes named OpenAI-compatible providers
+  # Why merge into the existing entry: Hermes records discovered models and other runtime fields in the
+  # same entry, so replacing it would drop them and rewrite the entry (and restart Hermes) on every run.
+  ansible.builtin.command:
+    argv:
+      - docker
+      - exec
+      - --user
+      - "{{ hermes.user_uid }}:{{ hermes.user_uid }}"
+      - hermes-agent
+      - /opt/hermes/bin/hermes
+      - config
+      - set
+      - "providers.{{ item.key }}"
+      - "{{ ((hermes_existing_providers.get(item.key) if hermes_existing_providers.get(item.key) is mapping else {})
+            | combine(item.value)) | to_json }}"
+  become: true
+  loop: "{{ hermes.providers | dict2items }}"
+  loop_control:
+    label: "{{ item.key }}"
+  register: hermes_providers_set
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - >-
+      hermes_existing_providers.get(item.key) is not mapping or
+      (hermes_existing_providers[item.key] | dict2items
+        | selectattr('key', 'in', item.value.keys()) | items2dict) != item.value
+
 - name: Enable the Pages dashboard plugin
   # Why enable explicitly: the dashboard imports a user plugin's backend only when it is in plugins.enabled.
   ansible.builtin.command:
@@ -1040,6 +1080,7 @@
       hermes_shared_skills_set is changed or
       hermes_trusted_proxy_set is changed or
       hermes_gog_terminal_env_set is changed or
+      hermes_providers_set is changed or
       (hermes_gog_mcp_env_set is defined and hermes_gog_mcp_env_set is changed) or
       (hermes_gog_mcp_add is defined and hermes_gog_mcp_add is changed) or
       (hermes_gog_mcp_update is defined and hermes_gog_mcp_update is changed) or
