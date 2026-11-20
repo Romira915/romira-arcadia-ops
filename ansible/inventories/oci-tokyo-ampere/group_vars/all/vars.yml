@@ -155,6 +155,17 @@ hermes:
       key_env: SAKURA_AI_ENGINE_API_KEY
       api_mode: chat_completions
       default_model: gpt-oss-120b
+      # Why a fixed list: the GUI pickers list only configured models, while /v1/models also returns
+      # embedding, speech and chat models whose endpoints reject tool calls, which Hermes needs. Live
+      # discovery would also write its catalog back here and make every role run rewrite the entry.
+      discover_models: false
+      models:
+        - gpt-oss-120b
+        - preview/Kimi-K2.7-Code
+        - preview/GLM-5.3-Flash
+        - preview/DeepSeek-V4.1-Flash-1017
+        - preview/Qwen3.6-35B-A3B
+        - preview/gemma-4-31B-it
   gog_mcp_args:
     - mcp
     - --allow-write
