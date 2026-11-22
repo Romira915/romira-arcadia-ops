@@ -34,4 +34,4 @@ Use Gog as the single Google Workspace interface for Gmail, Calendar, Drive, Doc
 - Check existing events for duplicates before creating one. Register only a real, new, public schedule. Do not put personal application, payment, or attendance details on a public calendar.
 - After creating or updating an event, fetch it by event ID and confirm the saved fields. After a requested deletion, read it back and confirm its resulting state. Never create a dummy event as an unrequested write test.
 - Set a personal `Primary` calendar only if the user says they will attend or plan to attend. Ask before creating a personal application or payment task in Notion.
-- For announcement Cron jobs, send the “🗓️ 蓮ノ空キャストカレンダー｜登録済み” notice only after both the write and read-back succeed. Do not notify about completed events or follow-up streams/archive notices for previously announced events unless explicitly asked.
+- For announcement Cron jobs, send the job's “registered” notice only after both the write and read-back succeed. Do not notify about completed events or follow-up streams/archive notices for previously announced events unless explicitly asked.
