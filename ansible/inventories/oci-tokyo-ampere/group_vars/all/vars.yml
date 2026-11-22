@@ -182,7 +182,7 @@ hermes:
   tailscale_image: docker.io/tailscale/tailscale:stable
   # Built from Romira915/hermes-agent-image and pinned by tag and digest. The image repository's CI opens
   # the pull request that changes it; after the merge, hermes-image-apply on the host replaces the image.
-  image: ghcr.io/romira915/hermes-agent-image:v0.23.1-r1@sha256:9108b413f679826ba615c03305cebbaca630e7bb5e2a0d87c073019498f9d69c
+  image: ghcr.io/romira915/hermes-agent-image:v0.23.1-r2@sha256:4f7552914838a98eca26980f549fa250f09f1d12237fc24ab7ac7c94a1835278
   # Files the host checks in a new image before and after replacing it. Change them in the same pull
   # request as the image when the stop-gate patches change. Keep the digests quoted: YAML would read a
   # digest made only of digits (or digits and one "e") as a number, and the host would refuse it.
