@@ -187,8 +187,9 @@ hermes:
   # request as the image when the stop-gate patches change. Keep the digests quoted: YAML would read a
   # digest made only of digits (or digits and one "e") as a number, and the host would refuse it.
   image_verify:
-    /opt/hermes/agent/turn_stop_gates.py: "852c853b9aa6e741bbfcd0ca2612f541b30dbb053de420245fcf7ae453c79f22"
-    /opt/hermes/agent/factgate.py: "bcea2d10e1e37454b000948a77581aefcff829844d80d1d61c2c9a5122cd8edd"
+    /opt/hermes/agent/turn_stop_gates.py: "68c3dc50b4b3e9c9d0fcdb70d1ddc1d406dab2bdc84017e6ef94fd90844e6ccf"
+    /opt/hermes/agent/factgate.py: "85a1ac17d534f801eaa14640341d7c4ec75aee22e45ca232331695712dc87141"
+    /opt/hermes/agent/formatgate.py: "35ee0e4309a0da75b1a76f04051407dfdec9d0d84012345a50fe643643989cfc"
   image_apply:
     source_url: https://api.github.com/repos/Romira915/romira-arcadia-ops/contents/ansible/inventories/oci-tokyo-ampere/group_vars/all/vars.yml?ref=main
     # Why 05:00-06:45 JST: Hermes' maintenance jobs run at 03:00, vaultwarden's backup at 04:00-04:30,
