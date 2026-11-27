@@ -43,16 +43,16 @@ nginx:
     - mime.conf
     - newrelic.conf
   site_files:
-    - api.hasu-music-quiz.example.com.conf
     - blog.romira.dev.conf
     - dev-site.romira.dev.conf
     - obsidian-sync.romira.dev
     - vaultwarden.romira.dev.conf
   site_templates:
+    - hasu-music-quiz-api.conf
     - hermes-pages.conf
   enabled_sites:
-    - name: api.hasu-music-quiz.example.com.conf
-      src: ../sites-available/api.hasu-music-quiz.example.com.conf
+    - name: hasu-music-quiz-api.conf
+      src: ../sites-available/hasu-music-quiz-api.conf
     - name: blog.romira.dev.conf
       src: ../sites-available/blog.romira.dev.conf
     - name: dev-site.romira.dev.conf

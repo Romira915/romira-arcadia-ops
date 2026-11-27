@@ -4,7 +4,7 @@ map $http_upgrade $hasu_music_quiz_connection_upgrade {
 }
 
 server {
-    server_name api.hasu-music-quiz.example.com;
+    server_name {{ vault_hasu_music_quiz_backend.api_host }};
 
     client_max_body_size 1m;
 
@@ -33,18 +33,18 @@ server {
     }
 
     listen 443 ssl; # managed by Certbot
-    ssl_certificate /etc/letsencrypt/live/api.hasu-music-quiz.example.com/fullchain.pem; # managed by Certbot
-    ssl_certificate_key /etc/letsencrypt/live/api.hasu-music-quiz.example.com/privkey.pem; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/{{ vault_hasu_music_quiz_backend.api_host }}/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/{{ vault_hasu_music_quiz_backend.api_host }}/privkey.pem; # managed by Certbot
     include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 }
 
 server {
-    if ($host = api.hasu-music-quiz.example.com) {
+    if ($host = {{ vault_hasu_music_quiz_backend.api_host }}) {
         return 301 https://$host$request_uri;
     } # managed by Certbot
 
     listen 80;
-    server_name api.hasu-music-quiz.example.com;
+    server_name {{ vault_hasu_music_quiz_backend.api_host }};
     return 404; # managed by Certbot
 }

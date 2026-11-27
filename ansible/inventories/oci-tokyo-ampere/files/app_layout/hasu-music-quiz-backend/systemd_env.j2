@@ -1,7 +1,7 @@
 BIND_ADDR=127.0.0.1:26128
 VALKEY_URL=redis://127.0.0.1:51032/1
 VALKEY_KEY_PREFIX=hasu-music-quiz:
-FRONTEND_ORIGINS=https://hasu-music-quiz.example.com,https://ikizurai-music-quiz.example.com,https://liella-music-quiz.example.com,https://niji-music-quiz.example.com,https://aqours-music-quiz.example.com
+FRONTEND_ORIGINS={{ vault_hasu_music_quiz_backend.frontend_origins | join(',') }}
 NEW_RELIC_LICENSE_KEY={{ vault_hasu_music_quiz_backend.new_relic_license_key }}
 NEW_RELIC_SERVICE_NAME=hasu-music-quiz-backend
 HOST_NAME=ampere-instance
