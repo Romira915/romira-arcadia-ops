@@ -233,12 +233,13 @@ app_layout:
       mode: "0755"
       directories:
         - path: bin
-          owner: root
-          group: root
+          owner: ubuntu
+          group: ubuntu
           mode: "0755"
       required_files:
         - path: systemd_env
           managed: true
+          template: true
           owner: root
           group: root
           mode: "0600"
